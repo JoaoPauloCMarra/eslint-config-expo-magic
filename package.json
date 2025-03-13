@@ -1,0 +1,70 @@
+{
+  "name": "eslint-config-expo-magic",
+  "version": "1.0.1",
+  "description": "A powerful, opinionated ESLint configuration for React Native and Expo projects with TypeScript support",
+  "main": "index.js",
+  "files": [
+    "*.js",
+    "utils/*.js"
+  ],
+  "author": {
+    "name": "João Paulo Costa Marra",
+    "email": "joaopaulocmarra@gmail.com",
+    "url": "https://github.com/JoaoPauloCMarra/"
+  },
+  "homepage": "https://github.com/JoaoPauloCMarra/eslint-config-expo-magic#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoaoPauloCMarra/eslint-config-expo-magic.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/issues"
+  },
+  "license": "MIT",
+  "keywords": [
+    "eslint",
+    "eslintconfig",
+    "eslint-config",
+    "react",
+    "react-native",
+    "expo",
+    "typescript",
+    "prettier",
+    "jest",
+    "mobile",
+    "linting"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "peerDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.0.0",
+    "eslint-import-resolver-typescript": "^3.0.0",
+    "eslint-plugin-expo": "^2.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jest": "^27.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-compiler": "^0.1.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-native": "^4.1.0",
+    "eslint-plugin-testing-library": "^6.0.0",
+    "eslint-plugin-unused-imports": "^3.0.0",
+    "globals": "^13.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    },
+    "eslint-plugin-testing-library": {
+      "optional": true
+    },
+    "eslint-plugin-jest": {
+      "optional": true
+    }
+  }
+}
