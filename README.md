@@ -1,20 +1,21 @@
 # eslint-config-expo-magic
 
-A powerful, opinionated ESLint configuration for React Native and Expo projects with TypeScript support.
+A powerful, performance-focused ESLint configuration for React Native and Expo projects with TypeScript support.
 
 [![npm version](https://img.shields.io/npm/v/eslint-config-expo-magic.svg)](https://www.npmjs.com/package/eslint-config-expo-magic)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Downloads](https://img.shields.io/npm/dm/eslint-config-expo-magic.svg)](https://www.npmjs.com/package/eslint-config-expo-magic)
 
 ## Features
 
 ✨ **All-in-one configuration** - No need to set up multiple ESLint plugins and configurations  
 🚀 **Expo optimized** - Specific rules for Expo development  
-🔍 **TypeScript support** - Full TypeScript integration with enhanced linting rules  
+🔍 **TypeScript first** - Full TypeScript integration with enhanced linting rules  
 ⚛️ **React & React Native best practices** - Enforces best practices for React and React Native  
-📦 **Import sorting** - Automatic import organization and sorting  
+📦 **Import organization** - Automatic import organization with proper grouping  
 ✅ **Testing support** - Rules for Jest and Testing Library  
 💅 **Prettier integration** - Code formatting powered by Prettier  
-🔧 **Modern JavaScript** - Up-to-date rules for modern JavaScript development  
+🔧 **Performance focused** - Optimized rules to improve app performance
 
 ## Installation
 
