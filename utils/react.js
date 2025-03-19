@@ -28,7 +28,6 @@ module.exports = [
 
     rules: {
       ...pluginReactHooks.configs.recommended.rules,
-      ...pluginReactCompiler.configs.recommended.rules,
       'react/display-name': 'warn',
       'react/jsx-no-duplicate-props': 'error',
       'react/jsx-no-undef': 'error',
