@@ -1,6 +1,6 @@
 {
   "name": "eslint-config-expo-magic",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A powerful, opinionated ESLint configuration for React Native and Expo projects with TypeScript support",
   "main": "index.js",
   "files": [
