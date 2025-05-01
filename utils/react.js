@@ -33,6 +33,7 @@ module.exports = [
       'react/jsx-no-undef': 'error',
       'react/jsx-uses-react': 'warn',
       'react/jsx-uses-vars': 'warn',
+      'react/jsx-boolean-value': ['error', 'never'],
       'react/no-danger-with-children': 'warn',
       'react/no-deprecated': 'warn',
       'react/no-direct-mutation-state': 'warn',
