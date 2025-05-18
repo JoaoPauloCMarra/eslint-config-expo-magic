@@ -1,34 +1,26 @@
-const pluginReact = require('eslint-plugin-react');
+const expoReact = require('eslint-config-expo/flat/utils/react.js');
+
 const pluginReactCompiler = require('eslint-plugin-react-compiler');
-const pluginReactHooks = require('eslint-plugin-react-hooks');
 const pluginReactNative = require('eslint-plugin-react-native');
 
 module.exports = [
+  ...expoReact,
   {
     plugins: {
-      react: pluginReact,
-      'react-hooks': pluginReactHooks,
       'react-compiler': pluginReactCompiler,
       'react-native': pluginReactNative,
     },
 
-    languageOptions: {
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-    },
-
-    settings: {
-      react: {
-        version: 'detect',
-      },
-    },
-
     rules: {
-      ...pluginReactHooks.configs.recommended.rules,
       'react/display-name': 'warn',
+      'react/jsx-key': [
+        'error',
+        {
+          checkFragmentShorthand: true,
+          checkKeyMustBeforeSpread: true,
+          warnOnDuplicates: true,
+        },
+      ],
       'react/jsx-no-duplicate-props': 'error',
       'react/jsx-no-undef': 'error',
       'react/jsx-uses-react': 'warn',
@@ -45,8 +37,6 @@ module.exports = [
         },
       ],
 
-      'react/no-this-in-sfc': 'warn',
-      'react/no-unknown-property': 'warn',
       'react/require-render-return': 'warn',
 
       'react-compiler/react-compiler': 'error',

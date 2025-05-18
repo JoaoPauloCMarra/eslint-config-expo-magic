@@ -1,7 +1,10 @@
 const typescriptEslint = require('@typescript-eslint/eslint-plugin');
 const tsParser = require('@typescript-eslint/parser');
 const importPlugin = require('eslint-plugin-import');
-const { jsExtensions, tsExtensions } = require('./extensions');
+const {
+  jsExtensions,
+  tsExtensions,
+} = require('eslint-config-expo/flat/utils/extensions.js');
 
 const allExtensions = [...jsExtensions, ...tsExtensions];
 
@@ -92,7 +95,7 @@ module.exports = [
       'no-unused-vars': 'off',
 
       '@typescript-eslint/no-unused-vars': [
-        'warn',
+        'error',
         {
           vars: 'all',
           args: 'none',

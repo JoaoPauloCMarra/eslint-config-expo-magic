@@ -1,16 +1,20 @@
+const globals = require('globals');
+
+const coreConfig = require('eslint-config-expo/flat/utils/core.js');
+const expoConfig = require('eslint-config-expo/flat/utils/expo.js');
+const {
+  allExtensions,
+} = require('eslint-config-expo/flat/utils/extensions.js');
+
 const appConfig = require('./utils/app.js');
-const coreConfig = require('./utils/core.js');
-const expoConfig = require('./utils/expo.js');
-const { allExtensions } = require('./utils/extensions.js');
 const importsConfig = require('./utils/imports.js');
 const jestConfig = require('./utils/jest.js');
 const prettierConfig = require('./utils/prettier.js');
 const reactConfig = require('./utils/react.js');
 const typescriptConfig = require('./utils/typescript.js');
+const { defineConfig } = require('eslint/config');
 
-// reference: https://github.com/expo/expo/blob/main/packages/eslint-config-expo/flat/default.js
-
-module.exports = [
+const config = [
   ...coreConfig,
   ...typescriptConfig,
   ...reactConfig,
@@ -28,6 +32,7 @@ module.exports = [
     },
     languageOptions: {
       globals: {
+        ...globals.browser,
         __DEV__: 'readonly',
         ErrorUtils: false,
         FormData: false,
@@ -49,6 +54,7 @@ module.exports = [
   },
   {
     files: ['*.web.*'],
-    env: { browser: true },
   },
 ];
+
+module.exports = defineConfig(config);
