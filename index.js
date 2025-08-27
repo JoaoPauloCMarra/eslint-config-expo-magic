@@ -1,7 +1,6 @@
 const globals = require('globals');
 
-const coreConfig = require('eslint-config-expo/flat/utils/core.js');
-const expoConfig = require('eslint-config-expo/flat/utils/expo.js');
+const expoConfig = require('eslint-config-expo/flat');
 const {
   allExtensions,
 } = require('eslint-config-expo/flat/utils/extensions.js');
@@ -15,10 +14,9 @@ const typescriptConfig = require('./utils/typescript.js');
 const { defineConfig } = require('eslint/config');
 
 const config = [
-  ...coreConfig,
+  ...expoConfig,
   ...typescriptConfig,
   ...reactConfig,
-  ...expoConfig,
   ...importsConfig,
   ...jestConfig,
   ...prettierConfig,
@@ -49,6 +47,14 @@ const config = [
         setImmediate: false,
         window: false,
         'shared-node-browser': true,
+      },
+    },
+  },
+  {
+    files: ['*.config.js', 'metro.config.js', 'babel.config.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
       },
     },
   },

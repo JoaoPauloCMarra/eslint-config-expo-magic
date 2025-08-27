@@ -2,6 +2,7 @@ const expoReact = require('eslint-config-expo/flat/utils/react.js');
 
 const pluginReactCompiler = require('eslint-plugin-react-compiler');
 const pluginReactNative = require('eslint-plugin-react-native');
+const pluginReact19Upgrade = require('eslint-plugin-react-19-upgrade');
 
 module.exports = [
   ...expoReact,
@@ -9,12 +10,13 @@ module.exports = [
     plugins: {
       'react-compiler': pluginReactCompiler,
       'react-native': pluginReactNative,
+      'react-19-upgrade': pluginReact19Upgrade,
     },
 
     rules: {
       'react/display-name': 'warn',
       'react/jsx-key': [
-        'error',
+        'warn',
         {
           checkFragmentShorthand: true,
           checkKeyMustBeforeSpread: true,
@@ -29,15 +31,6 @@ module.exports = [
       'react/no-danger-with-children': 'warn',
       'react/no-deprecated': 'warn',
       'react/no-direct-mutation-state': 'warn',
-
-      'react/no-string-refs': [
-        'warn',
-        {
-          noTemplateLiterals: true,
-        },
-      ],
-
-      'react/require-render-return': 'warn',
 
       'react-compiler/react-compiler': 'error',
 
@@ -60,12 +53,19 @@ module.exports = [
         },
       ],
       'react/jsx-no-useless-fragment': 'error',
+      'react/no-unstable-nested-components': 'error',
 
       'react-native/no-unused-styles': 'error',
       'react-native/no-inline-styles': 'error',
       'react-native/split-platform-components': 'error',
       'react-native/no-raw-text': 'error',
       'react-native/no-single-element-style-arrays': 'error',
+
+      'react-19-upgrade/no-default-props': 'error',
+      'react-19-upgrade/no-prop-types': 'warn',
+      'react-19-upgrade/no-legacy-context': 'error',
+      'react-19-upgrade/no-string-refs': 'error',
+      'react-19-upgrade/no-factories': 'error',
     },
   },
 ];
