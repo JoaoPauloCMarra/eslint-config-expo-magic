@@ -1,5 +1,4 @@
-const typescriptEslint = require('@typescript-eslint/eslint-plugin');
-const tsParser = require('@typescript-eslint/parser');
+const tseslint = require('typescript-eslint');
 const importPlugin = require('eslint-plugin-import');
 const {
   jsExtensions,
@@ -9,13 +8,24 @@ const {
 const allExtensions = [...jsExtensions, ...tsExtensions];
 
 module.exports = [
+  ...tseslint.configs.recommended,
+  ...tseslint.configs['recommended-type-checked'],
+
   importPlugin.flatConfigs.typescript,
   {
-    files: ['**/*.js', '**/*.jsx'],
-
+    files: ['**/*.ts', '**/*.tsx', '**/*.d.ts'],
     settings: {
+      'import/extensions': allExtensions,
       'import/parsers': {
         '@typescript-eslint/parser': tsExtensions,
+      },
+      'import/resolver': {
+        node: {
+          extensions: allExtensions,
+        },
+        typescript: {
+          alwaysTryTypes: true,
+        },
       },
     },
   },
@@ -23,11 +33,11 @@ module.exports = [
     files: ['**/*.ts', '**/*.tsx', '**/*.d.ts'],
 
     plugins: {
-      '@typescript-eslint': typescriptEslint,
+      '@typescript-eslint': tseslint.plugin,
     },
 
     languageOptions: {
-      parser: tsParser,
+      parser: tseslint.parser,
       parserOptions: {
         project: './tsconfig.json',
         ecmaVersion: 2022,
@@ -36,23 +46,6 @@ module.exports = [
           jsx: true,
         },
         warnOnUnsupportedTypeScriptVersion: true,
-      },
-    },
-
-    settings: {
-      'import/extensions': allExtensions,
-
-      'import/parsers': {
-        '@typescript-eslint/parser': tsExtensions,
-      },
-
-      'import/resolver': {
-        node: {
-          extensions: allExtensions,
-        },
-        typescript: {
-          alwaysTryTypes: true,
-        },
       },
     },
 
@@ -130,6 +123,7 @@ module.exports = [
           disallowTypeAnnotations: false,
         },
       ],
+      '@typescript-eslint/no-confusing-void-expression': 'error',
     },
   },
 ];

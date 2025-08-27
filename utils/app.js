@@ -12,7 +12,14 @@ module.exports = [
       'no-restricted-imports': [
         'error',
         {
-          paths: [],
+          paths: [
+            {
+              name: 'react-native',
+              importNames: ['SafeAreaView'],
+              message:
+                "Please use 'SafeAreaView' from 'react-native-safe-area-context' instead. It is no longer exported from 'react-native' starting from v0.81.",
+            },
+          ],
         },
       ],
     },
