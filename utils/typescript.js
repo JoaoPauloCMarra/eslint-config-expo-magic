@@ -1,4 +1,5 @@
-const tseslint = require('typescript-eslint');
+const tseslint = require('@typescript-eslint/eslint-plugin');
+const tsParser = require('@typescript-eslint/parser');
 const importPlugin = require('eslint-plugin-import');
 const {
   jsExtensions,
@@ -8,36 +9,13 @@ const {
 const allExtensions = [...jsExtensions, ...tsExtensions];
 
 module.exports = [
-  ...tseslint.configs.recommended,
-  ...tseslint.configs['recommended-type-checked'],
-
-  importPlugin.flatConfigs.typescript,
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.d.ts'],
-    settings: {
-      'import/extensions': allExtensions,
-      'import/parsers': {
-        '@typescript-eslint/parser': tsExtensions,
-      },
-      'import/resolver': {
-        node: {
-          extensions: allExtensions,
-        },
-        typescript: {
-          alwaysTryTypes: true,
-        },
-      },
-    },
-  },
-  {
-    files: ['**/*.ts', '**/*.tsx', '**/*.d.ts'],
-
     plugins: {
-      '@typescript-eslint': tseslint.plugin,
+      '@typescript-eslint': tseslint,
     },
-
     languageOptions: {
-      parser: tseslint.parser,
+      parser: tsParser,
       parserOptions: {
         project: './tsconfig.json',
         ecmaVersion: 2022,
@@ -48,14 +26,15 @@ module.exports = [
         warnOnUnsupportedTypeScriptVersion: true,
       },
     },
-
     rules: {
+      // TypeScript recommended rules
       '@typescript-eslint/await-thenable': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
       '@typescript-eslint/no-unnecessary-type-assertion': 'error',
       '@typescript-eslint/prefer-nullish-coalescing': 'warn',
       '@typescript-eslint/prefer-optional-chain': 'warn',
+      '@typescript-eslint/no-confusing-void-expression': 'error',
 
       '@typescript-eslint/array-type': [
         'warn',
@@ -123,7 +102,24 @@ module.exports = [
           disallowTypeAnnotations: false,
         },
       ],
-      '@typescript-eslint/no-confusing-void-expression': 'error',
+    },
+  },
+  importPlugin.flatConfigs.typescript,
+  {
+    files: ['**/*.ts', '**/*.tsx', '**/*.d.ts'],
+    settings: {
+      'import/extensions': allExtensions,
+      'import/parsers': {
+        '@typescript-eslint/parser': tsExtensions,
+      },
+      'import/resolver': {
+        node: {
+          extensions: allExtensions,
+        },
+        typescript: {
+          alwaysTryTypes: true,
+        },
+      },
     },
   },
 ];
