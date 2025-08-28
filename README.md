@@ -93,7 +93,7 @@ module.exports = {
 
 This package includes **built-in validation** that runs automatically before publishing:
 
-- ✅ **ESLint Rules Validation** - All 18+ rules tested and working
+- ✅ **ESLint Rules Validation** - All 27+ rules tested and working
 - ✅ **TypeScript Compatibility** - Advanced type checking verified
 - ✅ **React Native & Expo** - Platform-specific rules validated
 - ✅ **Testing Suite** - Jest and Testing Library integration tested
