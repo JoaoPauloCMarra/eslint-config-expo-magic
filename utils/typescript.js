@@ -1,19 +1,9 @@
-const tseslint = require('@typescript-eslint/eslint-plugin');
 const tsParser = require('@typescript-eslint/parser');
 const importPlugin = require('eslint-plugin-import');
-const {
-  jsExtensions,
-  tsExtensions,
-} = require('eslint-config-expo/flat/utils/extensions.js');
-
-const allExtensions = [...jsExtensions, ...tsExtensions];
 
 module.exports = [
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.d.ts'],
-    plugins: {
-      '@typescript-eslint': tseslint,
-    },
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -104,22 +94,11 @@ module.exports = [
       ],
     },
   },
-  importPlugin.flatConfigs.typescript,
+  // Use only the rules from import/typescript, not the plugin definition
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.d.ts'],
-    settings: {
-      'import/extensions': allExtensions,
-      'import/parsers': {
-        '@typescript-eslint/parser': tsExtensions,
-      },
-      'import/resolver': {
-        node: {
-          extensions: allExtensions,
-        },
-        typescript: {
-          alwaysTryTypes: true,
-        },
-      },
+    rules: {
+      ...importPlugin.flatConfigs.typescript.rules,
     },
   },
 ];

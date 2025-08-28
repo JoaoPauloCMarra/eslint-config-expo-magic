@@ -49,6 +49,9 @@
 ### Installation
 
 ```bash
+# Using bun (recommended)
+bun add --dev eslint-config-expo-magic
+
 # Using npm
 npm install --save-dev eslint-config-expo-magic
 
@@ -85,6 +88,18 @@ module.exports = {
 ```
 
 **That's it!** 🎉 Your project now has enterprise-grade linting!
+
+## 🛡️ Quality Assurance
+
+This package includes **built-in validation** that runs automatically before publishing:
+
+- ✅ **ESLint Rules Validation** - All 18+ rules tested and working
+- ✅ **TypeScript Compatibility** - Advanced type checking verified
+- ✅ **React Native & Expo** - Platform-specific rules validated
+- ✅ **Testing Suite** - Jest and Testing Library integration tested
+- ✅ **Prettier Integration** - Code formatting consistency ensured
+
+The validation runs automatically on `prepublishOnly`, ensuring every published version meets quality standards.
 
 ## 📋 What's Included (Complete Rule Set)
 

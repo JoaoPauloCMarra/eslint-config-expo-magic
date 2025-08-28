@@ -8,7 +8,7 @@ module.exports = [
       'testing-library': testingLibraryPlugin,
     },
 
-    files: ['**/*.test.js', '**/*.spec.js', 'jest.setup.js'],
+    files: ['**/*.test.js', '**/*.test.ts', '**/*.test.tsx', '**/*.spec.js', '**/*.spec.ts', '**/*.spec.tsx', 'jest.setup.js'],
 
     languageOptions: {
       globals: {

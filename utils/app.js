@@ -22,6 +22,8 @@ module.exports = [
           ],
         },
       ],
+      'no-console': 'warn',
+      'prefer-const': 'error',
     },
   },
 ];
