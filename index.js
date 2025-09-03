@@ -29,17 +29,17 @@ const config = [
   // Testing configuration
   ...(jestConfig || []),
 
-  // Code formatting
-  ...(prettierConfig || []),
-
   // Custom app rules
   ...(appConfig || []),
+
+  // Code formatting (prettier config should be last)
+  ...(prettierConfig || []),
 
   // Global settings and environment
   {
     settings: {
-      'import/extensions': allExtensions,
-      'import/resolver': {
+      'import-x/extensions': allExtensions,
+      'import-x/resolver': {
         node: { extensions: allExtensions },
       },
     },

@@ -1,18 +1,19 @@
-const sortImports = require('eslint-plugin-import');
+const { importX } = require('eslint-plugin-import-x');
 const unusedImports = require('eslint-plugin-unused-imports');
 
 module.exports = [
+  importX.flatConfigs.recommended,
+  importX.flatConfigs.typescript,
   {
     plugins: {
       'unused-imports': unusedImports,
     },
     rules: {
-      ...sortImports.configs.recommended.rules,
       'sort-imports': 'off',
       'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': 'off',
 
-      'import/order': [
+      'import-x/order': [
         'error',
         {
           'newlines-between': 'never',
@@ -66,12 +67,12 @@ module.exports = [
           },
         },
       ],
-      'import/first': 'error',
-      'import/no-amd': 'error',
-      'import/no-anonymous-default-export': 'warn',
-      'import/no-webpack-loader-syntax': 'error',
-      'import/no-named-as-default': 'error',
-      'import/prefer-default-export': 'off',
+      'import-x/first': 'error',
+      'import-x/no-amd': 'error',
+      'import-x/no-anonymous-default-export': 'warn',
+      'import-x/no-webpack-loader-syntax': 'error',
+      'import-x/no-named-as-default': 'error',
+      'import-x/prefer-default-export': 'off',
     },
   },
 ];

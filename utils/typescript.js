@@ -1,5 +1,5 @@
 const tsParser = require('@typescript-eslint/parser');
-const importPlugin = require('eslint-plugin-import');
+const { importX } = require('eslint-plugin-import-x');
 
 module.exports = [
   {
@@ -7,7 +7,7 @@ module.exports = [
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.json',
+        projectService: true,
         ecmaVersion: 2022,
         sourceType: 'module',
         ecmaFeatures: {
@@ -17,7 +17,6 @@ module.exports = [
       },
     },
     rules: {
-      // TypeScript recommended rules
       '@typescript-eslint/await-thenable': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
@@ -92,13 +91,6 @@ module.exports = [
           disallowTypeAnnotations: false,
         },
       ],
-    },
-  },
-  // Use only the rules from import/typescript, not the plugin definition
-  {
-    files: ['**/*.ts', '**/*.tsx', '**/*.d.ts'],
-    rules: {
-      ...importPlugin.flatConfigs.typescript.rules,
     },
   },
 ];
