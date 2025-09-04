@@ -46,7 +46,8 @@
     "ci": "bun install --frozen-lockfile",
     "dev": "bun run --if-present",
     "build": "bun run --if-present",
-    "test": "bun run --if-present"
+    "test": "bun run --if-present",
+    "validate": "cd test-project && bun run validate"
   },
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^8.42.0",

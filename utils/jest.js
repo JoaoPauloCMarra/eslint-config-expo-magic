@@ -27,6 +27,7 @@ module.exports = [
       ...jestPlugin.configs.recommended.rules,
       'jest/no-disabled-tests': 'warn',
       'jest/no-focused-tests': 'error',
+      'jest/no-test-prefixes': 'warn',
       'jest/valid-expect': 'error',
 
       'testing-library/await-async-queries': 'error',
