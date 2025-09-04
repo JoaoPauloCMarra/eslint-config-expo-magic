@@ -1,6 +1,6 @@
 {
   "name": "eslint-config-expo-magic",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "author": {
     "name": "João Paulo Costa Marra",
     "email": "joaopaulocmarra@gmail.com",
@@ -15,8 +15,10 @@
     "url": "https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/issues"
   },
   "description": "A powerful, opinionated ESLint configuration for React Native and Expo projects with TypeScript support",
+  "packageManager": "bun@1.2.21",
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=16.0.0",
+    "bun": ">=1.0.0"
   },
   "files": [
     "*.js",
@@ -38,15 +40,21 @@
   ],
   "license": "MIT",
   "scripts": {
-    "prepublishOnly": "cd test-project && bun run validate || (echo '🚫 PUBLISH CANCELLED: Validation failed!' && exit 1)"
+    "prepublishOnly": "bun run check-pm && cd test-project && bun run validate || (echo '🚫 PUBLISH CANCELLED: Validation failed!' && exit 1)",
+    "check-pm": "node check-pm.js",
+    "install": "echo '⚠️  Please use bun instead of npm/yarn/pnpm for this project'",
+    "ci": "bun install --frozen-lockfile",
+    "dev": "bun run --if-present",
+    "build": "bun run --if-present",
+    "test": "bun run --if-present"
   },
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^8.42.0",
     "@typescript-eslint/parser": "^8.42.0",
     "eslint": "^9.34.0",
     "eslint-config-expo": "^9.2.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import-x": "^4.6.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import-x": "^4.16.1",
     "eslint-plugin-jest": "^29.0.1",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react": "^7.37.5",

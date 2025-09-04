@@ -1,6 +1,12 @@
 # dependencies (bun install)
 node_modules
 
+# Other package manager lockfiles (this project uses bun)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+shrinkwrap.json
+
 # output
 out
 dist

@@ -43,23 +43,38 @@
 
 ### Prerequisites
 - **Node.js** 16.0.0 or higher
+- **Bun** 1.0.0 or higher (required - this project uses bun as package manager)
 - **Expo SDK** 49+ (recommended: 54+)
 - **ESLint** 8.x+ with flat config support
+
+### 📦 Package Manager
+
+This project **requires Bun** as the package manager. Please use bun for all package management operations:
+
+```bash
+# ✅ Correct - Use bun
+bun install
+bun add package-name
+bun remove package-name
+
+# ❌ Avoid - Don't use npm/yarn/pnpm
+npm install
+yarn add package-name
+pnpm add package-name
+```
+
+**Why Bun?** Faster installs, better performance, and consistent lockfile management.
 
 ### Installation
 
 ```bash
-# Using bun (recommended)
+# 🚀 Recommended: Use bun (required for this project)
 bun add --dev eslint-config-expo-magic
 
-# Using npm
-npm install --save-dev eslint-config-expo-magic
-
-# Using yarn
-yarn add --dev eslint-config-expo-magic
-
-# Using pnpm
-pnpm add --save-dev eslint-config-expo-magic
+# ⚠️  Other package managers are not supported
+# npm install --save-dev eslint-config-expo-magic
+# yarn add --dev eslint-config-expo-magic
+# pnpm add --dev eslint-config-expo-magic
 ```
 
 ### Setup (2 minutes!)
