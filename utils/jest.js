@@ -24,16 +24,19 @@ module.exports = [
     },
 
     rules: {
+      // Include recommended Jest rules
       ...jestPlugin.configs.recommended.rules,
-      'jest/no-disabled-tests': 'warn',
-      'jest/no-focused-tests': 'error',
+      // jest/no-disabled-tests: Disallow disabled tests. Default: 'off'
+      'jest/no-disabled-tests': 'error',
+      // jest/no-test-prefixes: Disallow using f and x prefixes to define Jest tests. Default: 'off'
       'jest/no-test-prefixes': 'warn',
-      'jest/valid-expect': 'error',
 
+      // testing-library/await-async-queries: Enforce promises from async queries to be handled. Default: 'off'
       'testing-library/await-async-queries': 'error',
+      // testing-library/no-await-sync-queries: Disallow unnecessary await for sync queries. Default: 'off'
       'testing-library/no-await-sync-queries': 'error',
+      // testing-library/no-debugging-utils: Disallow the use of debugging utilities like debug. Default: 'off'
       'testing-library/no-debugging-utils': 'warn',
-      'testing-library/no-dom-import': 'off',
     },
   },
 ];

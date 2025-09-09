@@ -7,6 +7,7 @@ module.exports = [
       prettier: pluginPrettier,
     },
     rules: {
+      // prettier/prettier: Runs Prettier as an ESLint rule and reports differences as individual ESLint issues. Default: 'off'
       'prettier/prettier': 'error',
     },
   },

@@ -1,6 +1,7 @@
 module.exports = [
   {
     rules: {
+      // no-restricted-syntax: Disallows specified syntax. Default: 'off'
       'no-restricted-syntax': [
         'error',
         {
@@ -9,6 +10,7 @@ module.exports = [
             'Avoid using interfaces, prefer types for better performance and consistency.',
         },
       ],
+      // no-restricted-imports: Disallows specified modules when loaded by import declarations. Default: 'off'
       'no-restricted-imports': [
         'error',
         {
@@ -22,8 +24,8 @@ module.exports = [
           ],
         },
       ],
+      // no-console: Disallows calls to methods of the console object. Default: 'off'
       'no-console': 'warn',
-      'prefer-const': 'error',
     },
   },
 ];

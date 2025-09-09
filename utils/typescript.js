@@ -17,14 +17,22 @@ module.exports = [
       },
     },
     rules: {
+      // @typescript-eslint/await-thenable: Disallow awaiting a value that is not a Thenable. Default: 'off'
       '@typescript-eslint/await-thenable': 'error',
+      // @typescript-eslint/no-floating-promises: Require Promise-like statements to be handled appropriately. Default: 'off'
       '@typescript-eslint/no-floating-promises': 'error',
+      // @typescript-eslint/no-misused-promises: Avoid using promises in places not designed to handle them. Default: 'off'
       '@typescript-eslint/no-misused-promises': 'error',
+      // @typescript-eslint/no-unnecessary-type-assertion: Warns for type assertions that do not change the type of an expression. Default: 'off'
       '@typescript-eslint/no-unnecessary-type-assertion': 'error',
+      // @typescript-eslint/prefer-nullish-coalescing: Enforce using the nullish coalescing operator instead of logical chaining. Default: 'off'
       '@typescript-eslint/prefer-nullish-coalescing': 'warn',
+      // @typescript-eslint/prefer-optional-chain: Enforce using the optional chaining operator instead of logical chaining. Default: 'off'
       '@typescript-eslint/prefer-optional-chain': 'warn',
+      // @typescript-eslint/no-confusing-void-expression: Require expressions of type void to appear in statement position. Default: 'off'
       '@typescript-eslint/no-confusing-void-expression': 'error',
 
+      // @typescript-eslint/array-type: Require using either T[] or Array<T> for arrays. Default: 'off'
       '@typescript-eslint/array-type': [
         'warn',
         {
@@ -32,12 +40,18 @@ module.exports = [
         },
       ],
 
+      // @typescript-eslint/consistent-type-definitions: Enforce type definitions to consistently use either interface or type. Default: 'off'
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+      // @typescript-eslint/no-empty-object-type: Disallow the use of empty interfaces. Default: 'off'
       '@typescript-eslint/no-empty-object-type': 'warn',
-      '@typescript-eslint/no-explicit-any': 'warn',
+      // @typescript-eslint/no-explicit-any: Disallow the use of the any type. Default: 'off'
+      '@typescript-eslint/no-explicit-any': 'error',
+      // @typescript-eslint/no-unnecessary-type-constraint: Disallow unnecessary constraints on generic types. Default: 'off'
       '@typescript-eslint/no-unnecessary-type-constraint': 'error',
+      // @typescript-eslint/no-wrapper-object-types: Disallow the use of the Object type. Default: 'off'
       '@typescript-eslint/no-wrapper-object-types': 'warn',
 
+      // @typescript-eslint/consistent-type-assertions: Enforce consistent usage of type assertions. Default: 'off'
       '@typescript-eslint/consistent-type-assertions': [
         'warn',
         {
@@ -46,15 +60,17 @@ module.exports = [
         },
       ],
 
+      // @typescript-eslint/no-extra-non-null-assertion: Disallow extra non-null assertion. Default: 'off'
       '@typescript-eslint/no-extra-non-null-assertion': 'warn',
+      // @typescript-eslint/no-non-null-assertion: Disallow non-null assertions using the ! postfix operator. Default: 'off'
       '@typescript-eslint/no-non-null-assertion': 'warn',
 
-      'no-dupe-class-members': 'off',
+      // @typescript-eslint/no-dupe-class-members: Disallow duplicate class members. Default: 'off'
       '@typescript-eslint/no-dupe-class-members': 'error',
-      'no-redeclare': 'off',
+      // @typescript-eslint/no-redeclare: Disallow variable redeclaration. Default: 'off'
       '@typescript-eslint/no-redeclare': 'warn',
-      'no-unused-vars': 'off',
 
+      // @typescript-eslint/no-unused-vars: Disallow unused variables. Default: 'off'
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -67,10 +83,10 @@ module.exports = [
         },
       ],
 
-      'no-useless-constructor': 'off',
+      // @typescript-eslint/no-useless-constructor: Disallow unnecessary constructors. Default: 'off'
       '@typescript-eslint/no-useless-constructor': 'warn',
-      'no-undef': 'off',
 
+      // @typescript-eslint/naming-convention: Enforce naming conventions for everything which is not a React component. Default: 'off'
       '@typescript-eslint/naming-convention': [
         'warn',
         {
@@ -84,6 +100,7 @@ module.exports = [
         },
       ],
 
+      // @typescript-eslint/consistent-type-imports: Enforce consistent usage of type imports. Default: 'off'
       '@typescript-eslint/consistent-type-imports': [
         'error',
         {

@@ -9,10 +9,10 @@ module.exports = [
       'unused-imports': unusedImports,
     },
     rules: {
-      'sort-imports': 'off',
+      // unused-imports/no-unused-imports: Report unused ES6 imports. Default: 'off'
       'unused-imports/no-unused-imports': 'error',
-      'unused-imports/no-unused-vars': 'off',
 
+      // import-x/order: Enforce a convention in the order of require() / import statements. Default: 'off'
       'import-x/order': [
         'error',
         {
@@ -67,12 +67,16 @@ module.exports = [
           },
         },
       ],
+      // import-x/first: Ensure all imports appear before other statements. Default: 'off'
       'import-x/first': 'error',
+      // import-x/no-amd: Disallow AMD require and define calls. Default: 'off'
       'import-x/no-amd': 'error',
-      'import-x/no-anonymous-default-export': 'warn',
+      // import-x/no-anonymous-default-export: Disallow anonymous default exports. Default: 'off'
+      'import-x/no-anonymous-default-export': 'error',
+      // import-x/no-webpack-loader-syntax: Disallow webpack loader syntax in imports. Default: 'off'
       'import-x/no-webpack-loader-syntax': 'error',
+      // import-x/no-named-as-default: Disallow named exports as default export. Default: 'off'
       'import-x/no-named-as-default': 'error',
-      'import-x/prefer-default-export': 'off',
     },
   },
 ];

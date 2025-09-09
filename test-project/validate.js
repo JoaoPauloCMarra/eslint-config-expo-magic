@@ -1,42 +1,50 @@
 #!/usr/bin/env node
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+const { execSync } = require("child_process");
+const fs = require("fs");
+const path = require("path");
 
-console.log('🚀 ESLint Config Expo Magic - Validation Suite');
-console.log('==============================================\n');
+console.log("🚀 ESLint Config Expo Magic - Validation Suite");
+console.log("==============================================\n");
 
 // Expected rules that should trigger errors
 const expectedRules = {
   // TypeScript Rules
-  '@typescript-eslint/no-explicit-any': ['App.tsx'],
-  '@typescript-eslint/no-floating-promises': ['App.tsx'],
-  '@typescript-eslint/no-confusing-void-expression': ['App.tsx'],
-  '@typescript-eslint/no-unused-vars': ['App.tsx', 'utils/helpers.ts', 'components/UnusedComponent.tsx'],
-  '@typescript-eslint/consistent-type-definitions': ['components/BadImports.tsx'],
-  'react/no-unstable-nested-components': ['App.tsx'],
-  'react-hooks/exhaustive-deps': ['App.tsx'],
-  'react-native/no-inline-styles': ['App.tsx'],
-  'no-restricted-imports': ['App.tsx'],
-  'import/order': ['components/BadImports.tsx'],
-  'import/no-anonymous-default-export': ['components/BadImports.tsx'],
-  'unused-imports/no-unused-imports': ['App.tsx', 'components/BadImports.tsx'],
-  'jest/no-disabled-tests': ['__tests__/App.test.tsx'],
-  'jest/no-focused-tests': ['__tests__/App.test.tsx'],
-  'testing-library/await-async-queries': ['__tests__/App.test.tsx'],
-  'no-console': ['App.tsx', 'index.js', 'metro.config.js', 'babel.config.js'],
-  'no-var': ['index.js'],
-  'prefer-const': ['App.tsx', 'index.js'],
+  "@typescript-eslint/no-explicit-any": ["App.tsx"],
+  "@typescript-eslint/no-floating-promises": ["App.tsx"],
+  "@typescript-eslint/no-confusing-void-expression": ["App.tsx"],
+  "@typescript-eslint/no-unused-vars": [
+    "App.tsx",
+    "utils/helpers.ts",
+    "components/UnusedComponent.tsx",
+  ],
+  "@typescript-eslint/consistent-type-definitions": [
+    "components/BadImports.tsx",
+  ],
+  "react/no-unstable-nested-components": ["App.tsx"],
+  "react-hooks/exhaustive-deps": ["App.tsx"],
+  "react-native/no-inline-styles": ["App.tsx"],
+  "no-restricted-imports": ["App.tsx"],
+  "import-x/order": ["components/BadImports.tsx"],
+  "import-x/no-anonymous-default-export": ["components/BadImports.tsx"],
+  "unused-imports/no-unused-imports": ["App.tsx", "components/BadImports.tsx"],
+  "jest/no-disabled-tests": ["__tests__/App.test.tsx"],
+  "jest/no-focused-tests": ["__tests__/App.test.tsx"],
+  "testing-library/await-async-queries": ["__tests__/App.test.tsx"],
+  "no-console": ["App.tsx", "index.js", "metro.config.js", "babel.config.js"],
+  "no-var": ["index.js"],
 };
 
 function runESLint() {
   try {
-    console.log('📋 Running ESLint...');
-    const output = execSync('npx eslint . --ext .js,.jsx,.ts,.tsx --format=json', {
-      encoding: 'utf8',
-      cwd: __dirname
-    });
+    console.log("📋 Running ESLint...");
+    const output = execSync(
+      "npx eslint . --ext .js,.jsx,.ts,.tsx --format=json",
+      {
+        encoding: "utf8",
+        cwd: __dirname,
+      },
+    );
 
     const results = JSON.parse(output);
     return results;
@@ -50,16 +58,16 @@ function runESLint() {
 }
 
 function analyzeResults(results) {
-  console.log('\n📊 Analysis Results:');
-  console.log('==================');
+  console.log("\n📊 Analysis Results:");
+  console.log("==================");
 
   const foundRules = new Set();
   let totalErrors = 0;
 
-  results.forEach(file => {
+  results.forEach((file) => {
     if (file.messages && file.messages.length > 0) {
       console.log(`\n📁 ${path.relative(__dirname, file.filePath)}:`);
-      file.messages.forEach(message => {
+      file.messages.forEach((message) => {
         if (message.ruleId) {
           foundRules.add(message.ruleId);
           console.log(`  ❌ ${message.ruleId}: ${message.message}`);
@@ -74,7 +82,7 @@ function analyzeResults(results) {
   console.log(`   Unique rules triggered: ${foundRules.size}`);
 
   // Check which expected rules were found
-  console.log('\n✅ Expected Rules Validation:');
+  console.log("\n✅ Expected Rules Validation:");
   let passedRules = 0;
   let failedRules = 0;
 
@@ -93,11 +101,11 @@ function analyzeResults(results) {
   console.log(`   Rules not triggering: ${failedRules}`);
 
   if (failedRules === 0) {
-    console.log('\n🎉 All expected rules are working correctly!');
+    console.log("\n🎉 All expected rules are working correctly!");
     return true;
   } else {
-    console.log('\n⚠️  Some rules are not triggering as expected.');
-    console.log('   Check the configuration and test files.');
+    console.log("\n⚠️  Some rules are not triggering as expected.");
+    console.log("   Check the configuration and test files.");
     return false;
   }
 }
@@ -108,14 +116,14 @@ function main() {
     const success = analyzeResults(results);
 
     if (success) {
-      console.log('\n🚀 Ready for publishing!');
+      console.log("\n🚀 Ready for publishing!");
       process.exit(0);
     } else {
-      console.log('\n❌ Validation failed. Please check the issues above.');
+      console.log("\n❌ Validation failed. Please check the issues above.");
       process.exit(1);
     }
   } catch (error) {
-    console.error('❌ Error running validation:', error.message);
+    console.error("❌ Error running validation:", error.message);
     process.exit(1);
   }
 }

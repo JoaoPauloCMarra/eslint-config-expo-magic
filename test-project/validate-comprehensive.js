@@ -58,7 +58,6 @@ const expectedRules = {
 
   // General rules
   "no-var": ["index.js"],
-  "prefer-const": ["App.tsx", "index.js"],
   "no-unused-vars": ["validate.js"],
   "no-undef": ["validate.js"],
   "no-restricted-syntax": ["components/BadImports.tsx"],
@@ -80,8 +79,8 @@ const expectedRules = {
   ],
 };
 
-const expectedErrorsCount = 154;
-const expectedWarningsCount = 81;
+const expectedErrorsCount = 115;
+const expectedWarningsCount = 78;
 
 async function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {
