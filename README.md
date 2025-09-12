@@ -18,6 +18,7 @@
 - ❌ **Frustrated with inconsistent code quality across your team?**
 - ❌ **Want to catch TypeScript errors before they reach production?**
 - ❌ **Need React Native and Expo-specific optimizations?**
+- ✅ **Now fully compatible with Expo SDK 54!**
 
 ### ✅ **Our Solution**
 - **⚡ 5-minute setup** - Just install and go!
@@ -45,7 +46,7 @@
 - **Node.js** 16.0.0 or higher
 - **Bun** 1.0.0 or higher (required - this project uses bun as package manager)
 - **Expo SDK** 49+ (recommended: 54+)
-- **ESLint** 8.x+ with flat config support
+- **ESLint** 9.x+ with flat config support
 
 ### 📦 Package Manager
 
@@ -122,8 +123,8 @@ The validation runs automatically on `prepublishOnly`, ensuring every published 
 - **JavaScript ES2022+** - Modern syntax support
 - **TypeScript 5.x** - Advanced type checking and performance rules
 - **React 18/19** - Latest React patterns and hooks
-- **React Native** - Mobile-specific optimizations
-- **Expo SDK** - Platform integration and environment handling
+- **React Native 0.81+** - Latest mobile platform support
+- **Expo SDK 54+** - Full compatibility with latest Expo features
 
 ### 🎯 Enforced Best Practices
 
@@ -150,6 +151,7 @@ The validation runs automatically on `prepublishOnly`, ensuring every published 
 - ✅ **No unused variables/imports**
 - ✅ **Consistent naming conventions**
 - ✅ **Self-closing tags** where appropriate
+- ✅ **Prefer box-shadow** over deprecated shadow props
 
 #### Testing & Formatting
 - ✅ **Jest** best practices
@@ -292,6 +294,22 @@ We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for deta
 ## 📄 License
 
 **MIT License** - Use it freely in your projects!
+
+---
+
+## 📝 Changelog
+
+### v1.2.0 (2025-09-12)
+- ✨ **Expo SDK 54 Support** - Full compatibility with Expo SDK 54
+- ⬆️ Updated `eslint-config-expo` to v10.0.0
+- ⬆️ Updated test project to Expo SDK 54.0.0
+- ⬆️ Updated React Native to 0.81.4
+- ⬆️ Updated Jest and testing dependencies
+- 🔧 ESLint requirement updated to 9.x+ with flat config support
+- 🆕 Added `expo/prefer-box-shadow` rule to enforce modern shadow properties
+
+### v1.1.7 (2024-XX-XX)
+- 🐛 Bug fixes and dependency updates
 
 ---
 

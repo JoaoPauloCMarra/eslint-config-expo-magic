@@ -1,6 +1,8 @@
 module.exports = [
   {
     rules: {
+      // expo/prefer-box-shadow: Enforces using box-shadow instead of deprecated shadow props
+      'expo/prefer-box-shadow': 'warn',
       // no-restricted-syntax: Disallows specified syntax. Default: 'off'
       'no-restricted-syntax': [
         'error',
