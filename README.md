@@ -299,6 +299,11 @@ We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for deta
 
 ## 📝 Changelog
 
+### v1.2.1 (2025-09-15)
+- ⬆️ Updated `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser` to v8.43.0
+- ⬆️ Updated `eslint` to v9.35.0
+- 🔧 Dependency updates for improved stability and performance
+
 ### v1.2.0 (2025-09-12)
 - ✨ **Expo SDK 54 Support** - Full compatibility with Expo SDK 54
 - ⬆️ Updated `eslint-config-expo` to v10.0.0
