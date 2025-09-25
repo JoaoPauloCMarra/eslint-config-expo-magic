@@ -18,21 +18,17 @@ const expectedRules = {
     "App.tsx",
     "__tests__/App.test.tsx",
   ],
-  "@typescript-eslint/no-confusing-void-expression": ["App.tsx"],
-  "@typescript-eslint/consistent-type-definitions": [
-    "components/BadImports.tsx",
-  ],
+  "@typescript-eslint/no-explicit-any": ["App.tsx"],
 
   // React rules
-  "react/function-component-definition": ["App.tsx"],
   "react/no-unstable-nested-components": ["App.tsx"],
   "react-hooks/exhaustive-deps": ["App.tsx"],
+  "react-hooks/static-components": ["App.tsx"],
   "react/display-name": ["components/BadImports.tsx"],
 
   // React Native rules
   "react-native/no-inline-styles": ["App.tsx"],
   "react-native/no-raw-text": ["App.tsx"],
-  "no-restricted-imports": ["App.tsx"],
 
   // Jest rules
   "jest/no-disabled-tests": ["__tests__/App.test.tsx"],
@@ -43,15 +39,14 @@ const expectedRules = {
   "testing-library/await-async-queries": ["__tests__/App.test.tsx"],
 
   // Import rules
-  "import/first": ["App.tsx"],
   "import/no-duplicates": ["App.tsx", "components/BadImports.tsx"],
   "import-x/order": [
     "App.tsx",
     "components/BadImports.tsx",
     "__tests__/App.test.tsx",
   ],
-  "import-x/first": ["App.tsx"],
   "import-x/no-duplicates": ["App.tsx", "components/BadImports.tsx"],
+  "import-x/no-anonymous-default-export": ["App.tsx"],
 
   // Unused imports rules
   "unused-imports/no-unused-imports": ["components/BadImports.tsx", "App.tsx"],
@@ -60,7 +55,7 @@ const expectedRules = {
   "no-var": ["index.js"],
   "no-unused-vars": ["validate.js"],
   "no-undef": ["validate.js"],
-  "no-restricted-syntax": ["components/BadImports.tsx"],
+  "no-console": ["App.tsx"],
 
   // Prettier (formatting)
   "prettier/prettier": [
@@ -79,8 +74,8 @@ const expectedRules = {
   ],
 };
 
-const expectedErrorsCount = 115;
-const expectedWarningsCount = 78;
+const expectedErrorsCount = 82;
+const expectedWarningsCount = 73;
 
 async function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {

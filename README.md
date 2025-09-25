@@ -299,6 +299,14 @@ We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for deta
 
 ## 📝 Changelog
 
+### v1.2.2 (2025-09-25)
+- 🚀 **React Hooks RC Support** - Upgraded to `eslint-plugin-react-hooks@6.0.0-rc.2` with latest React Compiler rules
+- 🆕 **New RC Rules** - Added support for `react-hooks/static-components`, `react-hooks/no-unused-directives`, and other RC features
+- 📝 **Enhanced Documentation** - Added comprehensive rule descriptions and cleaned up code comments
+- ⬆️ Updated `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser` to v8.44.1
+- ⬆️ Updated `eslint` to v9.36.0
+- 🔧 Code quality improvements and validation updates
+
 ### v1.2.1 (2025-09-15)
 - ⬆️ Updated `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser` to v8.43.0
 - ⬆️ Updated `eslint` to v9.35.0

@@ -1,9 +1,9 @@
 module.exports = [
   {
     rules: {
-      // expo/prefer-box-shadow: Enforces using box-shadow instead of deprecated shadow props
+      // expo/prefer-box-shadow: Enforce using box-shadow instead of deprecated shadow props in Expo
       'expo/prefer-box-shadow': 'warn',
-      // no-restricted-syntax: Disallows specified syntax. Default: 'off'
+      // no-restricted-syntax: Disallow specified syntax patterns, here TypeScript interfaces
       'no-restricted-syntax': [
         'error',
         {
@@ -12,7 +12,7 @@ module.exports = [
             'Avoid using interfaces, prefer types for better performance and consistency.',
         },
       ],
-      // no-restricted-imports: Disallows specified modules when loaded by import declarations. Default: 'off'
+      // no-restricted-imports: Disallow specified modules or module members from being imported
       'no-restricted-imports': [
         'error',
         {
@@ -26,7 +26,7 @@ module.exports = [
           ],
         },
       ],
-      // no-console: Disallows calls to methods of the console object. Default: 'off'
+      // no-console: Disallow calls to methods of the console object
       'no-console': 'warn',
     },
   },

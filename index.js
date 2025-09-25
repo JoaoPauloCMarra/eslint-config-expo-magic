@@ -13,29 +13,23 @@ const reactConfig = require('./utils/react.js');
 const typescriptConfig = require('./utils/typescript.js');
 const { defineConfig } = require('eslint/config');
 
-const config = [
-  // Base Expo configuration
-  ...(expoConfig || []),
+const filteredExpoConfig = expoConfig.filter(c => !c.plugins || !c.plugins['react-hooks']);
 
-  // TypeScript configuration
+const config = [
+  ...filteredExpoConfig,
+
   ...(typescriptConfig || []),
 
-  // React configuration
   ...(reactConfig || []),
 
-  // Import organization
   ...(importsConfig || []),
 
-  // Testing configuration
   ...(jestConfig || []),
 
-  // Custom app rules
   ...(appConfig || []),
 
-  // Code formatting (prettier config should be last)
   ...(prettierConfig || []),
 
-  // Global settings and environment
   {
     settings: {
       'import-x/extensions': allExtensions,
@@ -66,7 +60,6 @@ const config = [
     },
   },
 
-  // Environment-specific overrides
   {
     files: ['*.config.js', 'metro.config.js', 'babel.config.js'],
     languageOptions: {
@@ -76,7 +69,6 @@ const config = [
     },
   },
 
-  // Web-specific files
   {
     files: ['*.web.*'],
   },
