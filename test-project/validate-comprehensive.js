@@ -23,7 +23,6 @@ const expectedRules = {
   // React rules
   "react/no-unstable-nested-components": ["App.tsx"],
   "react-hooks/exhaustive-deps": ["App.tsx"],
-  "react-hooks/static-components": ["App.tsx"],
   "react/display-name": ["components/BadImports.tsx"],
 
   // React Native rules
@@ -74,7 +73,7 @@ const expectedRules = {
   ],
 };
 
-const expectedErrorsCount = 82;
+const expectedErrorsCount = 81;
 const expectedWarningsCount = 73;
 
 async function runCommand(command, args, options = {}) {

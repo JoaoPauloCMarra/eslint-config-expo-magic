@@ -299,6 +299,15 @@ We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for deta
 
 ## 📝 Changelog
 
+### v1.2.3 (2025-10-01)
+- 🚀 **React Hooks Stable Release** - Upgraded to `eslint-plugin-react-hooks@6.0.0` (stable), removed deprecated `static-components` rule
+- ⬆️ Updated `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser` to v8.45.0
+- ⬆️ Updated `eslint-plugin-testing-library` to v7.11.0
+- ⬆️ Updated `jest` to v30.2.0
+- ⬆️ Updated `typescript` to v5.9.3
+- ⬆️ Updated test project `@types/react` to v19.1.17 and `expo` to v54.0.11
+- 🔧 Updated validation scripts to reflect rule changes
+
 ### v1.2.2 (2025-09-25)
 - 🚀 **React Hooks RC Support** - Upgraded to `eslint-plugin-react-hooks@6.0.0-rc.2` with latest React Compiler rules
 - 🆕 **New RC Rules** - Added support for `react-hooks/static-components`, `react-hooks/no-unused-directives`, and other RC features
