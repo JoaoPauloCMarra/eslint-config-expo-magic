@@ -22,6 +22,28 @@
 - **Bun** 1.0.0 or higher (required - this project uses bun as package manager)
 - **Expo SDK** 49+ (recommended: 54+)
 - **ESLint** 9.x+ with flat config support
+- **React** 18.0.0 or higher
+- **TypeScript** 5.0.0 or higher
+
+### Peer Dependencies
+
+This package uses **peer dependencies** to avoid conflicts with your project's dependencies. Make sure your project has these packages installed:
+
+```json
+{
+  "dependencies": {
+    "react": ">=18.0.0",
+    "expo": ">=49.0.0",
+    "react-test-renderer": ">=18.0.0"
+  },
+  "devDependencies": {
+    "eslint": ">=9.0.0",
+    "typescript": ">=5.0.0"
+  }
+}
+```
+
+**Why peer dependencies?** This prevents duplicate installations and version conflicts in your projects.
 
 ### Installation
 
@@ -252,6 +274,8 @@ We welcome contributions! The configuration is modular - each rule category live
 - **Bun** 1.0.0 or higher (required - this project uses bun as package manager)
 - **Expo SDK** 49+ (recommended: 54+)
 - **ESLint** 9.x+ with flat config support
+- **React** 18.0.0 or higher
+- **TypeScript** 5.0.0 or higher
 
 ### 📦 Package Manager
 
