@@ -1,17 +1,11 @@
-const tseslint = require('typescript-eslint');
-
 module.exports = [
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.d.ts'],
     ignores: ['**/node_modules/**'],
     languageOptions: {
-      parser: tseslint.parser,
       parserOptions: {
-        // Use projectService for automatic TypeScript project detection
-        // projectService automatically detects tsconfig.json in the consuming project
-        // No need to set tsconfigRootDir when using projectService in a shared config
         projectService: true,
-        ecmaVersion: 2022,
+        ecmaVersion: 'latest',
         sourceType: 'module',
         ecmaFeatures: {
           jsx: true,
@@ -25,7 +19,7 @@ module.exports = [
       // @typescript-eslint/no-floating-promises: Ensure Promises are properly handled to avoid unhandled rejections
       '@typescript-eslint/no-floating-promises': 'error',
       // @typescript-eslint/no-misused-promises: Prevent using Promises in contexts where they're not expected
-      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'off',
       // @typescript-eslint/no-unnecessary-type-assertion: Remove redundant type assertions that don't change the type
       '@typescript-eslint/no-unnecessary-type-assertion': 'error',
       // @typescript-eslint/prefer-nullish-coalescing: Use nullish coalescing for better null/undefined handling

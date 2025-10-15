@@ -20,14 +20,12 @@ const expectedRules = {
   ],
   "@typescript-eslint/no-explicit-any": ["App.tsx"],
   "@typescript-eslint/await-thenable": ["App.tsx"],
-  "@typescript-eslint/no-misused-promises": ["App.tsx"],
   "@typescript-eslint/prefer-nullish-coalescing": ["App.tsx"],
   "@typescript-eslint/no-redeclare": ["App.tsx"],
   "@typescript-eslint/no-useless-constructor": ["App.tsx"],
   "@typescript-eslint/naming-convention": ["App.tsx"],
 
   // React rules
-  "react/no-unstable-nested-components": ["App.tsx"],
   "react-hooks/exhaustive-deps": ["App.tsx"],
   "react-hooks/purity": ["App.tsx"],
   "react-hooks/refs": ["App.tsx"],
@@ -36,8 +34,6 @@ const expectedRules = {
   "react/display-name": ["components/BadImports.tsx"],
 
   // React Native rules
-  "react-native/no-inline-styles": ["App.tsx"],
-  "react-native/no-raw-text": ["App.tsx"],
 
   // Jest rules
   "jest/no-disabled-tests": ["__tests__/App.test.tsx"],
@@ -86,7 +82,7 @@ const expectedRules = {
   ],
 };
 
-const expectedErrorsCount = 141;
+const expectedErrorsCount = 136;
 const expectedWarningsCount = 86;
 
 async function runCommand(command, args, options = {}) {

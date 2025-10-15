@@ -30,6 +30,24 @@ const config = [
     ],
   },
 
+  {
+    name: 'import-ignores',
+    settings: {
+      'import/ignore': [
+        'node_modules',
+        '\\.json$',
+        '\\.(scss|sass|css|less|styl)$',
+        '\\.(svg|png|jpg|jpeg|gif|webp)$',
+      ],
+      'import-x/ignore': [
+        'node_modules',
+        '\\.json$',
+        '\\.(scss|sass|css|less|styl)$',
+        '\\.(svg|png|jpg|jpeg|gif|webp)$',
+      ],
+    },
+  },
+
   // Base Expo configuration (filtered to avoid react-hooks conflicts)
   ...filteredExpoConfig,
 

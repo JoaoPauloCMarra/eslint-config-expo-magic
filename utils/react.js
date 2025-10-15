@@ -42,18 +42,18 @@ module.exports = [
       // react/jsx-no-useless-fragment: Avoid unnecessary JSX fragments to reduce DOM nodes and improve performance
       'react/jsx-no-useless-fragment': 'error',
       // react/no-unstable-nested-components: Prevent components defined inside other components to avoid performance issues and stale closures
-      'react/no-unstable-nested-components': 'error',
+      'react/no-unstable-nested-components': 'off',
       // react/jsx-no-leaked-render: Prevent accidentally leaking render values to the DOM instead of rendering them
       'react/jsx-no-leaked-render': 'error',
 
       // react-native/no-unused-styles: Detect and remove unused StyleSheet rules to reduce bundle size
       'react-native/no-unused-styles': 'error',
       // react-native/no-inline-styles: Prevent inline styles for better performance and maintainable styling
-      'react-native/no-inline-styles': 'error',
+      'react-native/no-inline-styles': 'off',
       // react-native/split-platform-components: Enforce platform-specific filenames for better code organization and tree-shaking
       'react-native/split-platform-components': 'error',
       // react-native/no-raw-text: Ensure all text is wrapped in Text components for proper rendering
-      'react-native/no-raw-text': 'error',
+      'react-native/no-raw-text': 'off',
       // react-native/no-single-element-style-arrays: Avoid unnecessary StyleSheet arrays for single styles
       'react-native/no-single-element-style-arrays': 'error',
 
