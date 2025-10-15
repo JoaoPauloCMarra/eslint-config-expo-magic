@@ -110,6 +110,7 @@ const config = [
 
   {
     files: ['*.web.*'],
+    env: { browser: true },
   },
 ];
 
