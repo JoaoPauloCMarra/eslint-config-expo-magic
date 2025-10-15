@@ -30,7 +30,7 @@ const expectedRules = {
   "react-hooks/purity": ["App.tsx"],
   "react-hooks/refs": ["App.tsx"],
   "react-hooks/set-state-in-render": ["App.tsx"],
-  "react-hooks/static-components": ["App.tsx"],
+  "react-hooks/static-components": ["App.tsx"], // Updated from react/no-unstable-nested-components
   "react/display-name": ["components/BadImports.tsx"],
 
   // React Native rules
@@ -82,7 +82,7 @@ const expectedRules = {
   ],
 };
 
-const expectedErrorsCount = 136;
+const expectedErrorsCount = 135;
 const expectedWarningsCount = 86;
 
 async function runCommand(command, args, options = {}) {
