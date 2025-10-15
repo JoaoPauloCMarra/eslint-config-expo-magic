@@ -31,6 +31,15 @@ module.exports = [
     rules: {
       ...pluginReactHooks.configs.recommended.rules,
 
+      // react-hooks/refs: Turn off refs rule to allow refs usage in React components
+      'react-hooks/refs': 'off',
+
+      // react/jsx-no-leaked-render: Prevent accidentally leaking render values to the DOM instead of rendering them
+      'react/jsx-no-leaked-render': 'error',
+      // react/jsx-no-useless-fragment: Avoid unnecessary JSX fragments to reduce DOM nodes and improve performance
+      'react/jsx-no-useless-fragment': 'error',
+      // react/no-unstable-nested-components: Prevent components defined inside other components to avoid performance issues and stale closures
+      'react/no-unstable-nested-components': 'off',
       // react/self-closing-comp: Maintain consistent JSX formatting by requiring self-closing tags for components without children
       'react/self-closing-comp': [
         'error',
@@ -39,12 +48,6 @@ module.exports = [
           html: true,
         },
       ],
-      // react/jsx-no-useless-fragment: Avoid unnecessary JSX fragments to reduce DOM nodes and improve performance
-      'react/jsx-no-useless-fragment': 'error',
-      // react/no-unstable-nested-components: Prevent components defined inside other components to avoid performance issues and stale closures
-      'react/no-unstable-nested-components': 'off',
-      // react/jsx-no-leaked-render: Prevent accidentally leaking render values to the DOM instead of rendering them
-      'react/jsx-no-leaked-render': 'error',
 
       // react-native/no-unused-styles: Detect and remove unused StyleSheet rules to reduce bundle size
       'react-native/no-unused-styles': 'error',

@@ -28,7 +28,6 @@ const expectedRules = {
   // React rules
   "react-hooks/exhaustive-deps": ["App.tsx"],
   "react-hooks/purity": ["App.tsx"],
-  "react-hooks/refs": ["App.tsx"],
   "react-hooks/set-state-in-render": ["App.tsx"],
   "react-hooks/static-components": ["App.tsx"], // Updated from react/no-unstable-nested-components
   "react/display-name": ["components/BadImports.tsx"],
@@ -82,7 +81,7 @@ const expectedRules = {
   ],
 };
 
-const expectedErrorsCount = 135;
+const expectedErrorsCount = 133;
 const expectedWarningsCount = 86;
 
 async function runCommand(command, args, options = {}) {
