@@ -25,22 +25,22 @@ module.exports = [
 
     rules: {
       ...jestPlugin.configs.recommended.rules,
-      // jest/no-disabled-tests: Disallow disabled tests
+      // jest/no-disabled-tests: Prevent accidentally committed disabled tests that won't run in CI
       'jest/no-disabled-tests': 'error',
-      // jest/no-test-prefixes: Disallow using f and x prefixes to define Jest tests
+      // jest/no-test-prefixes: Avoid focused/skipped tests that might be accidentally committed
       'jest/no-test-prefixes': 'warn',
-      // jest/prefer-hooks-on-top: Suggest using hooks at the top level of describe blocks
+      // jest/prefer-hooks-on-top: Keep hooks at the top level for better test organization and readability
       'jest/prefer-hooks-on-top': 'error',
-      // jest/prefer-to-be: Suggest using toBe() instead of toEqual() for primitive values
+      // jest/prefer-to-be: Use toBe() for primitives to avoid potential issues with toEqual() comparisons
       'jest/prefer-to-be': 'warn',
 
-      // testing-library/await-async-queries: Enforce promises from async queries to be handled
+      // testing-library/await-async-queries: Ensure async queries are properly awaited to prevent race conditions
       'testing-library/await-async-queries': 'error',
-      // testing-library/no-await-sync-queries: Disallow unnecessary await for sync queries
+      // testing-library/no-await-sync-queries: Avoid unnecessary awaits that can slow down tests
       'testing-library/no-await-sync-queries': 'error',
-      // testing-library/no-debugging-utils: Disallow the use of debugging utilities like debug
+      // testing-library/no-debugging-utils: Prevent debugging utilities from being committed to production code
       'testing-library/no-debugging-utils': 'warn',
-      // testing-library/no-dom-import: Disallow importing from DOM Testing Library in RTL setup
+      // testing-library/no-dom-import: Prevent DOM Testing Library imports in React Native testing setup
       'testing-library/no-dom-import': 'error',
     },
   },

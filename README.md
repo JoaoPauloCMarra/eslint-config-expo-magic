@@ -502,44 +502,6 @@ We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for deta
 
 ---
 
-## 📝 Changelog
-
-### v1.2.3 (2025-10-01)
-- 🚀 **React Hooks Stable Release** - Upgraded to `eslint-plugin-react-hooks@6.0.0` (stable), removed deprecated `static-components` rule
-- ⬆️ Updated `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser` to v8.45.0
-- ⬆️ Updated `eslint-plugin-testing-library` to v7.11.0
-- ⬆️ Updated `jest` to v30.2.0
-- ⬆️ Updated `typescript` to v5.9.3
-- ⬆️ Updated test project `@types/react` to v19.1.17 and `expo` to v54.0.11
-- 🔧 Updated validation scripts to reflect rule changes
-
-### v1.2.2 (2025-09-25)
-- 🚀 **React Hooks RC Support** - Upgraded to `eslint-plugin-react-hooks@6.0.0-rc.2` with latest React Compiler rules
-- 🆕 **New RC Rules** - Added support for `react-hooks/static-components`, `react-hooks/no-unused-directives`, and other RC features
-- 📝 **Enhanced Documentation** - Added comprehensive rule descriptions and cleaned up code comments
-- ⬆️ Updated `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser` to v8.44.1
-- ⬆️ Updated `eslint` to v9.36.0
-- 🔧 Code quality improvements and validation updates
-
-### v1.2.1 (2025-09-15)
-- ⬆️ Updated `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser` to v8.43.0
-- ⬆️ Updated `eslint` to v9.35.0
-- 🔧 Dependency updates for improved stability and performance
-
-### v1.2.0 (2025-09-12)
-- ✨ **Expo SDK 54 Support** - Full compatibility with Expo SDK 54
-- ⬆️ Updated `eslint-config-expo` to v10.0.0
-- ⬆️ Updated test project to Expo SDK 54.0.0
-- ⬆️ Updated React Native to 0.81.4
-- ⬆️ Updated Jest and testing dependencies
-- 🔧 ESLint requirement updated to 9.x+ with flat config support
-- 🆕 Added `expo/prefer-box-shadow` rule to enforce modern shadow properties
-
-### v1.1.7 (2024-XX-XX)
-- 🐛 Bug fixes and dependency updates
-
----
-
 <div align="center">
 
 **Made with ❤️ for the React Native & Expo community**

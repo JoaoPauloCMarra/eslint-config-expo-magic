@@ -13,21 +13,42 @@ const reactConfig = require('./utils/react.js');
 const typescriptConfig = require('./utils/typescript.js');
 const { defineConfig } = require('eslint/config');
 
-const filteredExpoConfig = expoConfig.filter(c => !c.plugins || !c.plugins['react-hooks']);
+const filteredExpoConfig = expoConfig.filter(
+  (c) => !c.plugins || !c.plugins['react-hooks']
+);
 
 const config = [
+  // Global ignores for build artifacts and dependencies
+  {
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/.expo/**',
+      '**/ios/**',
+      '**/android/**',
+    ],
+  },
+
+  // Base Expo configuration (filtered to avoid react-hooks conflicts)
   ...filteredExpoConfig,
 
+  // TypeScript configuration with type-aware linting
   ...(typescriptConfig || []),
 
+  // React, React Native, and React Hooks configuration
   ...(reactConfig || []),
 
+  // Import organization and unused import detection
   ...(importsConfig || []),
 
+  // Jest and Testing Library configuration
   ...(jestConfig || []),
 
+  // Application-specific overrides
   ...(appConfig || []),
 
+  // Prettier integration (must be last to override formatting rules)
   ...(prettierConfig || []),
 
   {

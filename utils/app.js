@@ -1,9 +1,9 @@
 module.exports = [
   {
     rules: {
-      // expo/prefer-box-shadow: Enforce using box-shadow instead of deprecated shadow props in Expo
+      // expo/prefer-box-shadow: Prefer the newer box-shadow syntax over shadow-* properties for consistency with web standards
       'expo/prefer-box-shadow': 'warn',
-      // no-restricted-syntax: Disallow specified syntax patterns, here TypeScript interfaces
+      // no-restricted-syntax: Prefer type aliases over interfaces for better performance and consistency in TypeScript
       'no-restricted-syntax': [
         'error',
         {
@@ -12,7 +12,7 @@ module.exports = [
             'Avoid using interfaces, prefer types for better performance and consistency.',
         },
       ],
-      // no-restricted-imports: Disallow specified modules or module members from being imported
+      // no-restricted-imports: Prevent use of deprecated SafeAreaView from react-native, use react-native-safe-area-context instead
       'no-restricted-imports': [
         'error',
         {
@@ -26,7 +26,7 @@ module.exports = [
           ],
         },
       ],
-      // no-console: Disallow calls to methods of the console object
+      // no-console: Discourage console statements in production code to maintain clean logs
       'no-console': 'warn',
     },
   },

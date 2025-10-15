@@ -31,7 +31,7 @@ module.exports = [
     rules: {
       ...pluginReactHooks.configs.recommended.rules,
 
-      // react/self-closing-comp: Require self-closing tags for components without children
+      // react/self-closing-comp: Maintain consistent JSX formatting by requiring self-closing tags for components without children
       'react/self-closing-comp': [
         'error',
         {
@@ -39,33 +39,33 @@ module.exports = [
           html: true,
         },
       ],
-      // react/jsx-no-useless-fragment: Disallow unnecessary JSX fragments
+      // react/jsx-no-useless-fragment: Avoid unnecessary JSX fragments to reduce DOM nodes and improve performance
       'react/jsx-no-useless-fragment': 'error',
-      // react/no-unstable-nested-components: Prevent creating components inside components that can cause performance issues
+      // react/no-unstable-nested-components: Prevent components defined inside other components to avoid performance issues and stale closures
       'react/no-unstable-nested-components': 'error',
-      // react/jsx-no-leaked-render: Prevent leaking render values to the DOM
+      // react/jsx-no-leaked-render: Prevent accidentally leaking render values to the DOM instead of rendering them
       'react/jsx-no-leaked-render': 'error',
 
-      // react-native/no-unused-styles: Detect unused StyleSheet rules in React Native
+      // react-native/no-unused-styles: Detect and remove unused StyleSheet rules to reduce bundle size
       'react-native/no-unused-styles': 'error',
-      // react-native/no-inline-styles: Prevent inline styles in React Native for better performance
+      // react-native/no-inline-styles: Prevent inline styles for better performance and maintainable styling
       'react-native/no-inline-styles': 'error',
-      // react-native/split-platform-components: Enforce platform-specific filenames for React Native components
+      // react-native/split-platform-components: Enforce platform-specific filenames for better code organization and tree-shaking
       'react-native/split-platform-components': 'error',
-      // react-native/no-raw-text: Prevent raw text outside of Text components in React Native
+      // react-native/no-raw-text: Ensure all text is wrapped in Text components for proper rendering
       'react-native/no-raw-text': 'error',
-      // react-native/no-single-element-style-arrays: Prevent StyleSheet arrays with single elements in React Native
+      // react-native/no-single-element-style-arrays: Avoid unnecessary StyleSheet arrays for single styles
       'react-native/no-single-element-style-arrays': 'error',
 
-      // react-19-upgrade/no-default-props: Disallow defaultProps in favor of default parameters for React 19 compatibility
+      // react-19-upgrade/no-default-props: Prepare for React 19 by using default parameters instead of defaultProps
       'react-19-upgrade/no-default-props': 'error',
-      // react-19-upgrade/no-prop-types: Disallow PropTypes in favor of TypeScript for React 19 compatibility
+      // react-19-upgrade/no-prop-types: Use TypeScript instead of PropTypes for better type safety in React 19
       'react-19-upgrade/no-prop-types': 'warn',
-      // react-19-upgrade/no-legacy-context: Disallow legacy context API for React 19 compatibility
+      // react-19-upgrade/no-legacy-context: Avoid legacy context API for React 19 compatibility
       'react-19-upgrade/no-legacy-context': 'error',
-      // react-19-upgrade/no-string-refs: Disallow string refs for React 19 compatibility
+      // react-19-upgrade/no-string-refs: Use callback refs instead of string refs for React 19 compatibility
       'react-19-upgrade/no-string-refs': 'error',
-      // react-19-upgrade/no-factories: Disallow React.createFactory for React 19 compatibility
+      // react-19-upgrade/no-factories: Avoid React.createFactory which is removed in React 19
       'react-19-upgrade/no-factories': 'error',
     },
   },
