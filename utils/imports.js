@@ -77,6 +77,10 @@ module.exports = [
       'import-x/no-webpack-loader-syntax': 'error',
       // import-x/no-named-as-default: Disallow named exports as default export. Default: 'off'
       'import-x/no-named-as-default': 'error',
+      // import-x/no-named-as-default-member: Disallow named exports as default export members
+      'import-x/no-named-as-default-member': 'error',
+      // import-x/no-cycle: Disallow cyclic dependencies
+      'import-x/no-cycle': 'error',
     },
   },
 ];

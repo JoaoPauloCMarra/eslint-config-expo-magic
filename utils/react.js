@@ -43,6 +43,8 @@ module.exports = [
       'react/jsx-no-useless-fragment': 'error',
       // react/no-unstable-nested-components: Prevent creating components inside components that can cause performance issues
       'react/no-unstable-nested-components': 'error',
+      // react/jsx-no-leaked-render: Prevent leaking render values to the DOM
+      'react/jsx-no-leaked-render': 'error',
 
       // react-native/no-unused-styles: Detect unused StyleSheet rules in React Native
       'react-native/no-unused-styles': 'error',

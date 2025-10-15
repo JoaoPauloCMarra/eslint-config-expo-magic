@@ -4,12 +4,217 @@
 
 [![npm version](https://img.shields.io/npm/v/eslint-config-expo-magic.svg)](https://www.npmjs.com/package/eslint-config-expo-magic)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Downloads](https://img.shields.io/npm/dm/eslint-config-expo-magic.svg)](https://www.npmjs.com/package/eslint-config-expo-magic)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
-[![Expo](https://img.shields.io/badge/Expo-Supported-black.svg)](https://expo.dev/)
-[![React Native](https://img.shields.io/badge/React%20Native-Compatible-61dafb.svg)](https://reactnative.dev/)
 
 **Stop wasting time configuring ESLint!** Get a production-ready, performance-optimized configuration that enforces best practices for React Native, Expo, and TypeScript projects in minutes.
+
+## ✨ Why Choose eslint-config-expo-magic?
+
+- **⚡ 5-minute setup** - Just install and go!
+- **🔧 Zero configuration** - Works out of the box with sensible defaults
+- **🚀 Performance optimized** - Includes React Compiler and advanced TypeScript rules
+- **📱 Mobile-first** - Tailored for React Native and Expo development
+- **🔮 Future-proof** - React 19 upgrade rules included
+
+## 🚀 Quick Start
+
+### Prerequisites
+- **Node.js** 16.0.0 or higher
+- **Bun** 1.0.0 or higher (required - this project uses bun as package manager)
+- **Expo SDK** 49+ (recommended: 54+)
+- **ESLint** 9.x+ with flat config support
+
+### Installation
+
+```bash
+# 🚀 Recommended: Use bun (required for this project)
+bun add --dev eslint-config-expo-magic
+```
+
+### Setup (2 minutes!)
+
+Create `eslint.config.js` in your project root:
+
+```javascript
+const expoMagic = require('eslint-config-expo-magic');
+
+module.exports = [
+  ...expoMagic,
+  // Your custom overrides here
+];
+```
+
+**That's it!** 🎉 Your project now has enterprise-grade linting!
+
+## 📋 Rules Overview
+
+This configuration includes carefully selected rules organized by category. Each rule is chosen to improve code quality, performance, and maintainability for React Native and Expo projects.
+
+### 🔷 TypeScript Rules
+
+Advanced TypeScript rules that catch errors before runtime and enforce type safety:
+
+| Rule | Purpose | Example |
+|------|---------|---------|
+| `@typescript-eslint/no-explicit-any` | Prevents using `any` type | `const x: any = 5;` ❌ → `const x: number = 5;` ✅ |
+| `@typescript-eslint/consistent-type-imports` | Enforces type-only imports for smaller bundles | `import { User } from './types';` ❌ → `import type { User } from './types';` ✅ |
+| `@typescript-eslint/prefer-optional-chain` | Uses `?.` instead of `&&` checks | `user && user.name` ❌ → `user?.name` ✅ |
+| `@typescript-eslint/no-floating-promises` | Requires handling promises | `fetchData();` ❌ → `fetchData().catch(console.error);` ✅ |
+| `@typescript-eslint/consistent-type-definitions` | Uses `type` instead of `interface` | `interface User {}` ❌ → `type User = {}` ✅ |
+
+### ⚛️ React & React Native Rules
+
+Performance-focused rules for React and mobile development:
+
+| Rule | Purpose | Example |
+|------|---------|---------|
+| `react/no-unstable-nested-components` | Prevents components created inside render | `const Bad = () => { const Inner = () => <div/>; return <Inner/>; }` ❌ |
+| `react-native/no-inline-styles` | Extracts styles for better performance | `<View style={{margin: 10}}>` ❌ → `const styles = StyleSheet.create({view: {margin: 10}})` ✅ |
+| `react-hooks/exhaustive-deps` | Ensures correct useEffect dependencies | `useEffect(() => console.log(x), [])` ❌ → `useEffect(() => console.log(x), [x])` ✅ |
+| `react-native/split-platform-components` | Separates iOS/Android components | `Button.ios.js` and `Button.android.js` ✅ |
+| `react-compiler/react-compiler` | Enables React Compiler optimization | Automatic performance improvements |
+
+### 📦 Import Organization Rules
+
+Keeps imports clean and organized:
+
+| Rule | Purpose | Example |
+|------|---------|---------|
+| `import-x/order` | Sorts imports by category | React → External → Internal → Relative |
+| `unused-imports/no-unused-imports` | Removes unused imports | `import { unused } from 'lib';` ❌ |
+| `import-x/no-cycle` | Prevents circular dependencies | File A imports B, B imports A ❌ |
+| `import-x/first` | Imports before other statements | Code before imports ❌ → Imports first ✅ |
+
+### 🧪 Testing Rules
+
+Best practices for Jest and Testing Library:
+
+| Rule | Purpose | Example |
+|------|---------|---------|
+| `jest/no-disabled-tests` | Prevents skipping tests | `describe.skip()` ❌ |
+| `testing-library/await-async-queries` | Handles async queries properly | `await findByText('text')` ✅ |
+| `testing-library/no-debugging-utils` | Removes debug code from production | `screen.debug()` in tests ❌ |
+| `jest/prefer-hooks-on-top` | Organizes test hooks | `beforeEach` at top of describe ✅ |
+
+### 💅 Code Formatting Rules
+
+Consistent code style with Prettier:
+
+| Rule | Purpose | Example |
+|------|---------|---------|
+| `prettier/prettier` | Enforces Prettier formatting | Inconsistent spacing ❌ → Consistent ✅ |
+
+### 📱 App-Specific Rules
+
+Expo and React Native specific optimizations:
+
+| Rule | Purpose | Example |
+|------|---------|---------|
+| `expo/prefer-box-shadow` | Uses modern shadow properties | `shadowOffset` ❌ → `boxShadow` ✅ |
+| `no-restricted-imports` | Uses correct SafeAreaView import | `import { SafeAreaView } from 'react-native'` ❌ → `from 'react-native-safe-area-context'` ✅ |
+| `react-19-upgrade/no-default-props` | Prepares for React 19 | `defaultProps` ❌ → Default parameters ✅ |
+
+## 🎛️ Customizing Rules
+
+### How to Override Rules
+
+You can easily customize any rule by adding overrides to your `eslint.config.js`:
+
+```javascript
+const expoMagic = require('eslint-config-expo-magic');
+
+module.exports = [
+  ...expoMagic,
+
+  // Your custom rules here
+  {
+    rules: {
+      // Change severity level
+      'react-native/no-inline-styles': 'warn', // Was 'error'
+
+      // Turn off a rule completely
+      '@typescript-eslint/no-explicit-any': 'off',
+
+      // Add your own rules
+      'no-alert': 'error',
+
+      // Customize existing rules
+      '@typescript-eslint/no-unused-vars': ['error', {
+        'argsIgnorePattern': '^_',
+        'varsIgnorePattern': '^_'
+      }],
+    },
+  },
+];
+```
+
+### Common Override Examples
+
+#### Allow inline styles in specific files
+```javascript
+{
+  files: ['**/*.story.*', '**/*.stories.*'],
+  rules: {
+    'react-native/no-inline-styles': 'off',
+  },
+}
+```
+
+#### Disable strict TypeScript rules for config files
+```javascript
+{
+  files: ['*.config.js', '*.config.ts'],
+  rules: {
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-var-requires': 'off',
+  },
+}
+```
+
+#### Relax rules for test files
+```javascript
+{
+  files: ['**/*.test.*', '**/*.spec.*'],
+  rules: {
+    '@typescript-eslint/no-explicit-any': 'off',
+    'react-native/no-inline-styles': 'off',
+  },
+}
+```
+
+## 🆚 Comparison
+
+| Feature | Manual Setup | expo-magic |
+|---------|--------------|------------|
+| **Setup Time** | 2-4 hours | 5 minutes |
+| **Plugins** | 10+ separate configs | 1 package |
+| **TypeScript** | Basic rules | Advanced + Performance |
+| **React Native** | Generic rules | Mobile-optimized |
+| **Expo Integration** | Manual config | Built-in |
+| **Customization** | Complex | Simple overrides |
+
+## 🤝 Contributing
+
+We welcome contributions! The configuration is modular - each rule category lives in its own file in the `utils/` directory.
+
+**Ways to contribute:**
+- 🐛 **Bug reports** - Found an issue? Let us know!
+- 💡 **Feature requests** - Have an idea? Share it!
+- 📝 **Documentation** - Help improve our docs
+- 🧪 **Testing** - Test with your projects and share feedback
+
+## 📄 License
+
+**MIT License** - Use it freely in your projects!
+
+---
+
+<div align="center">
+
+**Made with ❤️ for the React Native & Expo community**
+
+[⭐ Star us on GitHub](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic) • [🐛 Report Issues](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/issues)
+
+</div>
 
 ## ✨ Why Choose eslint-config-expo-magic?
 

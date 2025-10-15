@@ -29,6 +29,10 @@ module.exports = [
       'jest/no-disabled-tests': 'error',
       // jest/no-test-prefixes: Disallow using f and x prefixes to define Jest tests
       'jest/no-test-prefixes': 'warn',
+      // jest/prefer-hooks-on-top: Suggest using hooks at the top level of describe blocks
+      'jest/prefer-hooks-on-top': 'error',
+      // jest/prefer-to-be: Suggest using toBe() instead of toEqual() for primitive values
+      'jest/prefer-to-be': 'warn',
 
       // testing-library/await-async-queries: Enforce promises from async queries to be handled
       'testing-library/await-async-queries': 'error',
@@ -36,6 +40,8 @@ module.exports = [
       'testing-library/no-await-sync-queries': 'error',
       // testing-library/no-debugging-utils: Disallow the use of debugging utilities like debug
       'testing-library/no-debugging-utils': 'warn',
+      // testing-library/no-dom-import: Disallow importing from DOM Testing Library in RTL setup
+      'testing-library/no-dom-import': 'error',
     },
   },
 ];

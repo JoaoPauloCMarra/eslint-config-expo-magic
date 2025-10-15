@@ -31,6 +31,8 @@ module.exports = [
       '@typescript-eslint/prefer-optional-chain': 'warn',
       // @typescript-eslint/no-confusing-void-expression: Require expressions of type void to appear in statement position. Default: 'off'
       '@typescript-eslint/no-confusing-void-expression': 'error',
+      // @typescript-eslint/no-meaningless-void-operator: Disallow the void operator when it doesn't affect the type. Default: 'off'
+      '@typescript-eslint/no-meaningless-void-operator': 'error',
 
       // @typescript-eslint/array-type: Require using either T[] or Array<T> for arrays. Default: 'off'
       '@typescript-eslint/array-type': [
@@ -50,6 +52,8 @@ module.exports = [
       '@typescript-eslint/no-unnecessary-type-constraint': 'error',
       // @typescript-eslint/no-wrapper-object-types: Disallow the use of the Object type. Default: 'off'
       '@typescript-eslint/no-wrapper-object-types': 'warn',
+      // @typescript-eslint/triple-slash-reference: Disallow /// <reference path="" /> comments. Default: 'off'
+      '@typescript-eslint/triple-slash-reference': 'error',
 
       // @typescript-eslint/consistent-type-assertions: Enforce consistent usage of type assertions. Default: 'off'
       '@typescript-eslint/consistent-type-assertions': [
@@ -108,6 +112,8 @@ module.exports = [
           disallowTypeAnnotations: false,
         },
       ],
+      // @typescript-eslint/no-import-type-side-effects: Disallow type imports that do not affect the runtime. Default: 'off'
+      '@typescript-eslint/no-import-type-side-effects': 'error',
     },
   },
 ];

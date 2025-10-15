@@ -19,10 +19,20 @@ const expectedRules = {
     "__tests__/App.test.tsx",
   ],
   "@typescript-eslint/no-explicit-any": ["App.tsx"],
+  "@typescript-eslint/await-thenable": ["App.tsx"],
+  "@typescript-eslint/no-misused-promises": ["App.tsx"],
+  "@typescript-eslint/prefer-nullish-coalescing": ["App.tsx"],
+  "@typescript-eslint/no-redeclare": ["App.tsx"],
+  "@typescript-eslint/no-useless-constructor": ["App.tsx"],
+  "@typescript-eslint/naming-convention": ["App.tsx"],
 
   // React rules
   "react/no-unstable-nested-components": ["App.tsx"],
   "react-hooks/exhaustive-deps": ["App.tsx"],
+  "react-hooks/purity": ["App.tsx"],
+  "react-hooks/refs": ["App.tsx"],
+  "react-hooks/set-state-in-render": ["App.tsx"],
+  "react-hooks/static-components": ["App.tsx"],
   "react/display-name": ["components/BadImports.tsx"],
 
   // React Native rules
@@ -32,10 +42,13 @@ const expectedRules = {
   // Jest rules
   "jest/no-disabled-tests": ["__tests__/App.test.tsx"],
   "jest/no-focused-tests": ["__tests__/App.test.tsx"],
+  "jest/prefer-to-be": ["__tests__/App.test.tsx"],
   "jest/expect-expect": ["__tests__/App.test.tsx"],
 
   // Testing Library rules
   "testing-library/await-async-queries": ["__tests__/App.test.tsx"],
+  "testing-library/no-await-sync-queries": ["__tests__/App.test.tsx"],
+  "testing-library/no-debugging-utils": ["__tests__/App.test.tsx"],
 
   // Import rules
   "import/no-duplicates": ["App.tsx", "components/BadImports.tsx"],
@@ -51,7 +64,7 @@ const expectedRules = {
   "unused-imports/no-unused-imports": ["components/BadImports.tsx", "App.tsx"],
 
   // General rules
-  "no-var": ["index.js"],
+  "no-var": ["index.js", "App.tsx"],
   "no-unused-vars": ["validate.js"],
   "no-undef": ["validate.js"],
   "no-console": ["App.tsx"],
@@ -73,8 +86,8 @@ const expectedRules = {
   ],
 };
 
-const expectedErrorsCount = 81;
-const expectedWarningsCount = 73;
+const expectedErrorsCount = 141;
+const expectedWarningsCount = 86;
 
 async function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {
