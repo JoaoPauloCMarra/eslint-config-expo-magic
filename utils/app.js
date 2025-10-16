@@ -28,6 +28,15 @@ module.exports = [
             'Avoid using interfaces, prefer types for better performance and consistency.',
         },
       ],
+      // no-unused-vars: Remove unused variables to reduce bundle size and improve clarity, allowing variables/args starting with _ to be ignored
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
     },
   },
 ];
