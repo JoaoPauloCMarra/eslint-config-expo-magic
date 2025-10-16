@@ -32,7 +32,8 @@
   "main": "index.js",
   "files": [
     "index.js",
-    "utils/*.js"
+    "utils/*.js",
+    ".prettierrc.js"
   ],
   "scripts": {
     "prepublishOnly": "bun run check-pm && cd test-project && bun run validate || (echo '🚫 PUBLISH CANCELLED: Validation failed!' && exit 1)",

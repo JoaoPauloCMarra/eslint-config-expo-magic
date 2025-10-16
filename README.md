@@ -125,6 +125,25 @@ Consistent code style with Prettier:
 |------|---------|---------|
 | `prettier/prettier` | Enforces Prettier formatting | Inconsistent spacing ❌ → Consistent ✅ |
 
+#### Prettier Configuration Hierarchy
+
+This package includes a default Prettier configuration, but **your project's Prettier settings always take precedence**:
+
+1. **Your Project's Config** (highest priority)
+   - `.prettierrc.js`
+   - `.prettierrc.json`
+   - `.prettierrc.yml`
+   - `prettier.config.js`
+   - `package.json` (`prettier` field)
+
+2. **Your `.prettierignore`** - Always respected
+
+3. **Package Default** (fallback)
+   - Used only when your project has no Prettier configuration
+   - React Native/Expo-friendly settings
+
+**Example:** If your project has `.prettierrc.json` with `semi: false`, it will override the package's default `semi: true`.
+
 ### 📱 App-Specific Rules
 
 Expo and React Native specific optimizations:
@@ -333,6 +352,8 @@ module.exports = {
 ```
 
 **That's it!** 🎉 Your project now has enterprise-grade linting!
+
+> 💡 **Pro Tip:** If you have existing `.prettierrc.*` or `.prettierignore` files, they'll automatically override the package defaults. Add custom ESLint rules in the array above for project-specific needs.
 
 ## 🛡️ Quality Assurance
 

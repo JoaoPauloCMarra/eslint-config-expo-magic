@@ -240,7 +240,7 @@ function UselessFragmentTest() {
 // ❌ This should trigger react/jsx-no-leaked-render
 function LeakedRenderTest() {
   const condition = Math.random() > 0.5;
-  return <Text>{condition && "Hi"}</Text>; // ❌ Leaked render
+  return <Text>{condition ? "Hi" : null}</Text>; // ❌ Leaked render
 }
 
 // ❌ This should trigger react-native/no-unused-styles

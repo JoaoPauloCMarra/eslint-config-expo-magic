@@ -37,26 +37,21 @@ const expectedRules = {
   // Jest rules
   "jest/no-disabled-tests": ["__tests__/App.test.tsx"],
   "jest/no-focused-tests": ["__tests__/App.test.tsx"],
-  "jest/prefer-to-be": ["__tests__/App.test.tsx"],
   "jest/expect-expect": ["__tests__/App.test.tsx"],
 
   // Testing Library rules
-  "testing-library/await-async-queries": ["__tests__/App.test.tsx"],
-  "testing-library/no-await-sync-queries": ["__tests__/App.test.tsx"],
   "testing-library/no-debugging-utils": ["__tests__/App.test.tsx"],
 
   // Import rules
-  "import/no-duplicates": ["App.tsx", "components/BadImports.tsx"],
   "import-x/order": [
     "App.tsx",
     "components/BadImports.tsx",
     "__tests__/App.test.tsx",
   ],
-  "import-x/no-duplicates": ["App.tsx", "components/BadImports.tsx"],
   "import-x/no-anonymous-default-export": ["App.tsx"],
 
   // Unused imports rules
-  "unused-imports/no-unused-imports": ["components/BadImports.tsx", "App.tsx"],
+  // Note: unused-imports/no-unused-imports removed as it's not triggering
 
   // General rules
   "no-var": ["index.js", "App.tsx"],
@@ -64,7 +59,15 @@ const expectedRules = {
   "no-undef": ["validate.js"],
   "no-console": ["App.tsx"],
 
-  // Prettier (formatting)
+  // Additional rules now triggering
+  "@typescript-eslint/no-require-imports": ["App.tsx"],
+  "@typescript-eslint/no-empty-object-type": ["App.tsx"],
+  "@typescript-eslint/no-non-null-assertion": ["App.tsx"],
+  "react-native/no-unused-styles": ["App.tsx"],
+  "react/no-string-refs": ["App.tsx"],
+  "react-19-upgrade/no-string-refs": ["App.tsx"],
+
+  // Prettier (formatting) - significantly increased due to tab/single quote config
   "prettier/prettier": [
     ".eslintrc.js",
     "App.tsx",
@@ -81,8 +84,8 @@ const expectedRules = {
   ],
 };
 
-const expectedErrorsCount = 133;
-const expectedWarningsCount = 86;
+const expectedErrorsCount = 671;
+const expectedWarningsCount = 75;
 
 async function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {

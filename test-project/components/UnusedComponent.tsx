@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text } from 'react-native';
+import React from "react";
+import { View, Text } from "react-native";
 
 // ❌ This component is imported but never used (should trigger no-unused-vars)
 const UnusedComponent: React.FC = () => {
