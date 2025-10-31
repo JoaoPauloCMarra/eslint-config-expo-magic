@@ -40,8 +40,8 @@ module.exports = [
       'react/jsx-no-useless-fragment': 'error',
       // react/jsx-key: Ensure unique keys for list items to prevent React rendering issues
       'react/jsx-key': 'error',
-      // react/no-unstable-nested-components: Prevent components defined inside other components to avoid performance issues and stale closures
-      'react/no-unstable-nested-components': 'warn',
+      // react/no-unstable-nested-components: Disabled as not considered worthy at this time
+      'react/no-unstable-nested-components': 'off',
       // react/self-closing-comp: Maintain consistent JSX formatting by requiring self-closing tags for components without children
       'react/self-closing-comp': [
         'error',

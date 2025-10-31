@@ -33,7 +33,6 @@ const expectedRules = {
   "react/no-children-prop": ["App.tsx"],
   "react/no-danger-with-children": ["App.tsx"],
   "react/no-string-refs": ["App.tsx"],
-  "react/no-unstable-nested-components": ["App.tsx"],
   "react/self-closing-comp": ["App.tsx"],
 
   // Jest rules
@@ -82,8 +81,8 @@ const expectedRules = {
   "prettier/prettier": [".eslintrc.js", "App.test.tsx", "App.tsx", "BadImports.tsx", "UnusedComponent.tsx", "babel.config.js", "eslint.config.js", "find-missing-rules.js", "helpers.ts", "index.js", "jest.config.js", "metro.config.js", "validate-comprehensive.js", "validate.js"],
 };
 
-const expectedErrorsCount = 915;
-const expectedWarningsCount = 114;
+const expectedErrorsCount = 914;
+const expectedWarningsCount = 113;
 
 async function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {
