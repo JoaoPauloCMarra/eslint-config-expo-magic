@@ -34,7 +34,6 @@ const expectedRules = {
   "react/display-name": ["components/BadImports.tsx"],
 
   // React Native rules
-  "react-native/no-raw-text": ["App.tsx"],
 
   // Jest rules
   "jest/no-disabled-tests": ["__tests__/App.test.tsx"],
@@ -86,7 +85,7 @@ const expectedRules = {
   ],
 };
 
-const expectedErrorsCount = 676;
+const expectedErrorsCount = 673;
 const expectedWarningsCount = 76;
 
 async function runCommand(command, args, options = {}) {

@@ -57,8 +57,8 @@ module.exports = [
       'react-native/no-inline-styles': 'off',
       // react-native/split-platform-components: Enforce platform-specific filenames for better code organization and tree-shaking
       'react-native/split-platform-components': 'error',
-      // react-native/no-raw-text: Ensure all text is wrapped in Text components for proper rendering
-      'react-native/no-raw-text': 'error',
+      // react-native/no-raw-text: Disabled due to crashes with undefined properties in edge cases
+      'react-native/no-raw-text': 'off',
       // react-native/no-single-element-style-arrays: Avoid unnecessary StyleSheet arrays for single styles
       'react-native/no-single-element-style-arrays': 'error',
 
