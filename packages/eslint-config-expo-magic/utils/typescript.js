@@ -56,8 +56,6 @@ module.exports = [
       ],
       // @typescript-eslint/no-confusing-void-expression: Prevent void expressions in confusing positions
       '@typescript-eslint/no-confusing-void-expression': 'error',
-      // @typescript-eslint/no-dupe-class-members: Prevent duplicate class members that cause conflicts
-      '@typescript-eslint/no-dupe-class-members': 'error',
       // @typescript-eslint/no-empty-object-type: Avoid empty object types that provide no type safety
       '@typescript-eslint/no-empty-object-type': 'warn',
       // @typescript-eslint/no-explicit-any: Maintain type safety by avoiding the any type
@@ -70,12 +68,8 @@ module.exports = [
       '@typescript-eslint/no-import-type-side-effects': 'error',
       // @typescript-eslint/no-meaningless-void-operator: Avoid void operator when it doesn't affect types
       '@typescript-eslint/no-meaningless-void-operator': 'error',
-      // @typescript-eslint/no-misused-promises: Prevent using Promises in contexts where they're not expected
-      '@typescript-eslint/no-misused-promises': 'off',
       // @typescript-eslint/no-non-null-assertion: Discourage non-null assertions that can hide type issues
       '@typescript-eslint/no-non-null-assertion': 'warn',
-      // @typescript-eslint/no-redeclare: Avoid variable redeclaration that can cause confusion
-      '@typescript-eslint/no-redeclare': 'warn',
       // @typescript-eslint/no-unnecessary-type-assertion: Remove redundant type assertions that don't change the type
       '@typescript-eslint/no-unnecessary-type-assertion': 'error',
       // @typescript-eslint/no-unnecessary-type-constraint: Remove unnecessary generic constraints
@@ -100,6 +94,8 @@ module.exports = [
       '@typescript-eslint/prefer-nullish-coalescing': 'warn',
       // @typescript-eslint/prefer-optional-chain: Use optional chaining for safer property access
       '@typescript-eslint/prefer-optional-chain': 'warn',
+      // @typescript-eslint/prefer-readonly: Prefer readonly for immutable data structures
+      '@typescript-eslint/prefer-readonly': 'warn',
       // @typescript-eslint/triple-slash-reference: Avoid triple-slash references in favor of modern import methods
       '@typescript-eslint/triple-slash-reference': 'error',
     },

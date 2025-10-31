@@ -30,9 +30,11 @@ const expectedRules = {
   "react-hooks/purity": ["App.tsx"],
   "react-hooks/set-state-in-render": ["App.tsx"],
   "react-hooks/static-components": ["App.tsx"], // Updated from react/no-unstable-nested-components
+  "react/no-unstable-nested-components": ["App.tsx"], // Now enabled as warning
   "react/display-name": ["components/BadImports.tsx"],
 
   // React Native rules
+  "react-native/no-raw-text": ["App.tsx"],
 
   // Jest rules
   "jest/no-disabled-tests": ["__tests__/App.test.tsx"],
@@ -84,8 +86,8 @@ const expectedRules = {
   ],
 };
 
-const expectedErrorsCount = 672;
-const expectedWarningsCount = 75;
+const expectedErrorsCount = 676;
+const expectedWarningsCount = 76;
 
 async function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {

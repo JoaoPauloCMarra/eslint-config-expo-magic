@@ -38,8 +38,10 @@ module.exports = [
       'react/jsx-no-leaked-render': 'error',
       // react/jsx-no-useless-fragment: Avoid unnecessary JSX fragments to reduce DOM nodes and improve performance
       'react/jsx-no-useless-fragment': 'error',
+      // react/jsx-key: Ensure unique keys for list items to prevent React rendering issues
+      'react/jsx-key': 'error',
       // react/no-unstable-nested-components: Prevent components defined inside other components to avoid performance issues and stale closures
-      'react/no-unstable-nested-components': 'off',
+      'react/no-unstable-nested-components': 'warn',
       // react/self-closing-comp: Maintain consistent JSX formatting by requiring self-closing tags for components without children
       'react/self-closing-comp': [
         'error',
@@ -56,7 +58,7 @@ module.exports = [
       // react-native/split-platform-components: Enforce platform-specific filenames for better code organization and tree-shaking
       'react-native/split-platform-components': 'error',
       // react-native/no-raw-text: Ensure all text is wrapped in Text components for proper rendering
-      'react-native/no-raw-text': 'off',
+      'react-native/no-raw-text': 'error',
       // react-native/no-single-element-style-arrays: Avoid unnecessary StyleSheet arrays for single styles
       'react-native/no-single-element-style-arrays': 'error',
 
