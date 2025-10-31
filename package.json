@@ -6,6 +6,7 @@
 	],
 	"scripts": {
 		"install": "echo '⚠️  Please use bun instead of npm/yarn/pnpm for this project'",
+		"check-pm": "node packages/eslint-config-expo-magic/check-pm.js",
 		"ci": "bun install --frozen-lockfile",
 		"validate": "cd test-project && bun run validate",
 		"cleanup:npm": "rimraf node_modules packages/**/node_modules test-project/node_modules"
