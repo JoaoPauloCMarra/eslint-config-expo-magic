@@ -3,7 +3,7 @@
 const { execSync } = require('child_process');
 const path = require('path');
 
-const projectRoot = path.resolve(__dirname);
+const projectRoot = path.resolve(__dirname, '../..');
 const packageJsonPath = path.join(projectRoot, 'package.json');
 
 try {
