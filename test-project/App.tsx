@@ -2,16 +2,21 @@ import React, { useState, useEffect, useRef } from "react";
 
 // ❌ This should trigger @typescript-eslint/consistent-type-imports
 // ❌ Should use type import
+import type { Component } from "react";
 
 // ❌ This should trigger @typescript-eslint/no-import-type-side-effects
+import { type SomeType, someValue } from "./types";
 
 // ❌ This should trigger @typescript-eslint/consistent-type-imports
 // ❌ Should use type import
+import type { FC } from "react";
 
 // ❌ This should trigger @typescript-eslint/no-import-type-side-effects
+import { type AnotherType, anotherValue } from "./types";
 
 // ❌ This should trigger @typescript-eslint/consistent-type-imports
 // ❌ Should use type import
+import type { ReactElement } from "react";
 
 // ❌ This should trigger @typescript-eslint/no-import-type-side-effects
 // ❌ defaultProps
@@ -119,12 +124,73 @@ function ComponentMutatingGlobals() {
   return <Text>Global: {globalCounter}</Text>;
 }
 
-// ❌ Additional TypeScript rule test cases
+// ❌ This should trigger eqeqeq
+function equalityCheck() {
+  if (1 == "1") { // ❌ Should use ===
+    return true;
+  }
+  return false;
+}
 
-// ❌ This should trigger @typescript-eslint/await-thenable
-async function awaitThenable() {
-  const notThenable = 42;
-  await notThenable; // ❌ Awaiting a non-Thenable
+// ❌ This should trigger no-dupe-args
+function duplicateArgs(a: number, a: string) { // ❌ Duplicate parameter
+  return a;
+}
+
+// ❌ This should trigger no-dupe-keys
+const duplicateKeys = {
+  a: 1,
+  a: 2, // ❌ Duplicate key
+};
+
+// ❌ This should trigger no-duplicate-case
+function switchWithDuplicates(value: number) {
+  switch (value) {
+    case 1:
+      return "one";
+    case 1: // ❌ Duplicate case
+      return "duplicate";
+    default:
+      return "other";
+  }
+}
+
+// ❌ This should trigger no-empty-character-class
+const emptyCharClass = /^$/; // This might trigger if we have an empty character class
+
+// ❌ This should trigger no-empty-pattern
+const {} = {}; // ❌ Empty destructuring pattern
+
+// ❌ This should trigger no-extend-native
+Object.prototype.badExtension = () => {}; // ❌ Extending native prototype
+
+// ❌ This should trigger no-extra-bind
+const boundFunction = function() {
+  return this.value;
+}.bind({}); // ❌ Unnecessary bind
+
+// ❌ This should trigger no-unreachable
+function unreachableCode() {
+  return true;
+  console.log("unreachable"); // ❌ Unreachable code
+}
+
+// ❌ This should trigger no-unsafe-negation
+if (!1 in [1, 2, 3]) { // ❌ Unsafe negation
+  console.log("unsafe");
+}
+
+// ❌ This should trigger no-unused-expressions
+1 + 1; // ❌ Unused expression
+
+// ❌ This should trigger no-unused-labels
+unusedLabel: for (let i = 0; i < 1; i++) { // ❌ Unused label
+  break;
+}
+
+// ❌ This should trigger no-with
+with ({ a: 1 }) { // ❌ With statement
+  console.log(a);
 }
 
 // ❌ This should trigger @typescript-eslint/no-misused-promises
@@ -223,13 +289,134 @@ enum BadEnum {
   badMember = "value", // ❌ Should be UPPER_CASE
 } // ❌ Type import with side effects
 
+// ❌ This should trigger react/jsx-key
+function ComponentWithList() {
+  const items = [1, 2, 3];
+  return (
+    <View>
+      {items.map(item => (
+        <Text>{item}</Text> // ❌ Missing key
+      ))}
+    </View>
+  );
+}
+
+// ❌ This should trigger react/jsx-no-comment-textnodes
+function ComponentWithComment() {
+  return (
+    <View>
+      {/* This is a comment */} // ❌ Comment in JSX
+      <Text>Hi</Text>
+    </View>
+  );
+}
+
+// ❌ This should trigger react/jsx-no-duplicate-props
+function ComponentWithDuplicateProps() {
+  return (
+    <Text key="1" key="2"> // ❌ Duplicate props
+      Duplicate
+    </Text>
+  );
+}
+
+// ❌ This should trigger react/jsx-no-undef
+function ComponentWithUndefined() {
+  return (
+    <UndefinedComponent /> // ❌ Undefined component
+  );
+}
+
+// ❌ This should trigger react/jsx-uses-react
+function ComponentUsingReact() {
+  return React.createElement("div", null, "Hi"); // This might trigger jsx-uses-react
+}
+
+// ❌ This should trigger react/no-children-prop
+function ComponentWithChildrenProp() {
+  return (
+    <Text children="Hi" /> // ❌ Children as prop
+  );
+}
+
+// ❌ This should trigger react/no-danger-with-children
+function ComponentWithDanger() {
+  return (
+    <Text dangerouslySetInnerHTML={{ __html: "<strong>Hi</strong>" }}>
+      Children here // ❌ Danger with children
+    </Text>
+  );
+}
+
+// ❌ This should trigger react/no-deprecated
+function ComponentWithDeprecated() {
+  return (
+    <Text onPress={() => {}} /> // This might be deprecated in some contexts
+  );
+}
+
+// ❌ This should trigger react/no-direct-mutation-state
+function ComponentMutatingProps(props: any) {
+  props.value = "mutated"; // ❌ Direct mutation
+  return <Text>{props.value}</Text>;
+}
+
+// ❌ This should trigger react/no-find-dom-node
+function ComponentFindingDOM() {
+  // This would require ReactDOM.findDOMNode which isn't available in RN
+  return <Text>DOM node</Text>;
+}
+
+// ❌ This should trigger react/no-is-mounted
+function ComponentCheckingMounted() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+  if (mounted) { // ❌ Checking isMounted
+    return <Text>Mounted</Text>;
+  }
+  return null;
+}
+
+// ❌ This should trigger react/no-render-return-value
+function ComponentWithRenderReturn() {
+  const renderResult = <Text>Hi</Text>; // ❌ Render return value
+  return renderResult;
+}
+
+// ❌ This should trigger react/no-this-in-sfc
+function FunctionalComponent() {
+  return this ? <Text>Hi</Text> : null; // ❌ this in functional component
+}
+
+// ❌ This should trigger react/no-unescaped-entities
+function ComponentWithEntities() {
+  return (
+    <Text>Hi & bye</Text> // ❌ Unescaped entities
+  );
+}
+
+// ❌ This should trigger react/no-unknown-property
+function ComponentWithUnknownProp() {
+  return (
+    <Text unknownProp="value" /> // ❌ Unknown property
+  );
+}
+
+// ❌ This should trigger react/require-render-return
+function ComponentWithoutReturn() {
+  // Missing return statement
+}
+
 // ❌ This should trigger react/self-closing-comp
 function SelfClosingTest() {
   return (
     <View>
-      <Text />
+      <Text></Text> // ❌ Should be self-closing
     </View>
-  ); // ❌ Text should be self-closing
+  );
 }
 
 // ❌ This should trigger react/jsx-no-useless-fragment

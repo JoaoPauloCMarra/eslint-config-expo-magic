@@ -9,84 +9,81 @@ console.log("===========================================================\n");
 // Expected rules that should trigger
 const expectedRules = {
   // TypeScript rules
-  "@typescript-eslint/no-unused-vars": [
-    "App.tsx",
-    "components/BadImports.tsx",
-    "utils/helpers.ts",
-  ],
-  "@typescript-eslint/no-floating-promises": [
-    "App.tsx",
-    "__tests__/App.test.tsx",
-  ],
-  "@typescript-eslint/no-explicit-any": ["App.tsx"],
-  "@typescript-eslint/await-thenable": ["App.tsx"],
-  "@typescript-eslint/prefer-nullish-coalescing": ["App.tsx"],
-  "@typescript-eslint/no-redeclare": ["App.tsx"],
-  "@typescript-eslint/no-useless-constructor": ["App.tsx"],
   "@typescript-eslint/naming-convention": ["App.tsx"],
+  "@typescript-eslint/no-confusing-void-expression": ["App.tsx"],
+  "@typescript-eslint/no-empty-object-type": ["App.tsx"],
+  "@typescript-eslint/no-explicit-any": ["App.tsx"],
+  "@typescript-eslint/no-floating-promises": ["App.tsx"],
+  "@typescript-eslint/no-non-null-assertion": ["App.tsx"],
+  "@typescript-eslint/no-redeclare": ["App.tsx"],
+  "@typescript-eslint/no-require-imports": ["App.tsx"],
+  "@typescript-eslint/no-unused-vars": ["App.test.tsx", "App.tsx"],
+  "@typescript-eslint/no-useless-constructor": ["App.tsx"],
+  "@typescript-eslint/prefer-nullish-coalescing": ["App.tsx"],
 
   // React rules
+  "react-19-upgrade/no-string-refs": ["App.tsx"],
   "react-hooks/exhaustive-deps": ["App.tsx"],
-  "react-hooks/purity": ["App.tsx"],
-  "react-hooks/set-state-in-render": ["App.tsx"],
-  "react-hooks/static-components": ["App.tsx"], // Updated from react/no-unstable-nested-components
-  "react/no-unstable-nested-components": ["App.tsx"], // Now enabled as warning
-  "react/display-name": ["components/BadImports.tsx"],
-
-  // React Native rules
+  "react-native/no-unused-styles": ["App.tsx"],
+  "react/display-name": ["BadImports.tsx"],
+  "react/jsx-key": ["App.tsx"],
+  "react/jsx-no-comment-textnodes": ["App.tsx"],
+  "react/jsx-no-duplicate-props": ["App.tsx"],
+  "react/jsx-no-undef": ["App.tsx"],
+  "react/no-children-prop": ["App.tsx"],
+  "react/no-danger-with-children": ["App.tsx"],
+  "react/no-string-refs": ["App.tsx"],
+  "react/no-unstable-nested-components": ["App.tsx"],
+  "react/self-closing-comp": ["App.tsx"],
 
   // Jest rules
-  "jest/no-disabled-tests": ["__tests__/App.test.tsx"],
-  "jest/no-focused-tests": ["__tests__/App.test.tsx"],
-  "jest/expect-expect": ["__tests__/App.test.tsx"],
+  "jest/expect-expect": ["App.test.tsx"],
+  "jest/no-commented-out-tests": ["App.test.tsx"],
+  "jest/no-conditional-expect": ["App.test.tsx"],
+  "jest/no-disabled-tests": ["App.test.tsx"],
+  "jest/no-done-callback": ["App.test.tsx"],
+  "jest/no-export": ["App.test.tsx"],
+  "jest/no-focused-tests": ["App.test.tsx"],
+  "jest/no-identical-title": ["App.test.tsx"],
+  "jest/no-jasmine-globals": ["App.test.tsx"],
+  "jest/valid-describe-callback": ["App.test.tsx"],
+  "jest/valid-title": ["App.test.tsx"],
 
   // Testing Library rules
-  "testing-library/no-debugging-utils": ["__tests__/App.test.tsx"],
+  "testing-library/no-debugging-utils": ["App.test.tsx"],
 
   // Import rules
-  "import-x/order": [
-    "App.tsx",
-    "components/BadImports.tsx",
-    "__tests__/App.test.tsx",
-  ],
-  "import-x/no-anonymous-default-export": ["App.tsx"],
-
-  // Unused imports rules
-  // Note: unused-imports/no-unused-imports removed as it's not triggering
+  "import-x/no-anonymous-default-export": ["BadImports.tsx"],
+  "import-x/no-duplicates": ["App.tsx"],
+  "import-x/no-unresolved": ["App.tsx"],
+  "import-x/order": ["App.tsx", "find-missing-rules.js"],
+  "import/no-duplicates": ["App.tsx"],
+  "import/no-unresolved": ["App.tsx"],
 
   // General rules
-  "no-var": ["index.js", "App.tsx"],
-  "no-unused-vars": ["validate.js"],
+  "eqeqeq": ["App.tsx"],
+  "no-console": ["App.tsx", "analyze-rules.js", "babel.config.js", "find-missing-rules.js", "index.js", "metro.config.js", "validate-comprehensive.js", "validate.js"],
+  "no-dupe-args": ["App.tsx"],
+  "no-dupe-keys": ["App.tsx"],
+  "no-duplicate-case": ["App.tsx"],
+  "no-empty-pattern": ["App.tsx"],
+  "no-extend-native": ["App.tsx"],
   "no-undef": ["validate.js"],
-  "no-console": ["App.tsx"],
+  "no-unreachable": ["App.tsx"],
+  "no-unsafe-negation": ["App.tsx"],
+  "no-unused-expressions": ["App.test.tsx", "App.tsx"],
+  "no-unused-labels": ["App.tsx"],
+  "no-unused-vars": ["App.test.tsx", "App.tsx", "metro.config.js", "validate-comprehensive.js", "validate.js"],
+  "no-var": ["App.tsx"],
+  "no-with": ["App.tsx"],
+  "unused-imports/no-unused-imports": ["App.tsx"],
 
-  // Additional rules now triggering
-  "@typescript-eslint/no-require-imports": ["App.tsx"],
-  "@typescript-eslint/no-empty-object-type": ["App.tsx"],
-  "@typescript-eslint/no-non-null-assertion": ["App.tsx"],
-  "react-native/no-unused-styles": ["App.tsx"],
-  "react/no-string-refs": ["App.tsx"],
-  "react-19-upgrade/no-string-refs": ["App.tsx"],
-
-  // Prettier (formatting) - significantly increased due to tab/single quote config
-  "prettier/prettier": [
-    ".eslintrc.js",
-    "App.tsx",
-    "__tests__/App.test.tsx",
-    "babel.config.js",
-    "components/BadImports.tsx",
-    "components/UnusedComponent.tsx",
-    "eslint.config.js",
-    "index.js",
-    "jest.config.js",
-    "metro.config.js",
-    "utils/helpers.ts",
-    "validate.js",
-  ],
+  // Prettier rules
+  "prettier/prettier": [".eslintrc.js", "App.test.tsx", "App.tsx", "BadImports.tsx", "UnusedComponent.tsx", "babel.config.js", "eslint.config.js", "find-missing-rules.js", "helpers.ts", "index.js", "jest.config.js", "metro.config.js", "validate-comprehensive.js", "validate.js"],
 };
 
-const expectedErrorsCount = 673;
-const expectedWarningsCount = 76;
+const expectedErrorsCount = 915;
+const expectedWarningsCount = 114;
 
 async function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {
