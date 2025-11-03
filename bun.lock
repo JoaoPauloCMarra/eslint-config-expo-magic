@@ -29,11 +29,12 @@
     },
     "packages/eslint-config-expo-magic": {
       "name": "eslint-config-expo-magic",
-      "version": "1.4.2",
+      "version": "1.4.4",
       "dependencies": {
         "@typescript-eslint/eslint-plugin": "^8.18.2",
         "@typescript-eslint/parser": "^8.18.2",
         "eslint-config-expo": "^10.0.0",
+        "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-import-x": "^4.6.1",
         "eslint-plugin-jest": "^28.10.0",
         "eslint-plugin-prettier": "^5.2.1",
