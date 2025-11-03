@@ -1,6 +1,5 @@
 const expoReact = require('eslint-config-expo/flat/utils/react.js');
 
-const pluginReactCompiler = require('eslint-plugin-react-compiler');
 const pluginReactHooks = require('eslint-plugin-react-hooks');
 const pluginReactNative = require('eslint-plugin-react-native');
 const pluginReact19Upgrade = require('eslint-plugin-react-19-upgrade');
@@ -23,7 +22,6 @@ module.exports = [
   {
     plugins: {
       'react-hooks': pluginReactHooks,
-      'react-compiler': pluginReactCompiler,
       'react-native': pluginReactNative,
       'react-19-upgrade': pluginReact19Upgrade,
     },
