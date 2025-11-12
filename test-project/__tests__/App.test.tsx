@@ -111,8 +111,7 @@ describe("Test Suite", () => {
       </View>,
     );
     // Missing await for async queries - this should trigger the rule
-    const _element = await screen.findByText("Test"); // ❌ Missing await
-    // Don't await to trigger the linting rule
+    const _element = screen.findByText("Test"); // ❌ Missing await
   });
 
   // ❌ Test using toEqual for primitive (should trigger jest/prefer-to-be)

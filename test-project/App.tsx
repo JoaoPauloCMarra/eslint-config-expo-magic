@@ -39,9 +39,14 @@ const badFunction = (param: any) => {
 function App() {
   const NestedComponent = () => <Text>Hi</Text>; // Created on every render
 
+  // Pass the component as a prop to trigger the rule
+  const items = [1, 2, 3];
+  const renderedItems = items.map((item) => <NestedComponent key={item} />);
+
   return (
     <View>
-      <NestedComponent />
+      {renderedItems}
+      <Text style={{ margin: 10, padding: 20 }}>Inline styled text</Text>
     </View>
   );
 }
@@ -464,3 +469,55 @@ const LegacyContext = React.createContext("default"); // ❌ Legacy context
 function ComponentWithStringRef() {
   return <View ref="stringRef" />; // ❌ String ref
 }
+
+// ❌ This should trigger react-19-upgrade/no-factories
+const FactoryComponent = React.createFactory(Text); // ❌ React factory
+
+// ❌ This should trigger @typescript-eslint/await-thenable
+async function awaitThenable() {
+  const notPromise = "string";
+  await notPromise; // ❌ Awaiting non-Promise
+}
+
+// ❌ This should trigger @typescript-eslint/prefer-readonly
+function preferReadonly() {
+  const mutableArray: string[] = ["a", "b"]; // ❌ Should be readonly
+  return mutableArray;
+}
+
+// ❌ This should trigger import-x/first
+console.log("Import should be first"); // ❌ Import not first
+
+// ❌ This should trigger import-x/no-amd
+define(["module"], function(module) {}); // ❌ AMD module
+
+// ❌ This should trigger import-x/no-cycle
+// This would require circular imports between files
+
+// ❌ This should trigger import-x/no-named-as-default
+import { NamedExport } from "module";
+const DefaultImport = NamedExport; // ❌ Named as default
+
+// ❌ This should trigger import-x/no-named-as-default-member
+import * as AllExports from "module";
+const SpecificExport = AllExports.specific; // ❌ Named as default member
+
+// ❌ This should trigger import-x/no-webpack-loader-syntax
+import "style-loader!css-loader!styles.css"; // ❌ Webpack loader syntax
+
+// ❌ This should trigger expo/prefer-box-shadow
+const shadowStyle = {
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+  elevation: 5, // ❌ Should use boxShadow
+};
+
+// ❌ This should trigger no-restricted-imports
+import { SafeAreaView } from "react-native"; // ❌ Restricted import
+
+// ❌ This should trigger no-restricted-syntax
+interface BadInterfaceSyntax {
+  name: string;
+} // ❌ Interface usage

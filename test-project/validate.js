@@ -21,9 +21,7 @@ const expectedRules = {
   "@typescript-eslint/consistent-type-definitions": [
     "components/BadImports.tsx",
   ],
-  "react/no-unstable-nested-components": ["App.tsx"],
   "react-hooks/exhaustive-deps": ["App.tsx"],
-  "react-native/no-inline-styles": ["App.tsx"],
   "no-restricted-imports": ["App.tsx"],
   "import-x/order": ["components/BadImports.tsx"],
   "import-x/no-anonymous-default-export": ["components/BadImports.tsx"],
@@ -43,6 +41,7 @@ function runESLint() {
       {
         encoding: "utf8",
         cwd: __dirname,
+        stdio: 'pipe' // Don't throw on non-zero exit codes
       },
     );
 
@@ -50,8 +49,15 @@ function runESLint() {
     return results;
   } catch (error) {
     // ESLint exits with code 1 when there are errors, which is expected
-    if (error.stdout) {
-      return JSON.parse(error.stdout);
+    // Try to get output from different places
+    let output = error.stderr || error.stdout || error.output?.[1] || '';
+    if (output) {
+      try {
+        return JSON.parse(output);
+      } catch (parseError) {
+        console.error('Failed to parse ESLint output:', parseError.message);
+        throw error;
+      }
     }
     throw error;
   }

@@ -9,6 +9,8 @@ console.log("===========================================================\n");
 // Expected rules that should trigger
 const expectedRules = {
   // TypeScript rules
+  "@typescript-eslint/await-thenable": ["App.tsx"],
+  "@typescript-eslint/consistent-type-definitions": ["App.tsx"],
   "@typescript-eslint/naming-convention": ["App.tsx"],
   "@typescript-eslint/no-confusing-void-expression": ["App.tsx"],
   "@typescript-eslint/no-empty-object-type": ["App.tsx"],
@@ -22,6 +24,7 @@ const expectedRules = {
   "@typescript-eslint/prefer-nullish-coalescing": ["App.tsx"],
 
   // React rules
+  "react-19-upgrade/no-factories": ["App.tsx"],
   "react-19-upgrade/no-string-refs": ["App.tsx"],
   "react-hooks/exhaustive-deps": ["App.tsx"],
   "react-native/no-unused-styles": ["App.tsx"],
@@ -52,21 +55,28 @@ const expectedRules = {
   "testing-library/no-debugging-utils": ["App.test.tsx"],
 
   // Import rules
+  "import-x/first": ["App.tsx"],
+  "import-x/no-amd": ["App.tsx"],
   "import-x/no-anonymous-default-export": ["BadImports.tsx"],
   "import-x/no-duplicates": ["App.tsx"],
   "import-x/no-unresolved": ["App.tsx"],
+  "import-x/no-webpack-loader-syntax": ["App.tsx"],
   "import-x/order": ["App.tsx", "find-missing-rules.js"],
+  "import/first": ["App.tsx"],
   "import/no-duplicates": ["App.tsx"],
   "import/no-unresolved": ["App.tsx"],
 
   // General rules
   "eqeqeq": ["App.tsx"],
+  "expo/prefer-box-shadow": ["App.tsx"],
   "no-console": ["App.tsx", "analyze-rules.js", "babel.config.js", "find-missing-rules.js", "index.js", "metro.config.js", "validate-comprehensive.js", "validate.js"],
   "no-dupe-args": ["App.tsx"],
   "no-dupe-keys": ["App.tsx"],
   "no-duplicate-case": ["App.tsx"],
   "no-empty-pattern": ["App.tsx"],
   "no-extend-native": ["App.tsx"],
+  "no-restricted-imports": ["App.tsx"],
+  "no-restricted-syntax": ["App.tsx"],
   "no-undef": ["validate.js"],
   "no-unreachable": ["App.tsx"],
   "no-unsafe-negation": ["App.tsx"],
@@ -77,12 +87,15 @@ const expectedRules = {
   "no-with": ["App.tsx"],
   "unused-imports/no-unused-imports": ["App.tsx"],
 
+  // React Compiler rules - only trigger when there are failures AND no successes
+  "react-compiler/react-compiler": ["FailingComponent.tsx"],
+
   // Prettier rules
   "prettier/prettier": [".eslintrc.js", "App.test.tsx", "App.tsx", "BadImports.tsx", "UnusedComponent.tsx", "babel.config.js", "eslint.config.js", "find-missing-rules.js", "helpers.ts", "index.js", "jest.config.js", "metro.config.js", "validate-comprehensive.js", "validate.js"],
 };
 
-const expectedErrorsCount = 914;
-const expectedWarningsCount = 113;
+const expectedErrorsCount = 1064;
+const expectedWarningsCount = 132;
 
 async function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {

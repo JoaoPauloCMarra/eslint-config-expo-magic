@@ -1,5 +1,6 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "test-project",
@@ -9,6 +10,7 @@
         "@types/jest": "29.5.14",
         "@types/react": "~19.1.10",
         "babel-plugin-module-resolver": "^5.0.2",
+        "babel-plugin-react-compiler": "^1.0.0",
         "eslint": "^9.39.0",
         "eslint-config-expo-magic": "file:../packages/eslint-config-expo-magic",
         "expo": "^54.0.21",
