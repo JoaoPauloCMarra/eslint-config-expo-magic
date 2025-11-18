@@ -87,14 +87,14 @@ const expectedRules = {
   "no-with": ["App.tsx"],
   "unused-imports/no-unused-imports": ["App.tsx"],
 
-  // React Compiler rules - only trigger when there are failures AND no successes
+  // React Compiler rules - strictly triggers on any optimization failure
   "react-compiler/react-compiler": ["FailingComponent.tsx"],
 
   // Prettier rules
   "prettier/prettier": [".eslintrc.js", "App.test.tsx", "App.tsx", "BadImports.tsx", "UnusedComponent.tsx", "babel.config.js", "eslint.config.js", "find-missing-rules.js", "helpers.ts", "index.js", "jest.config.js", "metro.config.js", "validate-comprehensive.js", "validate.js"],
 };
 
-const expectedErrorsCount = 1064;
+const expectedErrorsCount = 1053;
 const expectedWarningsCount = 132;
 
 async function runCommand(command, args, options = {}) {

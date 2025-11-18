@@ -88,10 +88,7 @@ const reactCompilerRule = {
 						failure.detail?.reason !== 'Cannot access refs during render',
 				);
 
-				if (
-					filteredFailedCompilations.length > 0 &&
-					successfulCompilations.length === 0
-				) {
+				if (filteredFailedCompilations.length > 0) {
 					filteredFailedCompilations.forEach((failure) => {
 						const loc = failure.fnLoc;
 						const reason =
