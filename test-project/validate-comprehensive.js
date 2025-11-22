@@ -21,7 +21,6 @@ const expectedRules = {
   "@typescript-eslint/no-require-imports": ["App.tsx"],
   "@typescript-eslint/no-unused-vars": ["App.test.tsx", "App.tsx"],
   "@typescript-eslint/no-useless-constructor": ["App.tsx"],
-  "@typescript-eslint/prefer-nullish-coalescing": ["App.tsx"],
 
   // React rules
   "react-19-upgrade/no-factories": ["App.tsx"],
@@ -94,8 +93,8 @@ const expectedRules = {
   "prettier/prettier": [".eslintrc.js", "App.test.tsx", "App.tsx", "BadImports.tsx", "UnusedComponent.tsx", "babel.config.js", "eslint.config.js", "find-missing-rules.js", "helpers.ts", "index.js", "jest.config.js", "metro.config.js", "validate-comprehensive.js", "validate.js"],
 };
 
-const expectedErrorsCount = 1053;
-const expectedWarningsCount = 132;
+const expectedErrorsCount = 1056;
+const expectedWarningsCount = 131;
 
 async function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {

@@ -4,109 +4,8 @@ const pluginReactHooks = require('eslint-plugin-react-hooks');
 const pluginReactNative = require('eslint-plugin-react-native');
 const pluginReact19Upgrade = require('eslint-plugin-react-19-upgrade');
 
-const { transformFromAstSync } = require('@babel/core');
-const BabelParser = require('@babel/parser');
-
-function importBabelPluginReactCompiler() {
-	try {
-		return require('babel-plugin-react-compiler');
-	} catch (error) {
-		throw new Error(
-			`Failed to load babel-plugin-react-compiler. Please install it: npm install babel-plugin-react-compiler --save-dev`,
-		);
-	}
-}
-
-function runReactCompilerAnalysis(sourceCode, filename) {
-	const BabelPluginReactCompiler = importBabelPluginReactCompiler();
-
-	const successfulCompilations = [];
-	const failedCompilations = [];
-
-	const logger = {
-		logEvent(filename, rawEvent) {
-			const event = { ...rawEvent, filename };
-			switch (event.kind) {
-				case 'CompileSuccess':
-					successfulCompilations.push(event);
-					break;
-				case 'CompileError':
-				case 'CompileDiagnostic':
-				case 'PipelineError':
-					failedCompilations.push(event);
-					break;
-			}
-		},
-	};
-
-	const COMPILER_OPTIONS = {
-		noEmit: true,
-		compilationMode: 'infer',
-		panicThreshold: 'none',
-		environment: {
-			enableTreatRefLikeIdentifiersAsRefs: true,
-		},
-		logger,
-	};
-
-	try {
-		const ast = BabelParser.parse(sourceCode, {
-			sourceFilename: filename,
-			plugins: ['typescript', 'jsx'],
-			sourceType: 'module',
-		});
-
-		transformFromAstSync(ast, sourceCode, {
-			filename,
-			highlightCode: false,
-			retainLines: true,
-			plugins: [[BabelPluginReactCompiler, COMPILER_OPTIONS]],
-			sourceType: 'module',
-			configFile: false,
-			babelrc: false,
-		});
-	} catch (error) {
-		// If parsing fails, skip analysis (file has syntax errors)
-		return { successfulCompilations: [], failedCompilations: [] };
-	}
-
-	return { successfulCompilations, failedCompilations };
-}
-
-const reactCompilerRule = {
-	create(context) {
-		return {
-			Program(node) {
-				const sourceCode = context.sourceCode.text;
-				const filename = context.filename || 'unknown.tsx';
-
-				const { successfulCompilations, failedCompilations } =
-					runReactCompilerAnalysis(sourceCode, filename);
-
-				const filteredFailedCompilations = failedCompilations.filter(
-					(failure) =>
-						failure.detail?.reason !== 'Cannot access refs during render',
-				);
-
-				if (filteredFailedCompilations.length > 0) {
-					filteredFailedCompilations.forEach((failure) => {
-						const loc = failure.fnLoc;
-						const reason =
-							failure.detail?.reason || 'Unknown optimization failure';
-
-						context.report({
-							loc: {
-								start: { line: loc.start.line, column: loc.start.column },
-								end: { line: loc.end.line, column: loc.end.column },
-							},
-							message: `🚫 React Compiler failed to optimize this component: ${reason}`,
-						});
-					});
-				}
-			},
-		};
-	},
-};
+// Import the React Compiler rule from the rules folder
+const reactCompilerRule = require('../rules/react-compiler');
 
 const baseExpoReactConfig = { ...expoReact[0] };
 const { 'react-hooks': _, ...expoPluginsWithoutReactHooks } =
@@ -186,7 +85,3 @@ module.exports = [
 		},
 	},
 ];
-
-// Export functions for testing
-module.exports.runReactCompilerAnalysis = runReactCompilerAnalysis;
-module.exports.reactCompilerRule = reactCompilerRule;

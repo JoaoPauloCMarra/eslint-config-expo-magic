@@ -90,8 +90,8 @@ module.exports = [
       '@typescript-eslint/no-useless-constructor': 'warn',
       // @typescript-eslint/no-wrapper-object-types: Avoid wrapper object types that can cause issues
       '@typescript-eslint/no-wrapper-object-types': 'warn',
-      // @typescript-eslint/prefer-nullish-coalescing: Use nullish coalescing for better null/undefined handling
-      '@typescript-eslint/prefer-nullish-coalescing': 'warn',
+      // @typescript-eslint/prefer-nullish-coalescing: Disabled to allow flexible null/undefined handling patterns
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
       // @typescript-eslint/prefer-optional-chain: Use optional chaining for safer property access
       '@typescript-eslint/prefer-optional-chain': 'warn',
       // @typescript-eslint/prefer-readonly: Prefer readonly for immutable data structures
