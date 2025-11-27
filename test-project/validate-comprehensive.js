@@ -35,6 +35,7 @@ const expectedRules = {
   "react/no-children-prop": ["App.tsx"],
   "react/no-danger-with-children": ["App.tsx"],
   "react/no-string-refs": ["App.tsx"],
+  "react/no-unknown-property": ["App.tsx"],
   "react/self-closing-comp": ["App.tsx"],
 
   // Jest rules
@@ -51,6 +52,7 @@ const expectedRules = {
   "jest/valid-title": ["App.test.tsx"],
 
   // Testing Library rules
+  "testing-library/await-async-queries": ["App.test.tsx"],
   "testing-library/no-debugging-utils": ["App.test.tsx"],
 
   // Import rules
@@ -86,15 +88,19 @@ const expectedRules = {
   "no-with": ["App.tsx"],
   "unused-imports/no-unused-imports": ["App.tsx"],
 
-  // React Compiler rules - strictly triggers on any optimization failure
-  "react-compiler/react-compiler": ["FailingComponent.tsx"],
+  // React Compiler rules - now provided by eslint-plugin-react-hooks v7+
+  "react-hooks/rules-of-hooks": ["ReactCompilerTests.tsx"],
+  "react-hooks/purity": ["ReactCompilerTests.tsx"],
+  "react-hooks/preserve-manual-memoization": ["ReactCompilerTests.tsx"],
+  "react-hooks/unsupported-syntax": ["ReactCompilerTests.tsx"],
+  "react-hooks/set-state-in-render": ["ReactCompilerTests.tsx"],
 
   // Prettier rules
   "prettier/prettier": [".eslintrc.js", "App.test.tsx", "App.tsx", "BadImports.tsx", "UnusedComponent.tsx", "babel.config.js", "eslint.config.js", "find-missing-rules.js", "helpers.ts", "index.js", "jest.config.js", "metro.config.js", "validate-comprehensive.js", "validate.js"],
 };
 
-const expectedErrorsCount = 1056;
-const expectedWarningsCount = 131;
+const expectedErrorsCount = 1067;
+const expectedWarningsCount = 138;
 
 async function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {

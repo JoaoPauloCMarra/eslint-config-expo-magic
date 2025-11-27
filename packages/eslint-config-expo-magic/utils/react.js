@@ -4,9 +4,6 @@ const pluginReactHooks = require('eslint-plugin-react-hooks');
 const pluginReactNative = require('eslint-plugin-react-native');
 const pluginReact19Upgrade = require('eslint-plugin-react-19-upgrade');
 
-// Import the React Compiler rule from the rules folder
-const reactCompilerRule = require('../rules/react-compiler');
-
 const baseExpoReactConfig = { ...expoReact[0] };
 const { 'react-hooks': _, ...expoPluginsWithoutReactHooks } =
 	baseExpoReactConfig.plugins;
@@ -28,14 +25,10 @@ module.exports = [
 			'react-hooks': pluginReactHooks,
 			'react-native': pluginReactNative,
 			'react-19-upgrade': pluginReact19Upgrade,
-			'react-compiler': {
-				rules: {
-					'react-compiler': reactCompilerRule,
-				},
-			},
 		},
 
 		rules: {
+			// Enable all recommended react-hooks rules (includes React Compiler rules)
 			...pluginReactHooks.configs.recommended.rules,
 
 			// react-hooks/refs: Turn off refs rule to allow refs usage in React components
@@ -79,9 +72,6 @@ module.exports = [
 			'react-19-upgrade/no-string-refs': 'error',
 			// react-19-upgrade/no-factories: Avoid React.createFactory which is removed in React 19
 			'react-19-upgrade/no-factories': 'error',
-
-			// react-compiler/react-compiler: Enforce React Compiler optimization compatibility
-			'react-compiler/react-compiler': 'error',
 		},
 	},
 ];

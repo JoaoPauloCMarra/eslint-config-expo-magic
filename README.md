@@ -71,7 +71,7 @@ module.exports = [
 Advanced type checking, performance optimizations, and error prevention.
 
 ### ⚛️ React & React Native Rules
-Performance-focused rules for React and mobile development, including React Compiler.
+Performance-focused rules for React and mobile development, including **React Compiler linting** via `eslint-plugin-react-hooks` v7+ (detects impure functions, setState during render, unsupported syntax, and memoization issues).
 
 ### 📦 Import Organization
 Smart import sorting, unused import detection, and circular dependency prevention.
