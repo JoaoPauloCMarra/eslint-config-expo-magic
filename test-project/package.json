@@ -16,19 +16,19 @@
 		"validate": "bun run validate-comprehensive.js"
 	},
 	"devDependencies": {
-		"@testing-library/jest-native": "catalog:",
-		"@testing-library/react-native": "catalog:",
-		"@types/jest": "catalog:",
-		"@types/react": "catalog:",
-		"babel-plugin-module-resolver": "catalog:",
-		"babel-plugin-react-compiler": "catalog:",
-		"eslint": "catalog:",
+		"@testing-library/jest-native": "^5.4.3",
+		"@testing-library/react-native": "^13.3.3",
+		"@types/jest": "^30.0.0",
+		"@types/react": "^19.2.3",
+		"babel-plugin-module-resolver": "^5.0.2",
+		"babel-plugin-react-compiler": "^1.0.0",
+		"eslint": "^9.39.2",
 		"eslint-config-expo-magic": "workspace:*",
-		"expo": "catalog:",
-		"expo-status-bar": "catalog:",
-		"jest-expo": "catalog:",
-		"react": "catalog:",
-		"react-native": "catalog:",
-		"react-test-renderer": "catalog:"
+		"expo": "^54.0.31",
+		"expo-status-bar": "^3.0.8",
+		"jest-expo": "^54.0.13",
+		"react": "^19.2.3",
+		"react-native": "0.82.1",
+		"react-test-renderer": "^19.2.3"
 	}
 }
