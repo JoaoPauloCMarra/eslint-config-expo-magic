@@ -1,0 +1,26 @@
+const config = {
+	printWidth: 80,
+	useTabs: true,
+	tabWidth: 2,
+	semi: true,
+	singleQuote: true,
+	quoteProps: 'as-needed',
+	jsxSingleQuote: false,
+	trailingComma: 'all',
+	bracketSpacing: true,
+	bracketSameLine: false,
+	arrowParens: 'always',
+	rangeStart: 0,
+	rangeEnd: Infinity,
+	requirePragma: false,
+	insertPragma: false,
+	proseWrap: 'preserve',
+	htmlWhitespaceSensitivity: 'css',
+	endOfLine: 'lf',
+	embeddedLanguageFormatting: 'auto',
+	singleAttributePerLine: false,
+	plugins: [],
+	overrides: [],
+};
+
+module.exports = config;

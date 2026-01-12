@@ -7,25 +7,49 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  validate:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-
-      - name: Check Package Manager
-        run: bun run check-pm
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
       - name: Install dependencies
-        run: bun install
+        run: bun install --frozen-lockfile
 
-      - name: Install test-project dependencies
-        working-directory: test-project
-        run: bun install
+      - name: Run config tests
+        run: bun run test
 
       - name: Run validation
         run: bun run validate
+
+  # publish:
+  #   needs: validate
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: write
+  #     id-token: write
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+
+  #     - uses: oven-sh/setup-bun@v2
+  #       with:
+  #         bun-version: latest
+
+  #     - name: Install dependencies
+  #       run: bun install --frozen-lockfile
+
+  #     - name: Publish to NPM
+  #       run: |
+  #         cd packages/eslint-config-expo-magic
+  #         if [ "$(npm show eslint-config-expo-magic version)" != "$(jq -r .version package.json)" ]; then
+  #           npm publish --access public
+  #         else
+  #           echo "Version already published"
+  #         fi
+  #       env:
+  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

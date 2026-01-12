@@ -1,5 +1,4 @@
 const globals = require('globals');
-
 const expoConfig = require('eslint-config-expo/flat');
 const {
 	allExtensions,
@@ -10,6 +9,7 @@ const importsConfig = require('./utils/imports.js');
 const jestConfig = require('./utils/jest.js');
 const prettierConfig = require('./utils/prettier.js');
 const reactConfig = require('./utils/react.js');
+
 const typescriptConfig = require('./utils/typescript.js');
 const { defineConfig } = require('eslint/config');
 
@@ -18,7 +18,6 @@ const filteredExpoConfig = expoConfig.filter(
 );
 
 const config = [
-	// Global ignores for build artifacts and dependencies
 	{
 		ignores: [
 			'**/node_modules/**',
@@ -48,26 +47,28 @@ const config = [
 		},
 	},
 
-	// Base Expo configuration (filtered to avoid react-hooks conflicts)
 	...filteredExpoConfig,
+	...typescriptConfig,
+	...reactConfig,
+	...importsConfig,
 
-	// TypeScript configuration with type-aware linting
-	...(typescriptConfig || []),
+	...jestConfig,
+	...appConfig,
+	...prettierConfig,
 
-	// React, React Native, and React Hooks configuration
-	...(reactConfig || []),
-
-	// Import organization and unused import detection
-	...(importsConfig || []),
-
-	// Jest and Testing Library configuration
-	...(jestConfig || []),
-
-	// Application-specific overrides
-	...(appConfig || []),
-
-	// Prettier integration (must be last to override formatting rules)
-	...(prettierConfig || []),
+	// Workspace Support: Different rules for apps and packages
+	{
+		files: ['apps/**'],
+		rules: {
+			'no-console': 'warn',
+		},
+	},
+	{
+		files: ['packages/**'],
+		rules: {
+			'no-console': 'error',
+		},
+	},
 
 	{
 		settings: {
@@ -110,8 +111,24 @@ const config = [
 
 	{
 		files: ['*.web.*'],
-		env: { browser: true },
+		languageOptions: {
+			globals: {
+				...globals.browser,
+			},
+		},
 	},
 ];
 
-module.exports = defineConfig(config);
+const strict = [
+	...config,
+	{
+		rules: {
+			'@typescript-eslint/no-explicit-any': 'error',
+			'@typescript-eslint/no-non-null-assertion': 'error',
+			'no-console': 'error',
+		},
+	},
+];
+
+module.exports = config;
+module.exports.strict = strict;

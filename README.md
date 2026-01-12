@@ -1,160 +1,119 @@
 # eslint-config-expo-magic
 
-> 🚀 **The Ultimate ESLint Configuration for React Native & Expo Projects** - Save hours of configuration and ship better code faster!
+> 🚀 **The Ultimate ESLint Configuration for React Native & Expo Projects** - Save hours of configuration and ship high-quality code.
 
 [![npm version](https://img.shields.io/npm/v/eslint-config-expo-magic.svg)](https://www.npmjs.com/package/eslint-config-expo-magic)
 [![CI](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/actions/workflows/ci.yml/badge.svg)](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-**Stop wasting time configuring ESLint!** Get a production-ready, performance-optimized configuration that enforces best practices for React Native, Expo, and TypeScript projects in minutes.
+**Stop wasting time fighting with ESLint configs.** Get a production-ready, performance-optimized setup that enforces best practices for React Native, Expo, and TypeScript projects in seconds.
 
 ## ✨ Features
 
-- ⚡ **5-minute setup** - Just install and go!
-- 🔧 **Zero configuration** - Works out of the box with sensible defaults
-- 🚀 **Performance optimized** - Includes React Compiler and advanced TypeScript rules
-- 📱 **Mobile-first** - Tailored for React Native and Expo development
-- 🔮 **Future-proof** - React 19 upgrade rules included
-- 🎪 **All-in-one** - No need to configure multiple plugins
+- ⚡ **Instant Setup** - Flat config ready. Just install and go.
+- 🔧 **Zero Noise** - Opinionated defaults that actually make sense for mobile development.
+- 🚀 **Performance Optimized** - Includes rules for React Compiler and advanced TypeScript performance.
+- 📱 **Mobile-First** - Deep integration with Expo SDK and React Native specific pitfalls.
+- 🔮 **Future-Proof** - Built-in React 19 upgrade path and modern ECMAScript support.
+- 🎪 **All-in-One** - Consolidates 10+ plugins into a single, cohesive package.
 
 ## 📦 Installation
 
 ```bash
-# 🚀 Recommended: Use bun (required for this project)
+# Recommended: Use bun
 bun add --dev eslint-config-expo-magic
 ```
 
 ### Prerequisites
-- **Node.js** 16.0.0+
-- **Bun** 1.0.0+ (required)
-- **Expo SDK** 49+ (recommended: 54+)
-- **ESLint** 9.x+ with flat config
-- **React** 18.0.0+
+
+- **Node.js** 18.0.0+
+- **Bun** 1.0.0+
+- **ESLint** 9.0.0+ (Flat Config)
+- **Expo SDK** 50+
 - **TypeScript** 5.0.0+
 
 ### Peer Dependencies
 
-Make sure your project has these packages:
+Ensure your `package.json` includes these minimum versions:
 
 ```json
 {
-  "dependencies": {
-    "react": ">=18.0.0",
-    "expo": ">=49.0.0",
-    "react-test-renderer": ">=18.0.0"
-  },
-  "devDependencies": {
-    "eslint": ">=9.0.0",
-    "typescript": ">=5.0.0"
-  }
+	"devDependencies": {
+		"eslint": ">=9.0.0",
+		"typescript": ">=5.0.0",
+		"expo": ">=50.0.0",
+		"react": ">=18.0.0"
+	}
 }
 ```
 
 ## 🚀 Quick Start
 
-Create `eslint.config.js` in your project root:
+Create an `eslint.config.js` in your project root:
 
 ```javascript
 const expoMagic = require('eslint-config-expo-magic');
 
 module.exports = [
-  ...expoMagic,
-  // Your custom overrides here
+	...expoMagic,
+	// Your custom overrides here
 ];
 ```
 
-**That's it!** 🎉 Your project now has enterprise-grade linting!
+For strict enforcement:
+
+```javascript
+const { strict } = require('eslint-config-expo-magic');
+
+module.exports = [...strict];
+```
 
 ## 📋 What's Included
 
-### 🔷 TypeScript Rules
-Advanced type checking, performance optimizations, and error prevention.
+- **🔷 TypeScript**: Advanced type-checking, `import type` enforcement, and naming consistency.
+- **⚛️ React 19 & Hooks**: Future-proof rules for React 19 and advanced Hook dependency checking.
+- **📱 Expo & Mobile**: Platform-specific component checks and Expo performance optimizations.
+- **📦 Import Excellence**: Smart sorting, circular dependency detection, and auto-cleanup of unused imports.
+- **🧪 Testing**: Optimized rules for Jest and React Native Testing Library.
+- **💅 Formatting**: Seamless Prettier integration (ready to work with your `.prettierrc`).
 
-### ⚛️ React & React Native Rules
-Performance-focused rules for React and mobile development, including **React Compiler linting** via `eslint-plugin-react-hooks` v7+ (detects impure functions, setState during render, unsupported syntax, and memoization issues).
-
-### 📦 Import Organization
-Smart import sorting, unused import detection, and circular dependency prevention.
-
-### 🧪 Testing Rules
-Best practices for Jest and Testing Library.
-
-### 💅 Code Formatting
-Prettier integration with sensible defaults (your config takes precedence).
-
-### 📱 App-Specific Rules
-Expo and React Native optimizations, including platform-specific components.
+Check [RULES.md](./RULES.md) for the full list of opinionated rules and their rationales.
 
 ## 🎛️ Customization
 
-Override any rule by adding to your `eslint.config.js`:
+Simply add an object after the spread config to override anything:
 
 ```javascript
 const expoMagic = require('eslint-config-expo-magic');
 
 module.exports = [
-  ...expoMagic,
-  {
-    rules: {
-      // Change severity
-      'react-native/no-inline-styles': 'warn',
-      // Turn off rules
-      '@typescript-eslint/no-explicit-any': 'off',
-      // Add custom rules
-      'no-alert': 'error',
-    },
-  },
+	...expoMagic,
+	{
+		rules: {
+			'no-console': 'error',
+			'@typescript-eslint/no-explicit-any': 'off',
+		},
+	},
 ];
-```
-
-### Common Overrides
-
-```javascript
-// Allow inline styles in story files
-{
-  files: ['**/*.story.*', '**/*.stories.*'],
-  rules: {
-    'react-native/no-inline-styles': 'off',
-  },
-}
-
-// Relax rules for config files
-{
-  files: ['*.config.js', '*.config.ts'],
-  rules: {
-    '@typescript-eslint/no-explicit-any': 'off',
-  },
-}
 ```
 
 ## 🆚 Comparison
 
-| Feature | Manual Setup | expo-magic |
-|---------|--------------|------------|
-| Setup Time | 2-4 hours | 5 minutes |
-| Plugins | 10+ configs | 1 package |
-| TypeScript | Basic rules | Advanced + Performance |
-| React Native | Generic rules | Mobile-optimized |
-| Expo Integration | Manual | Built-in |
+| Feature             | Manual Setup       | expo-magic        |
+| ------------------- | ------------------ | ----------------- |
+| Setup Time          | 2-4 hours          | 30 seconds        |
+| Maintenance         | High (10+ plugins) | Low (1 package)   |
+| React 19 Readiness  | Manual             | Built-in          |
+| Mobile Optimization | Generic            | Tailored for Expo |
+| Complexity          | Very High          | Zero              |
 
 ## 🤝 Contributing
 
-We welcome contributions! The config is modular - each rule category lives in `utils/`.
-
-**Ways to contribute:**
-- 🐛 Bug reports
-- 💡 Feature requests
-- 📝 Documentation improvements
-- 🧪 Testing feedback
-
-## 📄 License
-
-**MIT License** - Use it freely in your projects!
+Each rule category is modular and lives in `utils/`. We welcome bug reports and feature requests!
 
 ---
 
 <div align="center">
-
 **Made with ❤️ for the React Native & Expo community**
 
 [⭐ Star us on GitHub](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic) • [🐛 Report Issues](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/issues)
