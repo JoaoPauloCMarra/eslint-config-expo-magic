@@ -122,7 +122,7 @@ const expectedRules = {
 	],
 };
 
-const expectedErrorsCount = 739;
+const expectedErrorsCount = 743;
 const expectedWarningsCount = 298;
 
 async function runCommand(command, args, options = {}) {
