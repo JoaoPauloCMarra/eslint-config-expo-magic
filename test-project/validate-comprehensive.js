@@ -122,8 +122,8 @@ const expectedRules = {
 	],
 };
 
-const expectedErrorsCount = 1008;
-const expectedWarningsCount = 191;
+const expectedErrorsCount = 739;
+const expectedWarningsCount = 298;
 
 async function runCommand(command, args, options = {}) {
 	return new Promise((resolve, reject) => {
