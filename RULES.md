@@ -29,6 +29,11 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 - **Rule**: Ensure promises are handled.
 - **Rationale**: Prevents unhandled async operations which are a common source of bugs and race conditions in mobile apps.
 
+### `@typescript-eslint/no-misused-promises`
+
+- **Rule**: Prevent promises where they are not expected.
+- **Rationale**: Catch cases where an async function is passed to a synchronous callback or prop where the returned promise would be ignored.
+
 ### `@typescript-eslint/naming-convention`
 
 - **Rule**: PascalCase for types, UPPER_CASE for enum members.
@@ -134,6 +139,11 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 
 - **Rule**: Disallow `SafeAreaView` from `react-native`.
 - **Rationale**: Forces the use of `react-native-safe-area-context` which is significantly more robust for edge-to-edge layouts.
+
+### `process.env` restriction
+
+- **Rule**: Restrict environment variables to `EXPO_PUBLIC_` prefix in client code.
+- **Rationale**: Security best practice for Expo. Non-prefixed variables are not exposed to the client bundle by default, so using them in client code is often a bug. Using this rule prevents "silent" undefined values in your app.
 
 ---
 

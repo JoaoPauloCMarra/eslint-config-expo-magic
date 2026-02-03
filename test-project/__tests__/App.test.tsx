@@ -1,141 +1,187 @@
-import React from "react";
-import { View, Text } from "react-native";
-import { render, screen } from "@testing-library/react-native";
+import React from 'react';
+import { View, Text } from 'react-native';
+import { render, screen } from '@testing-library/react-native';
+// ❌ This should trigger testing-library/no-dom-import
+import { fireEvent } from '@testing-library/dom';
+console.log(fireEvent);
 
-// ❌ Missing jest setup (should trigger various jest rules)
-describe("Test Suite", () => {
-  const mockFn = jest.fn(); // Some code before hook
+// ❌ Test importing mocks (should trigger jest/no-mocks-import)
+import '../__mocks__/App.tsx';
 
-  // ❌ Hook not at top (should trigger jest/prefer-hooks-on-top)
-  beforeEach(() => {
-    // ❌ Hook not at top
-    // Setup
-  });
+describe('Test Suite', () => {
+	const mockFn = jest.fn();
+	console.log(mockFn);
 
-  // ❌ Disabled test (should trigger jest/no-disabled-tests and jest/no-test-prefixes)
-  it.skip("should be disabled", () => {
-    expect(true).toBe(true);
-  });
+	it('should be before hook', () => {
+		expect(1).toBe(1);
+	});
 
-  // ❌ Focused test (should trigger jest/no-focused-tests)
-  it.only("should be focused", () => {
-    expect(true).toBe(true);
-  });
+	// ❌ Hook not at top (should trigger jest/prefer-hooks-on-top)
+	beforeEach(() => {
+		// Setup
+	});
 
-  // ❌ Test with conditional expect (should trigger jest/no-conditional-expect)
-  it("should have conditional expect", () => {
-    if (Math.random() > 0.5) {
-      expect(true).toBe(true); // ❌ Conditional expect
-    }
-  });
+	// ❌ Disabled test (should trigger jest/no-disabled-tests and jest/no-test-prefixes)
+	it.skip('should be disabled', () => {
+		expect(true).toBe(true);
+	});
 
-  // ❌ Test using deprecated function (should trigger jest/no-deprecated-functions)
-  it("should use deprecated function", () => {
-    // jest.resetModules(); // This might be deprecated
-    expect(true).toBe(true);
-  });
+	// ❌ Focused test (should trigger jest/no-focused-tests)
+	it.only('should be focused', () => {
+		expect(true).toBe(true);
+	});
 
-  // ❌ Test with done callback (should trigger jest/no-done-callback)
-  it("should use done callback", (done) => {
-    setTimeout(() => {
-      expect(true).toBe(true);
-      done(); // ❌ Done callback
-    }, 100);
-  });
+	// ❌ Test with conditional expect (should trigger jest/no-conditional-expect)
+	it('should have conditional expect', () => {
+		if (Math.random() > 0.5) {
+			expect(true).toBe(true);
+		}
+	});
 
-  // ❌ Test exporting from test file (should trigger jest/no-export)
-  export const exportedValue = "test"; // ❌ Export from test file
+	// ❌ Test with done callback (should trigger jest/no-done-callback)
+	it('should use done callback', (done) => {
+		setTimeout(() => {
+			expect(true).toBe(true);
+			done();
+		}, 100);
+	});
 
-  // ❌ Test with identical title (should trigger jest/no-identical-title)
-  it("should work", () => {
-    expect(true).toBe(true);
-  });
+	// ❌ Test with identical title (should trigger jest/no-identical-title)
+	it('should work', () => {
+		expect(true).toBe(true);
+	});
+	it('should work', () => {
+		// ❌ Identical title
+		expect(false).toBe(false);
+	});
 
-  it("should work", () => { // ❌ Identical title
-    expect(false).toBe(false);
-  });
+	it('snapshot interpolation', () => {
+		const name = 'test';
+		const title = `snapshot ${name}`;
+		// ❌ This should trigger jest/no-interpolation-in-snapshots
+		expect({ name }).toMatchSnapshot(title);
+	});
 
-  // ❌ Test with interpolation in snapshot (should trigger jest/no-interpolation-in-snapshots)
-  it("should have interpolation in snapshot", () => {
-    const value = "test";
-    expect({ value }).toMatchSnapshot(); // ❌ Interpolation in snapshot
-  });
+	// ❌ Test with interpolation in snapshot (should trigger jest/no-interpolation-in-snapshots)
+	it('should have interpolation in snapshot', () => {
+		const value = 'test';
+		expect(`interp ${value}`).toMatchSnapshot();
+	});
 
-  // ❌ Test using jasmine globals (should trigger jest/no-jasmine-globals)
-  it("should use jasmine globals", () => {
-    spyOn(console, "log"); // ❌ Jasmine global
-    expect(true).toBe(true);
-  });
+	// ❌ Test using jasmine globals (should trigger jest/no-jasmine-globals)
+	it('should use jasmine globals', () => {
+		(global as any).spyOn(console, 'log');
+		expect(true).toBe(true);
+	});
 
-  // ❌ Test importing mocks (should trigger jest/no-mocks-import)
-  // import mock from 'some-mock'; // This would trigger if we had it
+	// ❌ Test with alias methods (should trigger jest/no-alias-methods)
+	it('should use alias methods', () => {
+		expect(1).toHaveBeenCalled(); // Should prefer toBeCalledWith or similar if configured, or just use an alias
+	});
 
-  // ❌ Test with standalone expect (should trigger jest/no-standalone-expect)
-  expect(true).toBe(true); // ❌ Standalone expect
+	// ❌ Test with commented out tests (should trigger jest/no-commented-out-tests)
+	// it("should be commented out", () => { expect(true).toBe(true); });
 
-  // ❌ Test with alias methods (should trigger jest/no-alias-methods)
-  it("should use alias methods", () => {
-    expect([1, 2, 3]).toContainEqual(1); // This might trigger if toContain is preferred
-  });
+	// ❌ Test with invalid describe callback (should trigger jest/valid-describe-callback)
+	describe('invalid describe', () => {
+		return 1; // ❌ Describe should not return anything
+	});
 
-  // ❌ Test with commented out tests (should trigger jest/no-commented-out-tests)
-  // it("should be commented out", () => {
-  //   expect(true).toBe(true);
-  // });
+	// ❌ Test with invalid expect (should trigger jest/valid-expect)
+	it('should have invalid expect', () => {
+		expect(true); // ❌ Missing matcher
+	});
 
-  // ❌ Test with invalid describe callback (should trigger jest/valid-describe-callback)
-  describe("invalid describe", "not a function"); // ❌ Invalid describe callback
+	// ❌ Test with invalid expect in promise (should trigger jest/valid-expect-in-promise)
+	it('should have invalid expect in promise', () => {
+		return Promise.resolve().then(() => {
+			expect(true);
+		});
+	});
 
-  // ❌ Test with invalid expect (should trigger jest/valid-expect)
-  it("should have invalid expect", () => {
-    expect; // ❌ Invalid expect
-  });
+	// ❌ Test with invalid title (should trigger jest/valid-title)
+	it('', () => {
+		expect(true).toBe(true);
+	});
 
-  // ❌ Test with invalid expect in promise (should trigger jest/valid-expect-in-promise)
-  it("should have invalid expect in promise", () => {
-    return Promise.resolve().then(() => {
-      expect; // ❌ Invalid expect in promise
-    });
-  });
+	// ❌ Async test without await (should trigger testing-library/await-async-queries)
+	it('should handle async operations', async () => {
+		const _element = screen.findByText('Test');
+	});
 
-  // ❌ Test with invalid title (should trigger jest/valid-title)
-  it(123, () => { // ❌ Invalid title
-    expect(true).toBe(true);
-  });
+	// ❌ Test using toEqual for primitive (should trigger jest/prefer-to-be)
+	it('should use toBe for primitives', () => {
+		expect(1).toEqual(1);
+	});
 
-  // ❌ Async test without await (should trigger testing-library/await-async-queries)
-  it("should handle async operations", async () => {
-    render(
-      <View>
-        <Text>Test</Text>
-      </View>,
-    );
-    // Missing await for async queries - this should trigger the rule
-    const _element = screen.findByText("Test"); // ❌ Missing await
-  });
+	// ❌ Async test without await (should trigger testing-library/no-await-sync-queries)
+	it('should not await sync queries', async () => {
+		await screen.getByText('Sync Test');
+	});
 
-  // ❌ Test using toEqual for primitive (should trigger jest/prefer-to-be)
-  it("should use toBe for primitives", () => {
-    expect(1).toBe(1); // ❌ Should use toBe
-  });
+	// ❌ Test using debug (should trigger testing-library/no-debugging-utils)
+	it('should not use debug', () => {
+		screen.debug();
+	});
 
-  // ❌ Test awaiting sync query (should trigger testing-library/no-await-sync-queries)
-  it("should not await sync queries", async () => {
-    render(
-      <View>
-        <Text>Sync Test</Text>
-      </View>,
-    );
-    screen.getByText("Sync Test"); // ❌ Awaiting sync query
-  });
+	// This would require actually importing from @testing-library/dom
+});
 
-  // ❌ Test using debug (should trigger testing-library/no-debugging-utils)
-  it("should not use debug", () => {
-    render(
-      <View>
-        <Text>Debug Test</Text>
-      </View>,
-    );
-    screen.debug(); // ❌ Using debug
-  });
+// ❌ Test using fit/fdescribe (should trigger jest/no-test-prefixes)
+fit('should be focused using fit', () => {
+	expect(true).toBe(true);
+});
+
+fdescribe('focused describe', () => {
+	it('should work', () => {});
+});
+
+xit('skipped with xit', () => {});
+xdescribe('skipped with xdescribe', () => {});
+
+// ❌ Test using deprecated functions (should trigger jest/no-deprecated-functions)
+// @ts-expect-error - testing deprecated function
+const _mocked = jest.genMockFromModule('fs');
+console.log(_mocked);
+
+// ❌ Async test without await (should trigger jest/valid-expect-in-promise)
+it('should not use expect in promise', () => {
+	Promise.resolve().then(() => {
+		expect(1).toBe(1);
+	});
+});
+
+// ❌ Test using standalone expect (should trigger jest/no-standalone-expect)
+// It must be outside describe/it
+expect(1).toBe(1);
+
+function helper() {
+	// Also here
+	expect(1).toBe(1);
+}
+console.log(helper);
+
+// ❌ Test exporting from test file (should trigger jest/no-export)
+export const exportedValue = 'test';
+
+describe('more jest rules', () => {
+	// ❌ Test using alias methods (should trigger jest/no-alias-methods)
+	it('should not use alias methods', () => {
+		const mock = jest.fn();
+		mock();
+		expect(mock).toBeCalled();
+	});
+
+	// ❌ Test using interpolation in snaps	// ❌ This should trigger jest/no-interpolation-in-snapshots
+	it('triggers no-interpolation-in-snapshots', () => {
+		const val = 1;
+		expect(val).toMatchSnapshot(`interpolated ${val}`);
+	});
+
+	// ❌ Test using expect in promise (should trigger jest/valid-expect-in-promise)
+	it('should not use expect in promise again', () => {
+		Promise.resolve().then(() => {
+			expect(1).toBe(1);
+		});
+	});
 });

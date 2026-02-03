@@ -1,14 +1,21 @@
-const { importX } = require('eslint-plugin-import-x');
+/** @type {import('eslint').Linter.Config[]} */
+// Rationale: https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/RULES.md#-imports--organization
+const importX = require('eslint-plugin-import-x');
 const unusedImports = require('eslint-plugin-unused-imports');
 
 module.exports = [
-	importX.flatConfigs.recommended,
-	importX.flatConfigs.typescript,
 	{
 		plugins: {
+			'import-x': importX,
 			'unused-imports': unusedImports,
 		},
+		settings: {
+			...importX.configs.recommended.settings,
+			...importX.configs.typescript.settings,
+		},
 		rules: {
+			...importX.configs.recommended.rules,
+			...importX.configs.typescript.rules,
 			'unused-imports/no-unused-imports': 'error',
 
 			'import-x/first': 'error',
