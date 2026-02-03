@@ -1,3 +1,5 @@
+/** @type {import('eslint').Linter.Config[]} */
+// Rationale: https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/RULES.md#typescript
 module.exports = [
 	{
 		files: ['**/*.ts', '**/*.tsx', '**/*.d.ts'],

@@ -68,6 +68,26 @@ const { strict } = require('eslint-config-expo-magic');
 module.exports = [...strict];
 ```
 
+## 🛡️ Pre-commit Workflow
+
+Stop shipping broken code. Integrate with `husky` and `lint-staged` to automatically lint and fix code before every commit:
+
+1. Install dependencies:
+
+   ```bash
+   bun add --dev husky lint-staged
+   ```
+
+2. Add this to your `package.json`:
+   ```json
+   {
+   	"lint-staged": {
+   		"*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],
+   		"*.{json,md,yml}": ["prettier --write"]
+   	}
+   }
+   ```
+
 ## 📋 What's Included
 
 - **🔷 TypeScript**: Advanced type-checking, `import type` enforcement, and naming consistency.

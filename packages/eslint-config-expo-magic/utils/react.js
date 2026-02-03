@@ -1,3 +1,5 @@
+/** @type {import('eslint').Linter.Config[]} */
+// Rationale: https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/RULES.md#react--react-native
 const expoReact = require('eslint-config-expo/flat/utils/react.js');
 
 const pluginReactHooks = require('eslint-plugin-react-hooks');

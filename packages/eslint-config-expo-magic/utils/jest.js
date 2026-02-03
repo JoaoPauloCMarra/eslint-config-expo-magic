@@ -1,10 +1,12 @@
-const jestPlugin = require('eslint-plugin-jest');
+/** @type {import('eslint').Linter.Config[]} */
+// Rationale: https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/RULES.md#-testing
+const jest = require('eslint-plugin-jest');
 const testingLibraryPlugin = require('eslint-plugin-testing-library');
 
 module.exports = [
 	{
 		plugins: {
-			jest: jestPlugin,
+			jest: jest,
 			'testing-library': testingLibraryPlugin,
 		},
 
@@ -18,12 +20,12 @@ module.exports = [
 
 		languageOptions: {
 			globals: {
-				...jestPlugin.environments.globals.globals,
+				...jest.environments.globals.globals,
 			},
 		},
 
 		rules: {
-			...jestPlugin.configs.recommended.rules,
+			...jest.configs.recommended.rules,
 			'jest/no-disabled-tests': 'error',
 			'jest/no-test-prefixes': 'warn',
 			'jest/prefer-hooks-on-top': 'error',
