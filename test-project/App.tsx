@@ -234,6 +234,10 @@ console.log(t);
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 console.log(SafeAreaView);
 
+// ✅ This should resolve with TS alias support
+import AliasTarget from '@/types';
+console.log(AliasTarget);
+
 // ❌ This should trigger @typescript-eslint/no-dupe-class-members and no-dupe-class-members
 class Dupe {
 	foo() {}
@@ -493,6 +497,7 @@ class PreferReadonly {
 
 // ❌ This should trigger export-specific best practices
 const envVar = process.env.DATABASE_URL; // Should trigger restricted-syntax (EXPO_PUBLIC_)
+const envVarOk = process.env.NODE_ENV; // Allowed env var
 const dynamicEnv = process.env[bad_variable_name as any]; // Should trigger expo/no-dynamic-env-var
 
 // ❌ This should trigger expo/no-env-var-destructuring

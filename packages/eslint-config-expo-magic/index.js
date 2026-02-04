@@ -72,9 +72,20 @@ const config = [
 
 	{
 		settings: {
+			'import/resolver': {
+				node: { extensions: allExtensions },
+				typescript: {
+					alwaysTryTypes: true,
+					project: true,
+				},
+			},
 			'import-x/extensions': allExtensions,
 			'import-x/resolver': {
 				node: { extensions: allExtensions },
+				typescript: {
+					alwaysTryTypes: true,
+					project: true,
+				},
 			},
 		},
 		languageOptions: {

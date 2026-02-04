@@ -60,7 +60,7 @@ const expectedRules = {
 	'import-x/no-amd': ['App.tsx'],
 	'import-x/no-anonymous-default-export': ['BadImports.tsx'],
 	'import-x/no-duplicates': ['App.tsx'],
-	'import-x/no-unresolved': ['App.tsx'],
+	'import-x/no-unresolved': ['App.tsx', 'alias-unresolved.ts'],
 	'import-x/no-webpack-loader-syntax': ['App.tsx'],
 	'import-x/order': ['App.tsx', 'find-missing-rules.js'],
 	'import/first': ['App.tsx'],

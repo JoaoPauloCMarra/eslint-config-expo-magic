@@ -102,6 +102,16 @@ Stop shipping broken code. Integrate with `husky` and `lint-staged` to automatic
 
 Check [RULES.md](./RULES.md) for the full list of opinionated rules and their rationales.
 
+## 🧭 Path Alias Support
+
+`eslint-config-expo-magic` enables TypeScript path alias resolution out of the box via `eslint-import-resolver-typescript`. It reads your `tsconfig.json` automatically, so aliases like `@/` work without additional ESLint overrides.
+
+**Example**
+
+```ts
+import UserCard from '@/components/UserCard';
+```
+
 ## 🎛️ Customization
 
 Simply add an object after the spread config to override anything:
