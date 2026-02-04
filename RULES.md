@@ -162,8 +162,8 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 
 ### `process.env` restriction
 
-- **Rule**: Warn when accessing `process.env` variables that are not `EXPO_PUBLIC_` prefixed (with a narrow allowlist for `NODE_ENV`).
-- **Rationale**: Security best practice for Expo. Non-prefixed variables are not exposed to the client bundle by default, so using them in client code is often a bug. Using this rule prevents "silent" undefined values in your app while keeping common environment checks readable.
+- **Rule**: Disabled by default. Enable this rule in project overrides if you want to restrict client-side `process.env` usage.
+- **Rationale**: Expo only exposes `EXPO_PUBLIC_` env vars to client bundles. Some teams prefer hard enforcement, others keep this as a local policy.
 
 **Examples**
 
@@ -172,7 +172,7 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 const env = process.env.NODE_ENV;
 
-// Disallowed (warn)
+// Example restriction when enabled
 const secret = process.env.DATABASE_URL;
 ```
 

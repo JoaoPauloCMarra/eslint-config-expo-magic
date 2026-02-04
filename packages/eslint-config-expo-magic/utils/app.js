@@ -31,14 +31,7 @@ module.exports = [
 	{
 		files: ['**/*.ts', '**/*.tsx'],
 		rules: {
-			'no-restricted-syntax': [
-				'warn',
-				{
-					selector:
-						"MemberExpression[object.object.name='process'][object.property.name='env'][property.name!=/^(EXPO_PUBLIC_|NODE_ENV)$/]",
-					message: 'Expose only EXPO_PUBLIC_ env vars (NODE_ENV is allowed).',
-				},
-			],
+			'no-restricted-syntax': ['warn'],
 		},
 	},
 ];
