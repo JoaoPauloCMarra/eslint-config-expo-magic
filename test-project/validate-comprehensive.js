@@ -86,7 +86,6 @@ const expectedRules = {
 	'no-empty-pattern': ['App.tsx'],
 	'no-extend-native': ['App.tsx'],
 	'no-restricted-imports': ['App.tsx'],
-	'no-restricted-syntax': ['App.tsx'],
 	'no-undef': ['validate.js'],
 	'no-unreachable': ['App.tsx'],
 	'no-unsafe-negation': ['App.tsx'],

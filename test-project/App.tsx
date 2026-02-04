@@ -496,8 +496,8 @@ class PreferReadonly {
 }
 
 // ❌ This should trigger export-specific best practices
-const envVar = process.env.DATABASE_URL; // Should trigger restricted-syntax (EXPO_PUBLIC_)
-const envVarOk = process.env.NODE_ENV; // Allowed env var
+const envVar = process.env.DATABASE_URL;
+const envVarOk = process.env.NODE_ENV;
 const dynamicEnv = process.env[bad_variable_name as any]; // Should trigger expo/no-dynamic-env-var
 
 // ❌ This should trigger expo/no-env-var-destructuring
@@ -630,7 +630,7 @@ if ((!'x') in {}) {
 	console.log('unsafe');
 }
 
-// ❌ Trigger no-restricted-syntax for interfaces
+// ❌ Trigger interfaces linting (type-only rule)
 interface ITest {
 	name: string;
 }
