@@ -30,7 +30,7 @@
     },
     "packages/eslint-config-expo-magic": {
       "name": "eslint-config-expo-magic",
-      "version": "1.6.2",
+      "version": "1.6.3",
       "dependencies": {
         "@typescript-eslint/eslint-plugin": "^8.54.0",
         "@typescript-eslint/parser": "^8.54.0",

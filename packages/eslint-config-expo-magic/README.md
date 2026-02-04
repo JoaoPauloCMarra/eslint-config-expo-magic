@@ -4,7 +4,7 @@ This package provides the flat ESLint configuration for Expo + React Native proj
 
 ## Path alias support
 
-Path aliases are resolved automatically through `eslint-import-resolver-typescript`, which reads your `tsconfig.json` without extra ESLint overrides. This resolver is included as a dependency of the package.
+Path aliases are resolved automatically through `eslint-import-resolver-typescript`, which scans `**/tsconfig.json` without extra ESLint overrides. This resolver is included as a dependency of the package.
 
 ```ts
 import UserCard from '@/components/UserCard';

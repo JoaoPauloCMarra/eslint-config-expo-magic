@@ -76,7 +76,7 @@ const config = [
 				node: { extensions: allExtensions },
 				typescript: {
 					alwaysTryTypes: true,
-					project: true,
+					project: ['**/tsconfig.json'],
 				},
 			},
 			'import-x/extensions': allExtensions,
@@ -84,7 +84,7 @@ const config = [
 				node: { extensions: allExtensions },
 				typescript: {
 					alwaysTryTypes: true,
-					project: true,
+					project: ['**/tsconfig.json'],
 				},
 			},
 		},
