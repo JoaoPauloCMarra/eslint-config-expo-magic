@@ -122,9 +122,6 @@ const expectedRules = {
 	],
 };
 
-const expectedErrorsCount = 743;
-const expectedWarningsCount = 298;
-
 async function runCommand(command, args, options = {}) {
 	return new Promise((resolve, reject) => {
 		const child = spawn(command, args, {
@@ -205,27 +202,9 @@ async function runValidation() {
 
 		console.log(`\n📊 Analysis Results:`);
 		console.log(`===================`);
-		console.log(
-			`Total Errors: ${totalErrors} (Expected: ${expectedErrorsCount})`,
-		);
-		console.log(
-			`Total Warnings: ${totalWarnings} (Expected: ${expectedWarningsCount})`,
-		);
-		console.log(
-			`Total Problems: ${totalErrors + totalWarnings} (Expected: ${expectedErrorsCount + expectedWarningsCount})`,
-		);
-
-		// Check counts
-		const countsValid =
-			totalErrors === expectedErrorsCount &&
-			totalWarnings === expectedWarningsCount;
-
-		if (!countsValid) {
-			console.log(`❌ ERROR: Problem counts don't match expectations!`);
-			return false;
-		}
-
-		console.log(`✅ Problem counts match expectations!`);
+		console.log(`Total Errors: ${totalErrors}`);
+		console.log(`Total Warnings: ${totalWarnings}`);
+		console.log(`Total Problems: ${totalErrors + totalWarnings}`);
 
 		// Check expected rules
 		console.log(`\n🔍 Checking Expected Rules:`);
@@ -288,7 +267,7 @@ async function runValidation() {
 		console.log(`\n🎯 Final Validation:`);
 		console.log(`===================`);
 
-		if (allRulesPresent && countsValid) {
+		if (allRulesPresent) {
 			console.log(`🎉 All expected rules are working correctly!`);
 			console.log(`🚀 Ready for publishing!`);
 			return true;

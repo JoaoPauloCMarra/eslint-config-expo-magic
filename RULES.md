@@ -34,6 +34,11 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 - **Rule**: Prevent promises where they are not expected.
 - **Rationale**: Catch cases where an async function is passed to a synchronous callback or prop where the returned promise would be ignored.
 
+### `@typescript-eslint/no-require-imports`
+
+- **Rule**: Disallow `require()` imports.
+- **Rationale**: Enforces consistent ES module imports and helps ensure tree-shaking and type inference work correctly.
+
 ### `@typescript-eslint/naming-convention`
 
 - **Rule**: PascalCase for types, UPPER_CASE for enum members.
@@ -106,6 +111,11 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 - **Rule**: Disallow `export default () => {}`.
 - **Rationale**: Anonymous exports make debugging harder by losing name traces in devtools and stack traces.
 
+### `import-x/no-duplicates`
+
+- **Rule**: Disallow duplicated imports from the same module.
+- **Rationale**: Prevents redundant imports and keeps import blocks clean and predictable.
+
 ## 🧪 Testing
 
 ### `jest/prefer-hooks-on-top`
@@ -129,6 +139,16 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 
 - **Rule**: Warn in apps, Error in packages.
 - **Rationale**: Prevents accidental logs in production while allowing them for app debugging.
+
+### `expo/no-dynamic-env-var`
+
+- **Rule**: Prevent dynamic access to `process.env` in Expo apps.
+- **Rationale**: Ensures environment variables are statically analyzable for Metro and EAS builds.
+
+### `expo/no-env-var-destructuring`
+
+- **Rule**: Disallow destructuring `process.env` in Expo client code.
+- **Rationale**: Encourages explicit, prefixed env var access to avoid bundling secrets.
 
 ### `expo/prefer-box-shadow`
 

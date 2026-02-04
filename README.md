@@ -28,9 +28,11 @@ bun add --dev eslint-config-expo-magic
 
 - **Node.js** 18.0.0+
 - **Bun** 1.0.0+
-- **ESLint** 9.0.0+ (Flat Config)
-- **Expo SDK** 50+
-- **TypeScript** 5.0.0+
+- **ESLint** 9.39.2+ (Flat Config)
+- **Expo SDK** 54.0.33+
+- **TypeScript** 5.9.3+
+- **React** 19.2.3+
+- **React Test Renderer** 19.2.3+
 
 ### Peer Dependencies
 
@@ -39,10 +41,11 @@ Ensure your `package.json` includes these minimum versions:
 ```json
 {
 	"devDependencies": {
-		"eslint": ">=9.0.0",
-		"typescript": ">=5.0.0",
-		"expo": ">=50.0.0",
-		"react": ">=18.0.0"
+		"eslint": ">=9.39.2",
+		"expo": ">=54.0.33",
+		"react": ">=19.2.3",
+		"react-test-renderer": ">=19.2.3",
+		"typescript": ">=5.9.3"
 	}
 }
 ```
