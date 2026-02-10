@@ -140,6 +140,12 @@ module.exports = [
 | Mobile Optimization | Generic            | Tailored for Expo |
 | Complexity          | Very High          | Zero              |
 
+## Troubleshooting
+
+### `TypeError: Class extends value undefined is not a constructor or null` (eslint-plugin-import-x)
+
+This occurs with ESLint 10 when an old version of `eslint-plugin-import-x` (3.x) pulls in `@typescript-eslint/utils` 7.x, which relies on removed ESLint legacy APIs. **Fix:** Upgrade to `eslint-config-expo-magic@2.0.2` or later (which uses `eslint-plugin-import-x` 4.x and a single `@typescript-eslint/utils` 8.x). If you are already on the latest version, run `bun install` (or your package manager) again so dependencies resolve correctly.
+
 ## 🤝 Contributing
 
 Each rule category is modular and lives in `utils/`. We welcome bug reports and feature requests!
