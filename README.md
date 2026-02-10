@@ -28,7 +28,7 @@ bun add --dev eslint-config-expo-magic
 
 - **Node.js** 18.0.0+
 - **Bun** 1.0.0+ (recommended; npm/yarn work for consumption)
-- **Expo SDK** 54.0.33+
+- **Expo SDK** 54.0.31+
 - **TypeScript** 5.9.3+
 - **React** 19.2.3+
 - **React Test Renderer** 19.2.3+
@@ -42,7 +42,7 @@ Ensure your `package.json` includes these minimum versions (ESLint and Prettier 
 ```json
 {
 	"devDependencies": {
-		"expo": ">=54.0.33",
+		"expo": ">=54.0.31",
 		"react": ">=19.2.3",
 		"react-test-renderer": ">=19.2.3",
 		"typescript": ">=5.9.3"

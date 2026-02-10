@@ -24,15 +24,20 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 - **Rule**: Error on `any` usage.
 - **Rationale**: Defeats the purpose of TypeScript. Use `unknown` or proper types to ensure type safety.
 
-### `@typescript-eslint/no-floating-promises`
-
-- **Rule**: Ensure promises are handled.
-- **Rationale**: Prevents unhandled async operations which are a common source of bugs and race conditions in mobile apps.
-
 ### `@typescript-eslint/no-misused-promises`
 
 - **Rule**: Prevent promises where they are not expected.
 - **Rationale**: Catch cases where an async function is passed to a synchronous callback or prop where the returned promise would be ignored.
+
+### `@typescript-eslint/no-redeclare`
+
+- **Rule**: Prevent variable redeclaration.
+- **Rationale**: Avoids confusion and potential bugs from accidental redeclaration.
+
+### `@typescript-eslint/no-require-imports`
+
+- **Rule**: Prefer ES6 imports over require().
+- **Rationale**: Ensures consistent import style and better tree-shaking support.
 
 ### `@typescript-eslint/naming-convention`
 
@@ -84,10 +89,16 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 - **Rule**: Disallow single-element arrays in style props (e.g. `style={[styles.foo]}`).
 - **Rationale**: Use the object directly for clarity and to avoid unnecessary array allocation.
 
-### `react-19-upgrade/*`
+### React Compiler Rules
 
-- **Rule**: Future-proofs for React 19 (disallows string refs, legacy context, prop-types, etc.).
-- **Rationale**: Ensures a smooth transition to the next major version of React.
+- **`react-hooks/immutability`**: Ensures proper immutable updates in React components.
+- **`react-hooks/refs`**: Prevents accessing refs during render and other ref-related issues.
+- **`react-hooks/purity`**: Ensures component functions remain pure (no side effects during render).
+- **`react-hooks/unsupported-syntax`**: Blocks syntax that cannot be optimized by React Compiler.
+- **`react-hooks/set-state-in-render`**: Prevents calling setState during render (causes infinite loops).
+- **`react-hooks/preserve-manual-memoization`**: Ensures manual memoization doesn't conflict with compiler optimizations.
+
+**Rationale**: These rules work with React Compiler to catch performance issues and ensure components can be safely optimized.
 
 ## 📦 Imports & Organization
 
@@ -115,6 +126,16 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 
 - **Rule**: Disallow duplicated imports from the same module.
 - **Rationale**: Prevents redundant imports and keeps import blocks clean and predictable.
+
+### `import-x/no-unresolved`
+
+- **Rule**: Ensure all imports can be resolved.
+- **Rationale**: Catches typos and missing dependencies early.
+
+### `import-x/no-named-as-default-member`
+
+- **Rule**: Prevent importing named exports as default members.
+- **Rationale**: Ensures correct import syntax and prevents runtime errors.
 
 ## 🧪 Testing
 
@@ -144,6 +165,23 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 - **Rationale**: In React Native, you should use `@testing-library/react-native` instead of DOM-based testing utils.
 
 ## 🛠️ General & DX
+
+### Core JavaScript Rules
+
+- **`eqeqeq`**: Enforce strict equality (`===` and `!==`).
+- **`no-dupe-args`**: Prevent duplicate function parameters.
+- **`no-dupe-keys`**: Prevent duplicate object keys.
+- **`no-duplicate-case`**: Prevent duplicate case labels in switch statements.
+- **`no-empty-pattern`**: Prevent empty destructuring patterns.
+- **`no-extend-native`**: Prevent extending native objects.
+- **`no-unreachable`**: Prevent unreachable code after return/throw.
+- **`no-unsafe-negation`**: Prevent unsafe negation of left side of relational operators.
+- **`no-unused-expressions`**: Prevent unused expressions.
+- **`no-unused-labels`**: Prevent unused labels.
+- **`no-var`**: Prefer `let`/`const` over `var`.
+- **`no-with`**: Disallow `with` statements.
+
+**Rationale**: These rules enforce modern JavaScript best practices and prevent common bugs.
 
 ### `no-console`
 
