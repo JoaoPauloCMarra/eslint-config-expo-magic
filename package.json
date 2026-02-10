@@ -4,7 +4,7 @@
 		"@types/react": "^19.2.3",
 		"@typescript-eslint/eslint-plugin": "^8.54.0",
 		"bun-types": "latest",
-		"eslint": "^9.39.2",
+		"eslint": "^10.0.0",
 		"eslint-config-expo": "^10.0.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-import-x": "^3.1.0",
@@ -40,5 +40,10 @@
 	"workspaces": [
 		"packages/eslint-config-expo-magic",
 		"test-project"
-	]
+	],
+	"overrides": {
+		"@typescript-eslint/eslint-plugin": "^8.54.0",
+		"@typescript-eslint/parser": "^8.54.0",
+		"@typescript-eslint/utils": "^8.54.0"
+	}
 }

@@ -1,13 +1,14 @@
 /** @type {import('eslint').Linter.Config[]} */
 // Rationale: https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/RULES.md#-imports--organization
+const { fixupPluginRules } = require('@eslint/compat');
 const importX = require('eslint-plugin-import-x');
 const unusedImports = require('eslint-plugin-unused-imports');
 
 module.exports = [
 	{
 		plugins: {
-			'import-x': importX,
-			'unused-imports': unusedImports,
+			'import-x': fixupPluginRules(importX),
+			'unused-imports': fixupPluginRules(unusedImports),
 		},
 		settings: {
 			...importX.configs.recommended.settings,
