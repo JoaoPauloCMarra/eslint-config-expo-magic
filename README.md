@@ -10,7 +10,7 @@
 
 ## ✨ Features
 
-- ⚡ **Instant Setup** - Flat config ready. Just install and go.
+- ⚡ **Instant Setup** - ESLint 10 flat config. Just install and go.
 - 🔧 **Zero Noise** - Opinionated defaults that actually make sense for mobile development.
 - 🚀 **Performance Optimized** - Includes rules for React Compiler and advanced TypeScript performance.
 - 📱 **Mobile-First** - Deep integration with Expo SDK and React Native specific pitfalls.
@@ -27,21 +27,21 @@ bun add --dev eslint-config-expo-magic
 ### Prerequisites
 
 - **Node.js** 18.0.0+
-- **Bun** 1.0.0+
-- **ESLint** 9.39.2+ (Flat Config)
+- **Bun** 1.0.0+ (recommended; npm/yarn work for consumption)
 - **Expo SDK** 54.0.33+
 - **TypeScript** 5.9.3+
 - **React** 19.2.3+
 - **React Test Renderer** 19.2.3+
 
+**Zero install (v2):** ESLint and Prettier are bundled with this package; you do not need to add them to your project.
+
 ### Peer Dependencies
 
-Ensure your `package.json` includes these minimum versions:
+Ensure your `package.json` includes these minimum versions (ESLint and Prettier are provided by the package):
 
 ```json
 {
 	"devDependencies": {
-		"eslint": ">=9.39.2",
 		"expo": ">=54.0.33",
 		"react": ">=19.2.3",
 		"react-test-renderer": ">=19.2.3",
