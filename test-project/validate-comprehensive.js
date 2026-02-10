@@ -168,8 +168,7 @@ async function runValidation() {
 		console.log('📋 Running ESLint...');
 
 		// Run ESLint using spawn (bunx resolves eslint from workspace / eslint-config-expo-magic)
-		const result = await runCommand('bun', [
-			'x',
+		const result = await runCommand('bunx', [
 			'eslint',
 			'.',
 			'--format=json',
