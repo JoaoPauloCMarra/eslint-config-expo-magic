@@ -22,7 +22,6 @@
 		"@types/react": "^19.2.3",
 		"babel-plugin-module-resolver": "^5.0.2",
 		"babel-plugin-react-compiler": "^1.0.0",
-		"eslint": "^9.39.2",
 		"eslint-config-expo-magic": "workspace:*",
 		"eslint-import-resolver-typescript": "^4.4.4",
 		"expo": "^54.0.31",

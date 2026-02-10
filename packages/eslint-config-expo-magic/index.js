@@ -1,4 +1,5 @@
 const globals = require('globals');
+const { fixupConfigRules } = require('@eslint/compat');
 const expoConfig = require('eslint-config-expo/flat');
 const {
 	allExtensions,
@@ -13,8 +14,10 @@ const reactConfig = require('./utils/react.js');
 const typescriptConfig = require('./utils/typescript.js');
 const { defineConfig } = require('eslint/config');
 
-const filteredExpoConfig = expoConfig.filter(
-	(c) => !c.plugins || !c.plugins['react-hooks'],
+const filteredExpoConfig = fixupConfigRules(
+	expoConfig.filter(
+		(c) => !c.plugins || !c.plugins['react-hooks'],
+	),
 );
 
 const config = [
