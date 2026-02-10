@@ -34,11 +34,6 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 - **Rule**: Prevent promises where they are not expected.
 - **Rationale**: Catch cases where an async function is passed to a synchronous callback or prop where the returned promise would be ignored.
 
-### `@typescript-eslint/no-require-imports`
-
-- **Rule**: Disallow `require()` imports.
-- **Rationale**: Enforces consistent ES module imports and helps ensure tree-shaking and type inference work correctly.
-
 ### `@typescript-eslint/naming-convention`
 
 - **Rule**: PascalCase for types, UPPER_CASE for enum members.
@@ -84,6 +79,11 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 - **Rule**: Prevent using platform-specific components on the wrong platform.
 - **Rationale**: Catches crashes before they happen on devices.
 
+### `react-native/no-single-element-style-arrays`
+
+- **Rule**: Disallow single-element arrays in style props (e.g. `style={[styles.foo]}`).
+- **Rationale**: Use the object directly for clarity and to avoid unnecessary array allocation.
+
 ### `react-19-upgrade/*`
 
 - **Rule**: Future-proofs for React 19 (disallows string refs, legacy context, prop-types, etc.).
@@ -117,6 +117,16 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 - **Rationale**: Prevents redundant imports and keeps import blocks clean and predictable.
 
 ## 🧪 Testing
+
+### `testing-library/await-async-queries`
+
+- **Rule**: Error on sync queries; use async finders.
+- **Rationale**: Ensures tests wait for async UI updates and avoid flaky assertions.
+
+### `testing-library/no-await-sync-queries`
+
+- **Rule**: Error on awaiting sync query APIs.
+- **Rationale**: Prevents unnecessary awaits and clarifies intent.
 
 ### `jest/prefer-hooks-on-top`
 
@@ -155,7 +165,9 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 - **Rule**: Prefer `boxShadow` prop over legacy shadow props.
 - **Rationale**: Modern styling practice for cross-platform consistency in Expo SDK 50+.
 
-### `no-restricted-imports` (SafeAreaView)
+### Mobile-first infrastructure
+
+#### `no-restricted-imports` (SafeAreaView)
 
 - **Rule**: Disallow `SafeAreaView` from `react-native`.
 - **Rationale**: Forces the use of `react-native-safe-area-context` which is significantly more robust for edge-to-edge layouts.

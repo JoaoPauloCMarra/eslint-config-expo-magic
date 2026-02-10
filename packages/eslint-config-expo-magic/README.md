@@ -2,7 +2,7 @@
 
 This package provides the flat ESLint configuration for Expo + React Native projects.
 
-**Zero install:** ESLint and Prettier are included—your project does not need to install them. You only need `eslint-config-expo-magic`, flat config (`eslint.config.js`), and Node 20.19+ / 22.13+ / 24+.
+**Zero install:** ESLint and Prettier are included—your project does not need to install them. You only need `eslint-config-expo-magic`, flat config (`eslint.config.js`), and Node 18+.
 
 ### Install
 
@@ -21,6 +21,15 @@ module.exports = require('eslint-config-expo-magic');
 ```
 
 Then run `bun run lint` (add `"lint": "eslint ."` to your `package.json` scripts).
+
+### Strict preset
+
+For stricter enforcement (e.g. `no-console: error`, stricter TypeScript rules):
+
+```js
+const { strict } = require('eslint-config-expo-magic');
+module.exports = [...strict];
+```
 
 ## Path alias support
 
