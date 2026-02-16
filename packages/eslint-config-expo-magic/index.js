@@ -1,5 +1,9 @@
 const globals = require('globals');
-const { fixupConfigRules } = require('@eslint/compat');
+const {
+	fixupConfigRules,
+	fixupPluginRules,
+} = require('@eslint/compat');
+const typescriptPlugin = require('@typescript-eslint/eslint-plugin');
 const expoConfig = require('eslint-config-expo/flat');
 const {
 	allExtensions,
@@ -12,7 +16,6 @@ const prettierConfig = require('./utils/prettier.js');
 const reactConfig = require('./utils/react.js');
 
 const typescriptConfig = require('./utils/typescript.js');
-const { defineConfig } = require('eslint/config');
 
 const filteredExpoConfig = fixupConfigRules(
 	expoConfig.filter(
@@ -20,7 +23,20 @@ const filteredExpoConfig = fixupConfigRules(
 	),
 );
 
-const config = [
+const tsconfigProjectGlobs = [
+	'./tsconfig.json',
+	'./apps/*/tsconfig.json',
+	'./packages/*/tsconfig.json',
+	'./test-project/tsconfig.json',
+];
+
+const typescriptImportResolver = {
+	alwaysTryTypes: true,
+	project: tsconfigProjectGlobs,
+	tsconfigRootDir: process.cwd(),
+};
+
+const baseConfig = [
 	{
 		ignores: [
 			'**/node_modules/**',
@@ -57,9 +73,6 @@ const config = [
 
 	...jestConfig,
 	...appConfig,
-	...prettierConfig,
-
-	// Workspace Support: Different rules for apps and packages
 	{
 		files: ['apps/**'],
 		rules: {
@@ -77,20 +90,12 @@ const config = [
 		settings: {
 			'import/resolver': {
 				node: { extensions: allExtensions },
-				typescript: {
-					alwaysTryTypes: true,
-					project: ['./tsconfig.json'],
-					tsconfigRootDir: process.cwd(),
-				},
+				typescript: typescriptImportResolver,
 			},
 			'import-x/extensions': allExtensions,
 			'import-x/resolver': {
 				node: { extensions: allExtensions },
-				typescript: {
-					alwaysTryTypes: true,
-					project: ['./tsconfig.json'],
-					tsconfigRootDir: process.cwd(),
-				},
+				typescript: typescriptImportResolver,
 			},
 		},
 		languageOptions: {
@@ -117,7 +122,13 @@ const config = [
 	},
 
 	{
-		files: ['*.config.js', 'metro.config.js', 'babel.config.js'],
+		files: [
+			'*.config.{js,cjs,mjs,ts,mts,cts}',
+			'**/*.config.{js,cjs,mjs,ts,mts,cts}',
+			'metro.config.{js,cjs,mjs,ts,mts,cts}',
+			'babel.config.{js,cjs,mjs,ts,mts,cts}',
+			'scripts/**/*.{js,cjs,mjs,ts,mts,cts}',
+		],
 		languageOptions: {
 			globals: {
 				...globals.node,
@@ -135,15 +146,59 @@ const config = [
 	},
 ];
 
+const config = [...baseConfig, ...prettierConfig];
+
+const strictTypeScriptRules = {
+	'@typescript-eslint/no-explicit-any': 'error',
+	'@typescript-eslint/no-non-null-assertion': 'error',
+	'@typescript-eslint/await-thenable': 'error',
+	'@typescript-eslint/no-floating-promises': 'error',
+	'@typescript-eslint/no-misused-promises': 'error',
+};
+
 const strict = [
 	...config,
 	{
+		files: [
+			'**/*.ts',
+			'**/*.tsx',
+			'**/*.d.ts',
+			'**/*.mts',
+			'**/*.cts',
+		],
+		plugins: {
+			'@typescript-eslint': fixupPluginRules(typescriptPlugin),
+		},
 		rules: {
-			'@typescript-eslint/no-explicit-any': 'error',
-			'@typescript-eslint/no-non-null-assertion': 'error',
-			'@typescript-eslint/await-thenable': 'error',
-			'@typescript-eslint/no-floating-promises': 'error',
-			'@typescript-eslint/no-misused-promises': 'error',
+			...strictTypeScriptRules,
+		},
+	},
+	{
+		rules: {
+			'no-console': 'error',
+		},
+	},
+];
+
+const strictNoPrettier = [
+	...baseConfig,
+	{
+		files: [
+			'**/*.ts',
+			'**/*.tsx',
+			'**/*.d.ts',
+			'**/*.mts',
+			'**/*.cts',
+		],
+		plugins: {
+			'@typescript-eslint': fixupPluginRules(typescriptPlugin),
+		},
+		rules: {
+			...strictTypeScriptRules,
+		},
+	},
+	{
+		rules: {
 			'no-console': 'error',
 		},
 	},
@@ -151,3 +206,5 @@ const strict = [
 
 module.exports = config;
 module.exports.strict = strict;
+module.exports.noPrettier = baseConfig;
+module.exports.strictNoPrettier = strictNoPrettier;

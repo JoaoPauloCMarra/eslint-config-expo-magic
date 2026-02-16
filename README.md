@@ -1,122 +1,203 @@
 # eslint-config-expo-magic
 
-> 🚀 **The Ultimate ESLint Configuration for React Native & Expo Projects** - Save hours of configuration and ship high-quality code.
-
 [![npm version](https://img.shields.io/npm/v/eslint-config-expo-magic.svg)](https://www.npmjs.com/package/eslint-config-expo-magic)
 [![CI](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/actions/workflows/ci.yml/badge.svg)](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-**Stop wasting time fighting with ESLint configs.** Get a production-ready, performance-optimized setup that enforces best practices for React Native, Expo, and TypeScript projects in seconds.
+Production-focused ESLint flat config for Expo and React Native projects, with TypeScript, React 19, Jest, Testing Library, import hygiene, and Prettier integration prewired.
 
-## ✨ Features
+## Table of Contents
 
-- ⚡ **Instant Setup** - ESLint 10 flat config. Just install and go.
-- 🔧 **Zero Noise** - Opinionated defaults that actually make sense for mobile development.
-- 🚀 **Performance Optimized** - Includes rules for React Compiler and advanced TypeScript performance.
-- 📱 **Mobile-First** - Deep integration with Expo SDK and React Native specific pitfalls.
-- 🔮 **Future-Proof** - Built-in React 19 upgrade path and modern ECMAScript support.
-- 🎪 **All-in-One** - Consolidates 10+ plugins into a single, cohesive package.
+- [Compatibility](#compatibility)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [API Reference](#api-reference)
+- [Behavior Reference](#behavior-reference)
+- [Customization Patterns](#customization-patterns)
+- [Monorepo Usage](#monorepo-usage)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
 
-## 📦 Installation
+## Compatibility
+
+- Node.js: `>=18.0.0`
+- Bun: `>=1.0.0` (recommended for development and publishing)
+- ESLint: `10.x` flat config
+- Expo: `>=54.0.33` (peer dependency)
+- React: `>=19.1.0` (peer dependency)
+- React Test Renderer: `>=19.1.0` (peer dependency)
+- TypeScript: `>=5.9.3` (peer dependency)
+
+## Installation
 
 ```bash
-# Recommended: Use bun
 bun add --dev eslint-config-expo-magic
 ```
 
-### Prerequisites
+Consumer projects must provide the peer dependencies listed above.
 
-- **Node.js** 18.0.0+
-- **Bun** 1.0.0+ (recommended; npm/yarn work for consumption)
-- **Expo SDK** 54.0.31+
-- **TypeScript** 5.9.3+
-- **React** 19.2.3+
-- **React Test Renderer** 19.2.3+
+## Quick Start
 
-**Zero install (v2):** ESLint and Prettier are bundled with this package; you do not need to add them to your project.
+### 1) Basic (recommended)
 
-### Peer Dependencies
+Create `eslint.config.js`:
 
-Ensure your `package.json` includes these minimum versions (ESLint and Prettier are provided by the package):
-
-```json
-{
-	"devDependencies": {
-		"expo": ">=54.0.31",
-		"react": ">=19.2.3",
-		"react-test-renderer": ">=19.2.3",
-		"typescript": ">=5.9.3"
-	}
-}
-```
-
-## 🚀 Quick Start
-
-Create an `eslint.config.js` in your project root:
-
-```javascript
+```js
 const expoMagic = require('eslint-config-expo-magic');
 
-module.exports = [
-	...expoMagic,
-	// Your custom overrides here
-];
+module.exports = [...expoMagic];
 ```
 
-For strict enforcement:
+### 2) Strict preset
 
-```javascript
+```js
 const { strict } = require('eslint-config-expo-magic');
 
 module.exports = [...strict];
 ```
 
-## 🛡️ Pre-commit Workflow
+Or via strict subpath:
 
-Stop shipping broken code. Integrate with `husky` and `lint-staged` to automatically lint and fix code before every commit:
+```js
+const strict = require('eslint-config-expo-magic/strict');
 
-1. Install dependencies:
-
-   ```bash
-   bun add --dev husky lint-staged
-   ```
-
-2. Add this to your `package.json`:
-   ```json
-   {
-   	"lint-staged": {
-   		"*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],
-   		"*.{json,md,yml}": ["prettier --write"]
-   	}
-   }
-   ```
-
-## 📋 What's Included
-
-- **🔷 TypeScript**: Advanced type-checking, `import type` enforcement, and naming consistency.
-- **⚛️ React 19 & Hooks**: Future-proof rules for React 19 and advanced Hook dependency checking.
-- **📱 Expo & Mobile**: Platform-specific component checks and Expo performance optimizations.
-- **📦 Import Excellence**: Smart sorting, circular dependency detection, and auto-cleanup of unused imports.
-- **🧪 Testing**: Optimized rules for Jest and React Native Testing Library.
-- **💅 Formatting**: Seamless Prettier integration (ready to work with your `.prettierrc`).
-
-Check [RULES.md](./RULES.md) for the full list of opinionated rules and their rationales.
-
-## 🧭 Path Alias Support
-
-`eslint-config-expo-magic` enables TypeScript path alias resolution out of the box via `eslint-import-resolver-typescript`. It reads your `tsconfig.json` automatically, so aliases like `@/` work without additional ESLint overrides.
-
-**Example**
-
-```ts
-import UserCard from '@/components/UserCard';
+module.exports = [...strict];
 ```
 
-## 🎛️ Customization
+### 3) ESM config file (`eslint.config.mjs`)
 
-Simply add an object after the spread config to override anything:
+```js
+import expoMagic from 'eslint-config-expo-magic';
 
-```javascript
+export default [...expoMagic];
+```
+
+### 4) No-Prettier preset
+
+```js
+const noPrettier = require('eslint-config-expo-magic/no-prettier');
+
+module.exports = [...noPrettier];
+```
+
+## API Reference
+
+### Package Exports
+
+This package exposes:
+
+- `eslint-config-expo-magic` -> base config array
+- `eslint-config-expo-magic/strict` -> strict config array
+- `eslint-config-expo-magic/no-prettier` -> base config array without Prettier plugin/rules
+
+### `default` export
+
+Type:
+
+```ts
+Linter.Config[]
+```
+
+Behavior:
+
+- Includes Expo flat config foundation
+- Adds TypeScript, React/React Native, import-x, Jest, Testing Library, app rules, and Prettier
+- Applies monorepo-aware import resolver settings
+- Applies baseline ignore patterns for generated/native folders
+
+### `strict` preset
+
+Type:
+
+```ts
+Linter.Config[]
+```
+
+Adds stricter overrides on top of base:
+
+- `@typescript-eslint/no-explicit-any: error`
+- `@typescript-eslint/no-non-null-assertion: error`
+- `@typescript-eslint/await-thenable: error`
+- `@typescript-eslint/no-floating-promises: error`
+- `@typescript-eslint/no-misused-promises: error`
+- `no-console: error`
+
+Type-aware strict TypeScript rules are scoped to TypeScript files only, so strict config can lint plain `.js` files without plugin resolution errors.
+
+### `no-prettier` preset
+
+Type:
+
+```ts
+Linter.Config[]
+```
+
+Behavior:
+
+- Same rule baseline as the default preset
+- Omits `eslint-plugin-prettier` and `prettier/prettier`
+
+### Type Declarations
+
+The package ships declaration files:
+
+- `index.d.ts`
+- `strict.d.ts`
+- `no-prettier.d.ts`
+
+This improves IntelliSense/autocomplete when composing config arrays.
+
+## Behavior Reference
+
+### Config Modules (composition order)
+
+The base export composes modules in this order:
+
+1. Ignore patterns + import ignore settings
+2. Filtered Expo flat config
+3. TypeScript rules
+4. React / React Native / React 19 upgrade rules
+5. Import organization rules
+6. Jest and Testing Library rules
+7. App-level rules
+8. Prettier integration
+9. Workspace-specific `no-console` overrides
+10. Shared resolver + globals settings
+
+### Ignored Paths
+
+These globs are ignored by default:
+
+- `**/node_modules/**`
+- `**/dist/**`
+- `**/build/**`
+- `**/.expo/**`
+- `**/ios/**`
+- `**/android/**`
+
+### TypeScript Import Resolution
+
+Import resolution is configured for monorepos and app/package layouts:
+
+- `./tsconfig.json`
+- `./apps/*/tsconfig.json`
+- `./packages/*/tsconfig.json`
+- `./test-project/tsconfig.json`
+
+### Workspace Console Policy
+
+- `apps/**`: `no-console` is `warn`
+- `packages/**`: `no-console` is `error`
+
+### Import Rule Policy
+
+`import-x` is treated as the source of truth. Overlapping legacy `import/*` diagnostics are disabled to avoid duplicate noise.
+
+## Customization Patterns
+
+Append your own override object after the preset:
+
+```js
 const expoMagic = require('eslint-config-expo-magic');
 
 module.exports = [
@@ -130,31 +211,74 @@ module.exports = [
 ];
 ```
 
-## 🆚 Comparison
+Disable a specific rule for one file group:
 
-| Feature             | Manual Setup       | expo-magic        |
-| ------------------- | ------------------ | ----------------- |
-| Setup Time          | 2-4 hours          | 30 seconds        |
-| Maintenance         | High (10+ plugins) | Low (1 package)   |
-| React 19 Readiness  | Manual             | Built-in          |
-| Mobile Optimization | Generic            | Tailored for Expo |
-| Complexity          | Very High          | Zero              |
+```js
+const expoMagic = require('eslint-config-expo-magic');
+
+module.exports = [
+	...expoMagic,
+	{
+		files: ['scripts/**/*.ts'],
+		rules: {
+			'@typescript-eslint/no-floating-promises': 'off',
+		},
+	},
+];
+```
+
+### Preset Selection
+
+| Goal | Preset |
+| --- | --- |
+| Standard Expo/React Native setup with formatting integrated | `eslint-config-expo-magic` |
+| Same as base, with stricter TypeScript and `no-console: error` | `eslint-config-expo-magic/strict` |
+| Use a separate formatter pipeline (no `prettier/prettier` rule) | `eslint-config-expo-magic/no-prettier` |
+
+## Monorepo Usage
+
+For monorepos, this package works best when each app/package has its own `tsconfig.json` and path aliases are defined there.
+
+Recommended:
+
+- Keep `eslint.config.js` at repo root
+- Keep per-package/app `tsconfig.json` files
+- Use `@/*` aliases in TS config where needed
 
 ## Troubleshooting
 
-### `TypeError: Class extends value undefined is not a constructor or null` (eslint-plugin-import-x)
+### `TypeError: Class extends value undefined is not a constructor or null`
 
-This occurs with ESLint 10 when an old version of `eslint-plugin-import-x` (3.x) pulls in `@typescript-eslint/utils` 7.x, which relies on removed ESLint legacy APIs. **Fix:** Upgrade to `eslint-config-expo-magic@2.0.2` or later (which uses `eslint-plugin-import-x` 4.x and a single `@typescript-eslint/utils` 8.x). If you are already on the latest version, run `bun install` (or your package manager) again so dependencies resolve correctly.
+Cause:
 
-## 🤝 Contributing
+- Mixed `@typescript-eslint/*` major versions (commonly from older import plugins)
 
-Each rule category is modular and lives in `utils/`. We welcome bug reports and feature requests!
+Fix:
 
----
+1. Use latest `eslint-config-expo-magic`
+2. Reinstall dependencies (`bun install`)
+3. Ensure only `@typescript-eslint` v8 is installed in dependency graph
 
-<div align="center">
-**Made with ❤️ for the React Native & Expo community**
+### Duplicate import errors with both `import/*` and `import-x/*`
 
-[⭐ Star us on GitHub](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic) • [🐛 Report Issues](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/issues)
+This package disables overlapping legacy `import/*` rules. If you still see duplicates, another config in your stack is re-enabling them. Turn those back off in your local override.
 
-</div>
+### Flat config not loading
+
+Make sure you are using ESLint 10+ and an `eslint.config.js` or `eslint.config.mjs` file (not legacy `.eslintrc*`).
+
+## Contributing
+
+- Changelog: [`CHANGELOG.md`](./CHANGELOG.md)
+- Rule rationale: [`RULES.md`](./RULES.md)
+- Main config entry: [`packages/eslint-config-expo-magic/index.js`](./packages/eslint-config-expo-magic/index.js)
+- Validation harness: [`test-project/validate-comprehensive.js`](./test-project/validate-comprehensive.js)
+
+Run locally:
+
+```bash
+bun install
+bun run test
+bun run validate
+bun run smoke:pack
+```

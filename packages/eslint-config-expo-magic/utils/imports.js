@@ -18,6 +18,13 @@ module.exports = [
 			...importX.configs.recommended.rules,
 			...importX.configs.typescript.rules,
 			'unused-imports/no-unused-imports': 'error',
+			'import/first': 'off',
+			'import/no-duplicates': 'off',
+			'import/no-unresolved': 'off',
+			'import/no-named-as-default': 'off',
+			'import/no-named-as-default-member': 'off',
+			'import/export': 'off',
+			'import/namespace': 'off',
 
 			'import-x/first': 'error',
 			'import-x/no-amd': 'error',
