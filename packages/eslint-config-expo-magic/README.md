@@ -20,6 +20,14 @@ Create `eslint.config.js` in your project root:
 module.exports = require('eslint-config-expo-magic');
 ```
 
+ESM (`eslint.config.mjs`) also works directly:
+
+```js
+import expoMagic from 'eslint-config-expo-magic';
+
+export default [...expoMagic];
+```
+
 Then run `bun run lint` (add `"lint": "eslint ."` to your `package.json` scripts).
 
 ### Strict preset
@@ -29,6 +37,16 @@ For stricter enforcement (e.g. `no-console: error`, stricter TypeScript rules):
 ```js
 const { strict } = require('eslint-config-expo-magic');
 module.exports = [...strict];
+```
+
+### No-Prettier preset
+
+If you run Prettier separately and do not want lint-time formatting errors:
+
+```js
+const noPrettier = require('eslint-config-expo-magic/no-prettier');
+
+module.exports = [...noPrettier];
 ```
 
 ## Path alias support
