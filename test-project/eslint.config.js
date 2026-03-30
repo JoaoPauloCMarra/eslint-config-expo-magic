@@ -18,6 +18,7 @@ module.exports = [
 			'yarn-debug.log*',
 			'yarn-error.log*',
 			'package-lock.json',
+			'preset-fixtures/**',
 			'yarn.lock',
 			'pnpm-lock.yaml',
 		],

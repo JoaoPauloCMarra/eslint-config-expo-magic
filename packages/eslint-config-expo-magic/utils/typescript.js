@@ -1,8 +1,18 @@
+const typeScriptFiles = [
+	'**/*.ts',
+	'**/*.tsx',
+	'**/*.mts',
+	'**/*.cts',
+	'**/*.d.ts',
+	'**/*.d.mts',
+	'**/*.d.cts',
+];
+
 /** @type {import('eslint').Linter.Config[]} */
 // Rationale: https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/RULES.md#typescript
-module.exports = [
+const config = [
 	{
-		files: ['**/*.ts', '**/*.tsx', '**/*.d.ts'],
+		files: typeScriptFiles,
 		ignores: ['**/node_modules/**'],
 		languageOptions: {
 			parserOptions: {
@@ -69,3 +79,6 @@ module.exports = [
 		},
 	},
 ];
+
+module.exports = config;
+module.exports.typeScriptFiles = typeScriptFiles;

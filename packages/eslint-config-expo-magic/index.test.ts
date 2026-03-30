@@ -1,14 +1,65 @@
 import { describe, expect, it } from 'bun:test';
 import type { Linter } from 'eslint';
 
+const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
 const config = require('./index.js');
 const strictSubpath = require('./strict.js');
 const noPrettierSubpath = require('./no-prettier.js');
+const typedSubpath = require('./typed.js');
 
 type FlatConfig = Linter.Config;
+const rootDir = path.resolve(__dirname, '../..');
+
+function runPresetLint(presetModulePath: string, targets: string[]) {
+	const tempDir = fs.mkdtempSync(
+		path.join(rootDir, '.tmp-eslint-config-expo-magic-'),
+	);
+	const configPath = path.join(tempDir, 'eslint.config.js');
+
+	try {
+		fs.writeFileSync(
+			configPath,
+			`const preset = require(${JSON.stringify(presetModulePath)});\n\nmodule.exports = [...preset];\n`,
+		);
+
+		const result = spawnSync(
+			'bunx',
+			[
+				'eslint',
+				...targets,
+				'--no-config-lookup',
+				'--config',
+				configPath,
+				'--format=json',
+			],
+			{
+				cwd: rootDir,
+				encoding: 'utf8',
+			},
+		);
+
+		if (![0, 1].includes(result.status ?? -1)) {
+			throw new Error(result.stderr || result.stdout);
+		}
+
+		return JSON.parse(result.stdout || '[]') as Array<{
+			messages: Array<{ ruleId: string | null; severity: number }>;
+		}>;
+	} finally {
+		fs.rmSync(tempDir, { recursive: true, force: true });
+	}
+}
+
+function getRuleMessages(
+	results: Array<{
+		messages: Array<{ ruleId: string | null; severity: number }>;
+	}>,
+) {
+	return results.flatMap((result) => result.messages ?? []);
+}
 
 describe('eslint-config-expo-magic', () => {
 	describe('config structure', () => {
@@ -31,6 +82,13 @@ describe('eslint-config-expo-magic', () => {
 			expect(Array.isArray(noPrettierSubpath)).toBe(true);
 			expect(noPrettierSubpath).toBe(config.noPrettier);
 			expect(Array.isArray(noPrettierSubpath.strict)).toBe(true);
+			expect(Array.isArray(noPrettierSubpath.typed)).toBe(true);
+		});
+
+		it('exports typed subpath', () => {
+			expect(Array.isArray(typedSubpath)).toBe(true);
+			expect(typedSubpath).toBe(config.typed);
+			expect(Array.isArray(typedSubpath.noPrettier)).toBe(true);
 		});
 
 		it('includes ignore patterns', () => {
@@ -60,8 +118,7 @@ describe('eslint-config-expo-magic', () => {
 		expectedPlugins.forEach((name) => {
 			it(`registers ${name} plugin`, () => {
 				const hasPlugin = config.some(
-					(c: FlatConfig) =>
-						c.plugins && Object.keys(c.plugins).includes(name),
+					(c: FlatConfig) => c.plugins && Object.keys(c.plugins).includes(name),
 				);
 				expect(hasPlugin).toBe(true);
 			});
@@ -125,6 +182,7 @@ describe('eslint-config-expo-magic', () => {
 			const settingsConfig = config.find(
 				(c: FlatConfig) =>
 					c.settings &&
+					c.settings['import-x/resolver-next'] &&
 					c.settings['import-x/resolver'] &&
 					c.settings['import/resolver'],
 			);
@@ -139,9 +197,11 @@ describe('eslint-config-expo-magic', () => {
 			expect(Array.isArray(importXResolverProjects)).toBe(true);
 			expect(importResolverProjects).toContain('./packages/*/tsconfig.json');
 			expect(importResolverProjects).toContain('./apps/*/tsconfig.json');
-			expect(importXResolverProjects).toContain(
-				'./test-project/tsconfig.json',
+			expect(importXResolverProjects).toContain('./test-project/tsconfig.json');
+			expect(settingsConfig.settings['import/resolver'].typescript.bun).toBe(
+				true,
 			);
+			expect(settingsConfig.settings['import-x/resolver-next']).toHaveLength(2);
 		});
 
 		it('has browser and mobile globals', () => {
@@ -166,6 +226,22 @@ describe('eslint-config-expo-magic', () => {
 					c.languageOptions.globals.module !== undefined,
 			);
 			expect(nodeConfig).toBeDefined();
+		});
+
+		it('includes platform and TypeScript module extensions', () => {
+			const settingsConfig = config.find(
+				(c: FlatConfig) =>
+					c.settings &&
+					c.settings['import-x/resolver-next'] &&
+					c.settings['import-x/extensions'],
+			);
+			expect(settingsConfig.settings['import-x/extensions']).toContain(
+				'.android.tsx',
+			);
+			expect(settingsConfig.settings['import-x/extensions']).toContain('.mts');
+			expect(settingsConfig.settings['import-x/extensions']).toContain(
+				'.d.cts',
+			);
 		});
 	});
 
@@ -341,6 +417,51 @@ describe('eslint-config-expo-magic', () => {
 			);
 		});
 
+		it('runs strict preset end to end', () => {
+			const results = runPresetLint(path.join(__dirname, 'strict.js'), [
+				'test-project/preset-fixtures/strict-only.ts',
+			]);
+			const messages = getRuleMessages(results);
+
+			expect(messages.some((message) => message.ruleId === 'no-console')).toBe(
+				true,
+			);
+			expect(
+				messages.some(
+					(message) =>
+						message.ruleId === '@typescript-eslint/no-non-null-assertion',
+				),
+			).toBe(true);
+		}, 15_000);
+
+		it('runs no-prettier preset end to end', () => {
+			const results = runPresetLint(path.join(__dirname, 'no-prettier.js'), [
+				'test-project/preset-fixtures/no-prettier.ts',
+			]);
+			const messages = getRuleMessages(results);
+
+			expect(
+				messages.some((message) => message.ruleId === 'import-x/order'),
+			).toBe(true);
+			expect(
+				messages.some((message) => message.ruleId === 'prettier/prettier'),
+			).toBe(false);
+		}, 15_000);
+
+		it('runs typed preset end to end', () => {
+			const results = runPresetLint(path.join(__dirname, 'typed.js'), [
+				'test-project/preset-fixtures/typed-only.ts',
+			]);
+			const messages = getRuleMessages(results);
+
+			expect(
+				messages.some(
+					(message) =>
+						message.ruleId === '@typescript-eslint/no-base-to-string',
+				),
+			).toBe(true);
+		}, 15_000);
+
 		it('supports ESM entrypoints', async () => {
 			const indexEsm = await import(
 				pathToFileURL(path.join(__dirname, 'index.mjs')).href
@@ -351,13 +472,20 @@ describe('eslint-config-expo-magic', () => {
 			const strictEsm = await import(
 				pathToFileURL(path.join(__dirname, 'strict.mjs')).href
 			);
+			const typedEsm = await import(
+				pathToFileURL(path.join(__dirname, 'typed.mjs')).href
+			);
 
 			expect(Array.isArray(indexEsm.default)).toBe(true);
 			expect(Array.isArray(indexEsm.strict)).toBe(true);
+			expect(Array.isArray(indexEsm.typed)).toBe(true);
 			expect(Array.isArray(indexEsm.noPrettier)).toBe(true);
 			expect(Array.isArray(noPrettierEsm.default)).toBe(true);
 			expect(Array.isArray(noPrettierEsm.strict)).toBe(true);
+			expect(Array.isArray(noPrettierEsm.typed)).toBe(true);
 			expect(Array.isArray(strictEsm.default)).toBe(true);
+			expect(Array.isArray(typedEsm.default)).toBe(true);
+			expect(Array.isArray(typedEsm.noPrettier)).toBe(true);
 		});
 	});
 
@@ -378,6 +506,27 @@ describe('eslint-config-expo-magic', () => {
 					c.rules['@typescript-eslint/no-non-null-assertion'] === 'error',
 			);
 			expect(strictTypeScriptConfig).toBeDefined();
+		});
+
+		it('exposes typed presets on the main export', () => {
+			expect(Array.isArray(config.typed)).toBe(true);
+			expect(Array.isArray(config.typedNoPrettier)).toBe(true);
+		});
+	});
+
+	describe('repo guardrails', () => {
+		it('does not import eslint-config-expo flat internals', () => {
+			const packageFiles = [
+				path.join(__dirname, 'index.js'),
+				path.join(__dirname, 'utils', 'react.js'),
+			];
+
+			for (const filePath of packageFiles) {
+				const fileContents = fs.readFileSync(filePath, 'utf8');
+				expect(fileContents.includes('eslint-config-expo/flat/utils/')).toBe(
+					false,
+				);
+			}
 		});
 	});
 });

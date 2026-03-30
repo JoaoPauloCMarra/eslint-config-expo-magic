@@ -1,5 +1,7 @@
 #!/usr/bin/env bun
 
+const fs = require('fs');
+const os = require('os');
 const { spawnSync } = require('child_process');
 const path = require('path');
 
@@ -116,6 +118,18 @@ const expectedRules = {
 	],
 };
 
+expectedRules['@typescript-eslint/no-explicit-any'].push(
+	'module-file.cts',
+	'module-file.mts',
+);
+
+const packageDir = path.resolve(
+	__dirname,
+	'..',
+	'packages',
+	'eslint-config-expo-magic',
+);
+
 function runCommand(command, args, options = {}) {
 	const result = spawnSync(command, args, {
 		cwd: process.cwd(),
@@ -133,6 +147,104 @@ function runCommand(command, args, options = {}) {
 	}
 
 	return result;
+}
+
+function parseLintResults(result) {
+	return JSON.parse(result.stdout.trim() || '[]');
+}
+
+function resolvePresetModulePath(presetModule) {
+	const localPresetFiles = {
+		'eslint-config-expo-magic/strict': 'strict.js',
+		'eslint-config-expo-magic/no-prettier': 'no-prettier.js',
+		'eslint-config-expo-magic/typed': 'typed.js',
+	};
+
+	const localPresetFile = localPresetFiles[presetModule];
+	if (localPresetFile) {
+		return path.join(packageDir, localPresetFile);
+	}
+
+	return presetModule;
+}
+
+function runPresetLint({ presetModule, targets }) {
+	const tempDir = fs.mkdtempSync(
+		path.join(os.tmpdir(), 'eslint-config-expo-magic-preset-'),
+	);
+	const configPath = path.join(tempDir, 'eslint.config.js');
+	const presetModulePath = resolvePresetModulePath(presetModule);
+
+	try {
+		fs.writeFileSync(
+			configPath,
+			`const preset = require(${JSON.stringify(presetModulePath)});\n\nmodule.exports = [...preset];\n`,
+		);
+
+		const result = runCommand(
+			'bunx',
+			[
+				'eslint',
+				...targets,
+				'--no-config-lookup',
+				'--config',
+				configPath,
+				'--format=json',
+			],
+			{ cwd: process.cwd() },
+		);
+
+		return parseLintResults(result);
+	} finally {
+		fs.rmSync(tempDir, { recursive: true, force: true });
+	}
+}
+
+function validatePreset({
+	label,
+	presetModule,
+	targets,
+	requiredRules,
+	forbiddenRules = [],
+}) {
+	console.log(`\n🧪 Preset Check: ${label}`);
+	console.log('==============================');
+
+	const lintResults = runPresetLint({ presetModule, targets });
+	const messages = lintResults.flatMap((result) => result.messages ?? []);
+
+	let passed = true;
+
+	for (const { ruleId, severity } of requiredRules) {
+		const match = messages.find((message) => message.ruleId === ruleId);
+		if (!match) {
+			console.log(`❌ Missing ${ruleId}`);
+			passed = false;
+			continue;
+		}
+
+		if (severity !== undefined && match.severity !== severity) {
+			console.log(
+				`❌ ${ruleId} severity mismatch (expected ${severity}, got ${match.severity})`,
+			);
+			passed = false;
+			continue;
+		}
+
+		console.log(`✅ ${ruleId}`);
+	}
+
+	for (const ruleId of forbiddenRules) {
+		if (messages.some((message) => message.ruleId === ruleId)) {
+			console.log(`❌ Unexpected ${ruleId}`);
+			passed = false;
+			continue;
+		}
+
+		console.log(`✅ ${ruleId} absent`);
+	}
+
+	return passed;
 }
 
 function runValidation() {
@@ -228,10 +340,44 @@ function runValidation() {
 		extraRules.forEach((rule) => console.log(`   - ${rule}`));
 	}
 
+	const strictPresetPassed = validatePreset({
+		label: 'strict',
+		presetModule: 'eslint-config-expo-magic/strict',
+		targets: ['preset-fixtures/strict-only.ts'],
+		requiredRules: [
+			{ ruleId: 'no-console', severity: 2 },
+			{ ruleId: '@typescript-eslint/no-non-null-assertion', severity: 2 },
+			{ ruleId: '@typescript-eslint/no-misused-promises', severity: 2 },
+		],
+	});
+
+	const noPrettierPresetPassed = validatePreset({
+		label: 'no-prettier',
+		presetModule: 'eslint-config-expo-magic/no-prettier',
+		targets: ['preset-fixtures/no-prettier.ts'],
+		requiredRules: [{ ruleId: 'import-x/order', severity: 2 }],
+		forbiddenRules: ['prettier/prettier'],
+	});
+
+	const typedPresetPassed = validatePreset({
+		label: 'typed',
+		presetModule: 'eslint-config-expo-magic/typed',
+		targets: ['preset-fixtures/typed-only.ts'],
+		requiredRules: [
+			{ ruleId: '@typescript-eslint/no-base-to-string', severity: 2 },
+		],
+	});
+
 	console.log('\n🎯 Final Validation:');
 	console.log('===================');
 
-	if (missingRules.length === 0 && missingRuleFileCoverage.length === 0) {
+	if (
+		missingRules.length === 0 &&
+		missingRuleFileCoverage.length === 0 &&
+		strictPresetPassed &&
+		noPrettierPresetPassed &&
+		typedPresetPassed
+	) {
 		console.log('🎉 All expected rules and file coverage checks passed!');
 		console.log('🚀 Ready for publishing!');
 		return true;

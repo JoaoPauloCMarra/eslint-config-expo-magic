@@ -23,10 +23,21 @@ Production-focused ESLint flat config for Expo and React Native projects, with T
 - Node.js: `>=18.0.0`
 - Bun: `>=1.0.0` (recommended for development and publishing)
 - ESLint: `10.x` flat config
-- Expo: `>=54.0.33` (peer dependency)
-- React: `>=19.1.0` (peer dependency)
-- React Test Renderer: `>=19.1.0` (peer dependency)
+- Expo: `^54.0.33 || ^55.0.0` (peer dependency)
+- React: `^19.1.0 || ^19.2.0` (peer dependency)
+- React Test Renderer: `^19.1.0 || ^19.2.0` (peer dependency)
 - TypeScript: `>=5.9.3` (peer dependency)
+
+Validated lanes:
+
+- Full fixture validation: Expo SDK 55.0.9, React Native 0.83.4, React 19.2.0
+- Packed-consumer smoke validation: Expo SDK 54.0.33 and 55.0.9, React Native 0.81.5 and 0.83.4, React 19.1.0 and 19.2.0
+
+Support policy:
+
+- Stable support tracks the latest stable Expo SDK.
+- Standalone React Native releases newer than Expo stable are treated as preview coverage until the matching Expo SDK ships. As of March 30, 2026, React Native 0.84 is newer than Expo stable and should not be advertised as stable Expo support yet.
+- Preview smoke coverage is available for Expo canary via `bun run smoke:preview`.
 
 ## Installation
 
@@ -80,6 +91,18 @@ const noPrettier = require('eslint-config-expo-magic/no-prettier');
 module.exports = [...noPrettier];
 ```
 
+Use this preset when Prettier already runs in your editor, pre-commit hook, or a dedicated format script. It keeps import/style linting without turning formatting into ESLint noise.
+
+### 5) Typed preset
+
+```js
+const typed = require('eslint-config-expo-magic/typed');
+
+module.exports = [...typed];
+```
+
+This adds opt-in type-aware rules from `typescript-eslint`'s maintained type-checked configs on top of the base preset.
+
 ## API Reference
 
 ### Package Exports
@@ -89,6 +112,7 @@ This package exposes:
 - `eslint-config-expo-magic` -> base config array
 - `eslint-config-expo-magic/strict` -> strict config array
 - `eslint-config-expo-magic/no-prettier` -> base config array without Prettier plugin/rules
+- `eslint-config-expo-magic/typed` -> base config array plus type-aware TypeScript rules
 
 ### `default` export
 
@@ -137,6 +161,20 @@ Behavior:
 - Same rule baseline as the default preset
 - Omits `eslint-plugin-prettier` and `prettier/prettier`
 
+### `typed` preset
+
+Type:
+
+```ts
+Linter.Config[]
+```
+
+Behavior:
+
+- Keeps the default preset behavior
+- Adds opt-in type-aware `typescript-eslint` rules from maintained upstream configs
+- Reuses the same monorepo-aware TS project resolution as the base preset
+
 ### Type Declarations
 
 The package ships declaration files:
@@ -144,6 +182,7 @@ The package ships declaration files:
 - `index.d.ts`
 - `strict.d.ts`
 - `no-prettier.d.ts`
+- `typed.d.ts`
 
 This improves IntelliSense/autocomplete when composing config arrays.
 
@@ -229,10 +268,11 @@ module.exports = [
 
 ### Preset Selection
 
-| Goal | Preset |
-| --- | --- |
-| Standard Expo/React Native setup with formatting integrated | `eslint-config-expo-magic` |
-| Same as base, with stricter TypeScript and `no-console: error` | `eslint-config-expo-magic/strict` |
+| Goal                                                            | Preset                                 |
+| --------------------------------------------------------------- | -------------------------------------- |
+| Standard Expo/React Native setup with formatting integrated     | `eslint-config-expo-magic`             |
+| Same as base, with stricter TypeScript and `no-console: error`  | `eslint-config-expo-magic/strict`      |
+| Same as base, with type-aware TypeScript rules                  | `eslint-config-expo-magic/typed`       |
 | Use a separate formatter pipeline (no `prettier/prettier` rule) | `eslint-config-expo-magic/no-prettier` |
 
 ## Monorepo Usage
@@ -269,7 +309,6 @@ Make sure you are using ESLint 10+ and an `eslint.config.js` or `eslint.config.m
 
 ## Contributing
 
-- Changelog: [`CHANGELOG.md`](./CHANGELOG.md)
 - Rule rationale: [`RULES.md`](./RULES.md)
 - Main config entry: [`packages/eslint-config-expo-magic/index.js`](./packages/eslint-config-expo-magic/index.js)
 - Validation harness: [`test-project/validate-comprehensive.js`](./test-project/validate-comprehensive.js)

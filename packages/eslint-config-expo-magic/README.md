@@ -2,7 +2,23 @@
 
 This package provides the flat ESLint configuration for Expo + React Native projects.
 
-**Zero install:** ESLint and Prettier are included—your project does not need to install them. You only need `eslint-config-expo-magic`, flat config (`eslint.config.js`), and Node 18+.
+ESLint and Prettier are bundled with the config package. Consumer projects still need the peer dependencies for Expo, React, React Test Renderer, and TypeScript.
+
+Validation coverage:
+
+- Full fixture-app validation on Expo SDK 55.0.9 / React Native 0.83.4 / React 19.2.0
+- Packed-consumer smoke validation on Expo SDK 54.0.33 and 55.0.9
+
+### Compatibility
+
+- Node.js `>=18`
+- Expo `54.x` and `55.x`
+- React `19.1.x || 19.2.x`
+- React Test Renderer `19.1.x || 19.2.x`
+- TypeScript `5.9.3+`
+
+React Native support follows stable Expo SDK releases. Newer standalone RN versions should be treated as preview-only until the corresponding Expo SDK is stable.
+Preview smoke coverage is available for Expo canary via `bun run smoke:preview`.
 
 ### Install
 
@@ -39,9 +55,21 @@ const { strict } = require('eslint-config-expo-magic');
 module.exports = [...strict];
 ```
 
+### Typed preset
+
+For opt-in type-aware rules from `typescript-eslint`'s maintained type-checked configs:
+
+```js
+const typed = require('eslint-config-expo-magic/typed');
+
+module.exports = [...typed];
+```
+
+This preset enables `parserOptions.projectService = true`, so it expects a reachable `tsconfig.json`.
+
 ### No-Prettier preset
 
-If you run Prettier separately and do not want lint-time formatting errors:
+If you run Prettier separately and do not want lint-time formatting errors, use this as the preferred preset:
 
 ```js
 const noPrettier = require('eslint-config-expo-magic/no-prettier');

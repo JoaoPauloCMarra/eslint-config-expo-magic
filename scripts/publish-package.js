@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
+const ROOT_DIR = path.join(__dirname, '..');
 const PKG_DIR = path.join(
 	__dirname,
 	'..',
@@ -18,12 +19,16 @@ const REQUIRED_FILES = [
 	'strict.mjs',
 	'no-prettier.js',
 	'no-prettier.mjs',
+	'typed.js',
+	'typed.mjs',
 	'index.d.ts',
 	'strict.d.ts',
 	'no-prettier.d.ts',
+	'typed.d.ts',
 	'package.json',
 	'.prettierrc.js',
 	'utils/app.js',
+	'utils/extensions.js',
 	'utils/imports.js',
 	'utils/jest.js',
 	'utils/prettier.js',

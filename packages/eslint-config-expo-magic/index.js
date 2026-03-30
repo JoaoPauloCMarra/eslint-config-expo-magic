@@ -1,27 +1,31 @@
 const globals = require('globals');
+const { fixupConfigRules } = require('@eslint/compat');
 const {
-	fixupConfigRules,
-	fixupPluginRules,
-} = require('@eslint/compat');
-const typescriptPlugin = require('@typescript-eslint/eslint-plugin');
+	createTypeScriptImportResolver,
+} = require('eslint-import-resolver-typescript');
 const expoConfig = require('eslint-config-expo/flat');
-const {
-	allExtensions,
-} = require('eslint-config-expo/flat/utils/extensions.js');
+const { createNodeResolver } = require('eslint-plugin-import-x');
+const tseslint = require('typescript-eslint');
 
 const appConfig = require('./utils/app.js');
+const allExtensions = require('./utils/extensions.js');
 const importsConfig = require('./utils/imports.js');
 const jestConfig = require('./utils/jest.js');
 const prettierConfig = require('./utils/prettier.js');
 const reactConfig = require('./utils/react.js');
-
 const typescriptConfig = require('./utils/typescript.js');
 
-const filteredExpoConfig = fixupConfigRules(
-	expoConfig.filter(
-		(c) => !c.plugins || !c.plugins['react-hooks'],
-	),
-);
+const typeScriptFiles = [
+	'**/*.ts',
+	'**/*.tsx',
+	'**/*.mts',
+	'**/*.cts',
+	'**/*.d.ts',
+	'**/*.d.mts',
+	'**/*.d.cts',
+];
+
+const legacyTypeScriptFiles = new Set(['**/*.ts', '**/*.tsx', '**/*.d.ts']);
 
 const tsconfigProjectGlobs = [
 	'./tsconfig.json',
@@ -30,11 +34,79 @@ const tsconfigProjectGlobs = [
 	'./test-project/tsconfig.json',
 ];
 
+function widenTypeScriptFiles(files) {
+	if (
+		!Array.isArray(files) ||
+		!files.some((file) => legacyTypeScriptFiles.has(file))
+	) {
+		return files;
+	}
+
+	return [...new Set([...files, ...typeScriptFiles])];
+}
+
+function createExpoBaseConfig() {
+	return expoConfig
+		.map((config) => {
+			if (!Array.isArray(config.files)) {
+				return config;
+			}
+
+			return {
+				...config,
+				files: widenTypeScriptFiles(config.files),
+			};
+		})
+		.filter((config) => !config.plugins || !config.plugins['react-hooks']);
+}
+
+function createTypeCheckedConfigs() {
+	const seenConfigNames = new Set();
+
+	return [
+		...tseslint.configs.recommendedTypeChecked,
+		...tseslint.configs.stylisticTypeChecked,
+	]
+		.filter((configEntry) => {
+			if (!configEntry.name || !seenConfigNames.has(configEntry.name)) {
+				seenConfigNames.add(configEntry.name);
+				return true;
+			}
+
+			return false;
+		})
+		.map((configEntry) => {
+			const { plugins: _ignoredPlugins, ...rest } = configEntry;
+
+			return {
+				...rest,
+				files: widenTypeScriptFiles(configEntry.files ?? typeScriptFiles),
+				languageOptions: {
+					...(configEntry.languageOptions ?? {}),
+					parserOptions: {
+						...(configEntry.languageOptions?.parserOptions ?? {}),
+						projectService: true,
+						tsconfigRootDir: process.cwd(),
+					},
+				},
+			};
+		});
+}
+
 const typescriptImportResolver = {
 	alwaysTryTypes: true,
+	bun: true,
+	noWarnOnMultipleProjects: true,
 	project: tsconfigProjectGlobs,
 	tsconfigRootDir: process.cwd(),
 };
+
+const filteredExpoConfig = fixupConfigRules(createExpoBaseConfig());
+
+const importXResolvers = [
+	createTypeScriptImportResolver(typescriptImportResolver),
+	createNodeResolver({ extensions: allExtensions }),
+];
 
 const baseConfig = [
 	{
@@ -47,7 +119,6 @@ const baseConfig = [
 			'**/android/**',
 		],
 	},
-
 	{
 		name: 'import-ignores',
 		settings: {
@@ -65,12 +136,10 @@ const baseConfig = [
 			],
 		},
 	},
-
 	...filteredExpoConfig,
 	...typescriptConfig,
 	...reactConfig,
 	...importsConfig,
-
 	...jestConfig,
 	...appConfig,
 	{
@@ -85,7 +154,6 @@ const baseConfig = [
 			'no-console': 'error',
 		},
 	},
-
 	{
 		settings: {
 			'import/resolver': {
@@ -97,6 +165,7 @@ const baseConfig = [
 				node: { extensions: allExtensions },
 				typescript: typescriptImportResolver,
 			},
+			'import-x/resolver-next': importXResolvers,
 		},
 		languageOptions: {
 			globals: {
@@ -120,7 +189,6 @@ const baseConfig = [
 			},
 		},
 	},
-
 	{
 		files: [
 			'*.config.{js,cjs,mjs,ts,mts,cts}',
@@ -135,7 +203,6 @@ const baseConfig = [
 			},
 		},
 	},
-
 	{
 		files: ['*.web.*'],
 		languageOptions: {
@@ -147,6 +214,8 @@ const baseConfig = [
 ];
 
 const config = [...baseConfig, ...prettierConfig];
+const typeCheckedConfig = createTypeCheckedConfigs();
+const typed = [...baseConfig, ...typeCheckedConfig, ...prettierConfig];
 
 const strictTypeScriptRules = {
 	'@typescript-eslint/no-explicit-any': 'error',
@@ -159,16 +228,7 @@ const strictTypeScriptRules = {
 const strict = [
 	...config,
 	{
-		files: [
-			'**/*.ts',
-			'**/*.tsx',
-			'**/*.d.ts',
-			'**/*.mts',
-			'**/*.cts',
-		],
-		plugins: {
-			'@typescript-eslint': fixupPluginRules(typescriptPlugin),
-		},
+		files: typeScriptFiles,
 		rules: {
 			...strictTypeScriptRules,
 		},
@@ -183,16 +243,7 @@ const strict = [
 const strictNoPrettier = [
 	...baseConfig,
 	{
-		files: [
-			'**/*.ts',
-			'**/*.tsx',
-			'**/*.d.ts',
-			'**/*.mts',
-			'**/*.cts',
-		],
-		plugins: {
-			'@typescript-eslint': fixupPluginRules(typescriptPlugin),
-		},
+		files: typeScriptFiles,
 		rules: {
 			...strictTypeScriptRules,
 		},
@@ -204,7 +255,11 @@ const strictNoPrettier = [
 	},
 ];
 
+const typedNoPrettier = [...baseConfig, ...typeCheckedConfig];
+
 module.exports = config;
 module.exports.strict = strict;
+module.exports.typed = typed;
 module.exports.noPrettier = baseConfig;
 module.exports.strictNoPrettier = strictNoPrettier;
+module.exports.typedNoPrettier = typedNoPrettier;

@@ -7,3 +7,4 @@ const noPrettier = config.noPrettier;
 
 export default noPrettier;
 export const strict = config.strictNoPrettier;
+export const typed = config.typedNoPrettier;

@@ -3,11 +3,7 @@ import type { Linter } from 'eslint';
 type FlatConfig = Linter.Config;
 
 declare const config: FlatConfig[] & {
-	strict: FlatConfig[];
-	typed: FlatConfig[];
 	noPrettier: FlatConfig[];
-	strictNoPrettier: FlatConfig[];
-	typedNoPrettier: FlatConfig[];
 };
 
 export = config;
