@@ -27,7 +27,7 @@ const typeScriptFiles = [
 
 const legacyTypeScriptFiles = new Set(['**/*.ts', '**/*.tsx', '**/*.d.ts']);
 
-const tsconfigProjectGlobs = [
+const defaultTsconfigProjectGlobs = [
 	'./tsconfig.json',
 	'./apps/*/tsconfig.json',
 	'./packages/*/tsconfig.json',
@@ -93,129 +93,114 @@ function createTypeCheckedConfigs() {
 		});
 }
 
-const typescriptImportResolver = {
-	alwaysTryTypes: true,
-	bun: true,
-	noWarnOnMultipleProjects: true,
-	project: tsconfigProjectGlobs,
-	tsconfigRootDir: process.cwd(),
-};
-
 const filteredExpoConfig = fixupConfigRules(createExpoBaseConfig());
+function createTypeScriptImportResolverConfig(tsconfigProjects) {
+	return {
+		alwaysTryTypes: true,
+		bun: true,
+		noWarnOnMultipleProjects: true,
+		project: tsconfigProjects,
+		tsconfigRootDir: process.cwd(),
+	};
+}
 
-const importXResolvers = [
-	createTypeScriptImportResolver(typescriptImportResolver),
-	createNodeResolver({ extensions: allExtensions }),
-];
+function createSharedConfig(tsconfigProjects) {
+	const typescriptImportResolver = createTypeScriptImportResolverConfig(
+		tsconfigProjects,
+	);
+	const importXResolvers = [
+		createTypeScriptImportResolver(typescriptImportResolver),
+		createNodeResolver({ extensions: allExtensions }),
+	];
 
-const baseConfig = [
-	{
-		ignores: [
-			'**/node_modules/**',
-			'**/dist/**',
-			'**/build/**',
-			'**/.expo/**',
-			'**/ios/**',
-			'**/android/**',
-		],
-	},
-	{
-		name: 'import-ignores',
-		settings: {
-			'import/ignore': [
-				'node_modules',
-				'\\.json$',
-				'\\.(scss|sass|css|less|styl)$',
-				'\\.(svg|png|jpg|jpeg|gif|webp)$',
-			],
-			'import-x/ignore': [
-				'node_modules',
-				'\\.json$',
-				'\\.(scss|sass|css|less|styl)$',
-				'\\.(svg|png|jpg|jpeg|gif|webp)$',
+	return [
+		{
+			ignores: [
+				'**/node_modules/**',
+				'**/dist/**',
+				'**/build/**',
+				'**/.expo/**',
+				'**/ios/**',
+				'**/android/**',
 			],
 		},
-	},
-	...filteredExpoConfig,
-	...typescriptConfig,
-	...reactConfig,
-	...importsConfig,
-	...jestConfig,
-	...appConfig,
-	{
-		files: ['apps/**'],
-		rules: {
-			'no-console': 'warn',
-		},
-	},
-	{
-		files: ['packages/**'],
-		rules: {
-			'no-console': 'error',
-		},
-	},
-	{
-		settings: {
-			'import/resolver': {
-				node: { extensions: allExtensions },
-				typescript: typescriptImportResolver,
-			},
-			'import-x/extensions': allExtensions,
-			'import-x/resolver': {
-				node: { extensions: allExtensions },
-				typescript: typescriptImportResolver,
-			},
-			'import-x/resolver-next': importXResolvers,
-		},
-		languageOptions: {
-			globals: {
-				...globals.browser,
-				__DEV__: 'readonly',
-				ErrorUtils: false,
-				FormData: false,
-				XMLHttpRequest: false,
-				alert: false,
-				cancelAnimationFrame: false,
-				cancelIdleCallback: false,
-				clearImmediate: false,
-				fetch: false,
-				navigator: false,
-				process: false,
-				requestAnimationFrame: false,
-				requestIdleCallback: false,
-				setImmediate: false,
-				window: false,
-				'shared-node-browser': true,
+		{
+			name: 'import-ignores',
+			settings: {
+				'import/ignore': [
+					'node_modules',
+					'\\.json$',
+					'\\.(scss|sass|css|less|styl)$',
+					'\\.(svg|png|jpg|jpeg|gif|webp)$',
+				],
+				'import-x/ignore': [
+					'node_modules',
+					'\\.json$',
+					'\\.(scss|sass|css|less|styl)$',
+					'\\.(svg|png|jpg|jpeg|gif|webp)$',
+				],
 			},
 		},
-	},
-	{
-		files: [
-			'*.config.{js,cjs,mjs,ts,mts,cts}',
-			'**/*.config.{js,cjs,mjs,ts,mts,cts}',
-			'metro.config.{js,cjs,mjs,ts,mts,cts}',
-			'babel.config.{js,cjs,mjs,ts,mts,cts}',
-			'scripts/**/*.{js,cjs,mjs,ts,mts,cts}',
-		],
-		languageOptions: {
-			globals: {
-				...globals.node,
+		...filteredExpoConfig,
+		{
+			settings: {
+				'import/resolver': {
+					node: { extensions: allExtensions },
+					typescript: typescriptImportResolver,
+				},
+				'import-x/extensions': allExtensions,
+				'import-x/resolver': {
+					node: { extensions: allExtensions },
+					typescript: typescriptImportResolver,
+				},
+				'import-x/resolver-next': importXResolvers,
+			},
+			languageOptions: {
+				globals: {
+					...globals.browser,
+					__DEV__: 'readonly',
+					ErrorUtils: false,
+					FormData: false,
+					XMLHttpRequest: false,
+					alert: false,
+					cancelAnimationFrame: false,
+					cancelIdleCallback: false,
+					clearImmediate: false,
+					fetch: false,
+					navigator: false,
+					process: false,
+					requestAnimationFrame: false,
+					requestIdleCallback: false,
+					setImmediate: false,
+					window: false,
+					'shared-node-browser': true,
+				},
 			},
 		},
-	},
-	{
-		files: ['*.web.*'],
-		languageOptions: {
-			globals: {
-				...globals.browser,
+		{
+			files: [
+				'*.config.{js,cjs,mjs,ts,mts,cts}',
+				'**/*.config.{js,cjs,mjs,ts,mts,cts}',
+				'metro.config.{js,cjs,mjs,ts,mts,cts}',
+				'babel.config.{js,cjs,mjs,ts,mts,cts}',
+				'scripts/**/*.{js,cjs,mjs,ts,mts,cts}',
+			],
+			languageOptions: {
+				globals: {
+					...globals.node,
+				},
 			},
 		},
-	},
-];
-
-const config = [...baseConfig, ...prettierConfig];
-const typeCheckedConfig = createTypeCheckedConfigs();
-const typed = [...baseConfig, ...typeCheckedConfig, ...prettierConfig];
+		{
+			files: ['*.web.*'],
+			languageOptions: {
+				globals: {
+					...globals.browser,
+				},
+			},
+		},
+	];
+}
 
 const strictTypeScriptRules = {
 	'@typescript-eslint/no-explicit-any': 'error',
@@ -225,41 +210,108 @@ const strictTypeScriptRules = {
 	'@typescript-eslint/no-misused-promises': 'error',
 };
 
-const strict = [
-	...config,
-	{
-		files: typeScriptFiles,
-		rules: {
-			...strictTypeScriptRules,
+function createBasePreset(tsconfigProjects) {
+	return [
+		...createSharedConfig(tsconfigProjects),
+		{
+			rules: {
+				'expo/prefer-box-shadow': 'warn',
+			},
 		},
-	},
-	{
-		rules: {
-			'no-console': 'error',
-		},
-	},
-];
+	];
+}
 
-const strictNoPrettier = [
-	...baseConfig,
-	{
-		files: typeScriptFiles,
-		rules: {
-			...strictTypeScriptRules,
+function createDefaultPreset(tsconfigProjects, { testing = true } = {}) {
+	const defaultPreset = [
+		...createBasePreset(tsconfigProjects),
+		...typescriptConfig,
+		...reactConfig,
+		...importsConfig,
+		...appConfig,
+		{
+			files: ['apps/**'],
+			rules: {
+				'no-console': 'warn',
+			},
 		},
-	},
-	{
-		rules: {
-			'no-console': 'error',
+		{
+			files: ['packages/**'],
+			rules: {
+				'no-console': 'error',
+			},
 		},
-	},
-];
+	];
 
-const typedNoPrettier = [...baseConfig, ...typeCheckedConfig];
+	if (testing) {
+		defaultPreset.push(...jestConfig);
+	}
+
+	return defaultPreset;
+}
+
+function createConfig(options = {}) {
+	const {
+		preset = 'default',
+		prettier = preset !== 'base',
+		testing = preset !== 'base',
+		typeChecked = false,
+		strict = false,
+		tsconfigProjects = defaultTsconfigProjectGlobs,
+	} = options;
+
+	const presetConfig =
+		preset === 'base'
+			? createBasePreset(tsconfigProjects)
+			: createDefaultPreset(tsconfigProjects, { testing });
+
+	const finalConfig = [...presetConfig];
+
+	if (typeChecked) {
+		finalConfig.push(...createTypeCheckedConfigs());
+	}
+
+	if (prettier) {
+		finalConfig.push(...prettierConfig);
+	}
+
+	if (strict) {
+		finalConfig.push(
+			{
+				files: typeScriptFiles,
+				rules: {
+					...strictTypeScriptRules,
+				},
+			},
+			{
+				rules: {
+					'no-console': 'error',
+				},
+			},
+		);
+	}
+
+	return finalConfig;
+}
+
+const base = createConfig({ preset: 'base', prettier: false });
+const config = createConfig();
+const noPrettier = createConfig({ prettier: false });
+const typed = createConfig({ typeChecked: true });
+const typedNoPrettier = createConfig({
+	typeChecked: true,
+	prettier: false,
+});
+const strict = createConfig({ strict: true });
+const strictNoPrettier = createConfig({
+	strict: true,
+	prettier: false,
+});
 
 module.exports = config;
+module.exports.base = base;
+module.exports.createConfig = createConfig;
 module.exports.strict = strict;
 module.exports.typed = typed;
-module.exports.noPrettier = baseConfig;
+module.exports.noPrettier = noPrettier;
 module.exports.strictNoPrettier = strictNoPrettier;
 module.exports.typedNoPrettier = typedNoPrettier;

@@ -5,7 +5,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
+const expoFlatConfig = require('eslint-config-expo/flat');
+const { createConfigReport } = require('../../scripts/lib/config-report.js');
 const config = require('./index.js');
+const baseSubpath = require('./base.js');
 const strictSubpath = require('./strict.js');
 const noPrettierSubpath = require('./no-prettier.js');
 const typedSubpath = require('./typed.js');
@@ -73,6 +76,16 @@ describe('eslint-config-expo-magic', () => {
 			expect(config.strict.length).toBeGreaterThan(config.length);
 		});
 
+		it('has a base preset', () => {
+			expect(Array.isArray(config.base)).toBe(true);
+			expect(config.base.length).toBeLessThan(config.length);
+		});
+
+		it('exports base subpath', () => {
+			expect(Array.isArray(baseSubpath)).toBe(true);
+			expect(baseSubpath).toBe(config.base);
+		});
+
 		it('exports strict subpath', () => {
 			expect(Array.isArray(strictSubpath)).toBe(true);
 			expect(strictSubpath).toBe(config.strict);
@@ -89,6 +102,10 @@ describe('eslint-config-expo-magic', () => {
 			expect(Array.isArray(typedSubpath)).toBe(true);
 			expect(typedSubpath).toBe(config.typed);
 			expect(Array.isArray(typedSubpath.noPrettier)).toBe(true);
+		});
+
+		it('exports createConfig factory', () => {
+			expect(typeof config.createConfig).toBe('function');
 		});
 
 		it('includes ignore patterns', () => {
@@ -202,6 +219,26 @@ describe('eslint-config-expo-magic', () => {
 				true,
 			);
 			expect(settingsConfig.settings['import-x/resolver-next']).toHaveLength(2);
+		});
+
+		it('createConfig accepts custom tsconfig projects', () => {
+			const customConfig = config.createConfig({
+				tsconfigProjects: ['./apps/mobile/tsconfig.json'],
+			});
+			const settingsConfig = customConfig.find(
+				(entry: FlatConfig) =>
+					entry.settings &&
+					entry.settings['import/resolver'] &&
+					entry.settings['import-x/resolver'],
+			);
+
+			expect(settingsConfig).toBeDefined();
+			expect(settingsConfig.settings['import/resolver'].typescript.project).toEqual(
+				['./apps/mobile/tsconfig.json'],
+			);
+			expect(
+				settingsConfig.settings['import-x/resolver'].typescript.project,
+			).toEqual(['./apps/mobile/tsconfig.json']);
 		});
 
 		it('has browser and mobile globals', () => {
@@ -318,6 +355,115 @@ describe('eslint-config-expo-magic', () => {
 	});
 
 	describe('app rules', () => {
+		it('base preset keeps Expo plus low-noise package rules only', () => {
+			const baseConsoleRule = baseSubpath.find(
+				(c: FlatConfig) => c.rules && c.rules['no-console'],
+			);
+			const baseImportOrderRule = baseSubpath.find(
+				(c: FlatConfig) => c.rules && c.rules['import-x/order'],
+			);
+			const basePrettierRule = baseSubpath.find(
+				(c: FlatConfig) => c.rules && c.rules['prettier/prettier'],
+			);
+
+			expect(baseConsoleRule).toBeUndefined();
+			expect(baseImportOrderRule).toBeUndefined();
+			expect(basePrettierRule).toBeUndefined();
+		});
+
+		it('createConfig can disable testing and prettier layers', () => {
+			const customConfig = config.createConfig({
+				prettier: false,
+				testing: false,
+			});
+			const prettierRule = customConfig.find(
+				(entry: FlatConfig) => entry.rules && entry.rules['prettier/prettier'],
+			);
+			const jestRule = customConfig.find(
+				(entry: FlatConfig) =>
+					entry.rules && entry.rules['jest/no-disabled-tests'],
+			);
+
+			expect(prettierRule).toBeUndefined();
+			expect(jestRule).toBeUndefined();
+		});
+
+		it('createConfig custom config runs end to end', () => {
+			const tempDir = fs.mkdtempSync(
+				path.join(rootDir, '.tmp-eslint-config-expo-magic-factory-'),
+			);
+			const configPath = path.join(tempDir, 'eslint.config.js');
+			const targetPath = path.join(tempDir, 'factory-smoke.ts');
+			const tsconfigPath = path.join(tempDir, 'tsconfig.json');
+
+			try {
+				fs.writeFileSync(
+					configPath,
+					[
+						"const { createConfig } = require(",
+						`\t${JSON.stringify(path.join(__dirname, 'index.js'))},`,
+						');',
+						'',
+						'module.exports = [',
+						'\t...createConfig({',
+						"\t\ttsconfigProjects: ['./tsconfig.json'],",
+						'\t\tprettier: false,',
+						'\t\ttesting: false,',
+						'\t}),',
+						'];',
+						'',
+					].join('\n'),
+				);
+
+				fs.writeFileSync(
+					tsconfigPath,
+					`${JSON.stringify(
+						{
+							compilerOptions: {
+								module: 'esnext',
+								target: 'es2022',
+								moduleResolution: 'bundler',
+							},
+							include: ['factory-smoke.ts'],
+						},
+						null,
+						2,
+					)}\n`,
+				);
+
+				fs.writeFileSync(
+					targetPath,
+					[
+						"import zlib from 'node:zlib';",
+						"import path from 'node:path';",
+						'',
+						'console.log(path.sep,zlib.constants.Z_BEST_SPEED)',
+						'',
+					].join('\n'),
+				);
+
+				const results = runPresetLint(configPath, [targetPath]);
+				const messages = getRuleMessages(results);
+
+				expect(messages.some((message) => message.ruleId === 'no-console')).toBe(
+					true,
+				);
+				expect(
+					messages.some((message) => message.ruleId === 'import-x/order'),
+				).toBe(true);
+				expect(
+					messages.some((message) => message.ruleId === 'prettier/prettier'),
+				).toBe(false);
+				expect(
+					messages.some(
+						(message) => message.ruleId === 'jest/no-disabled-tests',
+					),
+				).toBe(false);
+			} finally {
+				fs.rmSync(tempDir, { recursive: true, force: true });
+			}
+		}, 15_000);
+
 		it('warns on console', () => {
 			const appConfig = config.find(
 				(c: FlatConfig) => c.rules && c.rules['no-console'] === 'warn',
@@ -391,6 +537,30 @@ describe('eslint-config-expo-magic', () => {
 	});
 
 	describe('runtime smoke tests', () => {
+		it('runs base preset end to end', () => {
+			const results = runPresetLint(path.join(__dirname, 'base.js'), [
+				'test-project/App.tsx',
+			]);
+			const messages = getRuleMessages(results);
+
+			expect(
+				messages.some(
+					(message) => message.ruleId === 'expo/no-dynamic-env-var',
+				),
+			).toBe(true);
+			expect(
+				messages.some(
+					(message) => message.ruleId === 'expo/no-env-var-destructuring',
+				),
+			).toBe(true);
+			expect(
+				messages.some((message) => message.ruleId === 'prettier/prettier'),
+			).toBe(false);
+			expect(messages.some((message) => message.ruleId === 'no-console')).toBe(
+				false,
+			);
+		}, 15_000);
+
 		it('loads strict config on .js files without plugin errors', () => {
 			const strictConfigPath = path.join(__dirname, 'strict.js');
 			const result = spawnSync(
@@ -466,6 +636,9 @@ describe('eslint-config-expo-magic', () => {
 			const indexEsm = await import(
 				pathToFileURL(path.join(__dirname, 'index.mjs')).href
 			);
+			const baseEsm = await import(
+				pathToFileURL(path.join(__dirname, 'base.mjs')).href
+			);
 			const noPrettierEsm = await import(
 				pathToFileURL(path.join(__dirname, 'no-prettier.mjs')).href
 			);
@@ -477,9 +650,11 @@ describe('eslint-config-expo-magic', () => {
 			);
 
 			expect(Array.isArray(indexEsm.default)).toBe(true);
+			expect(Array.isArray(indexEsm.base)).toBe(true);
 			expect(Array.isArray(indexEsm.strict)).toBe(true);
 			expect(Array.isArray(indexEsm.typed)).toBe(true);
 			expect(Array.isArray(indexEsm.noPrettier)).toBe(true);
+			expect(Array.isArray(baseEsm.default)).toBe(true);
 			expect(Array.isArray(noPrettierEsm.default)).toBe(true);
 			expect(Array.isArray(noPrettierEsm.strict)).toBe(true);
 			expect(Array.isArray(noPrettierEsm.typed)).toBe(true);
@@ -515,6 +690,41 @@ describe('eslint-config-expo-magic', () => {
 	});
 
 	describe('repo guardrails', () => {
+		it('keeps checked-in config diff artifact current', () => {
+			const currentReport = createConfigReport();
+			const checkedInReport = JSON.parse(
+				fs.readFileSync(
+					path.join(rootDir, 'docs', 'config-diff.json'),
+					'utf8',
+				),
+			);
+
+			expect(checkedInReport).toEqual(currentReport);
+		});
+
+		it('keeps Expo plugin rules enabled from eslint-config-expo', () => {
+			const expoRuleNames = new Set(
+				expoFlatConfig.flatMap((entry: FlatConfig) =>
+					Object.keys(entry.rules ?? {}).filter((ruleName) =>
+						ruleName.startsWith('expo/'),
+					),
+				),
+			);
+
+			const packageRuleNames = new Set(
+				config.flatMap((entry: FlatConfig) =>
+					Object.keys(entry.rules ?? {}).filter((ruleName) =>
+						ruleName.startsWith('expo/'),
+					),
+				),
+			);
+
+			expect(expoRuleNames.size).toBeGreaterThan(0);
+			for (const ruleName of expoRuleNames) {
+				expect(packageRuleNames.has(ruleName)).toBe(true);
+			}
+		});
+
 		it('does not import eslint-config-expo flat internals', () => {
 			const packageFiles = [
 				path.join(__dirname, 'index.js'),

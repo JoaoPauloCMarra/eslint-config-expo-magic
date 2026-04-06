@@ -15,6 +15,8 @@ const PKG_DIR = path.join(
 const REQUIRED_FILES = [
 	'index.js',
 	'index.mjs',
+	'base.js',
+	'base.mjs',
 	'strict.js',
 	'strict.mjs',
 	'no-prettier.js',
@@ -22,6 +24,7 @@ const REQUIRED_FILES = [
 	'typed.js',
 	'typed.mjs',
 	'index.d.ts',
+	'base.d.ts',
 	'strict.d.ts',
 	'no-prettier.d.ts',
 	'typed.d.ts',

@@ -145,6 +145,29 @@ function writeFixtureFiles(tempProjectDir) {
 	fs.writeFileSync(path.join(srcDir, 'local-value.ts'), 'export default 1;\n');
 
 	fs.writeFileSync(
+		path.join(tempProjectDir, 'base-smoke.ts'),
+		[
+			"const envKey = 'EXPO_PUBLIC_API_URL';",
+			'const dynamicEnv = process.env[envKey];',
+			'const { EXPO_PUBLIC_TEST } = process.env;',
+			'',
+			'export const baseSmokeValue = [dynamicEnv, EXPO_PUBLIC_TEST].join(\":\");',
+			'',
+		].join('\n'),
+	);
+
+	fs.writeFileSync(
+		path.join(tempProjectDir, 'default-smoke.ts'),
+		[
+			"import zlib from 'node:zlib';",
+			"import path from 'node:path';",
+			'',
+			'console.log(path.sep, zlib.constants.Z_BEST_SPEED);',
+			'',
+		].join('\n'),
+	);
+
+	fs.writeFileSync(
 		path.join(tempProjectDir, 'strict-smoke.ts'),
 		[
 			"import localValue from '@/local-value';",
@@ -189,6 +212,25 @@ function writeFixtureFiles(tempProjectDir) {
 	);
 
 	fs.writeFileSync(
+		path.join(tempProjectDir, 'factory-custom-smoke.ts'),
+		[
+			"import zlib from 'node:zlib';",
+			"import path from 'node:path';",
+			'',
+			'console.log(path.sep,zlib.constants.Z_BEST_SPEED)',
+			'',
+		].join('\n'),
+	);
+
+	fs.writeFileSync(
+		path.join(tempProjectDir, 'eslint.base.config.js'),
+		"const base = require('eslint-config-expo-magic/base');\n\nmodule.exports = [...base];\n",
+	);
+	fs.writeFileSync(
+		path.join(tempProjectDir, 'eslint.default.config.js'),
+		"const config = require('eslint-config-expo-magic');\n\nmodule.exports = [...config];\n",
+	);
+	fs.writeFileSync(
 		path.join(tempProjectDir, 'eslint.strict.config.js'),
 		"const strict = require('eslint-config-expo-magic/strict');\n\nmodule.exports = [...strict];\n",
 	);
@@ -204,9 +246,68 @@ function writeFixtureFiles(tempProjectDir) {
 		path.join(tempProjectDir, 'eslint.no-prettier.config.js'),
 		"const noPrettier = require('eslint-config-expo-magic/no-prettier');\n\nmodule.exports = [...noPrettier];\n",
 	);
+	fs.writeFileSync(
+		path.join(tempProjectDir, 'eslint.factory.config.js'),
+		[
+			"const { createConfig } = require('eslint-config-expo-magic');",
+			'',
+			'module.exports = [',
+			'\t...createConfig({',
+			"\t\ttsconfigProjects: ['./tsconfig.json'],",
+			'\t\tprettier: false,',
+			'\t\ttesting: false,',
+			'\t}),',
+			'];',
+			'',
+		].join('\n'),
+	);
 }
 
 function validateLane(tempProjectDir) {
+	const baseMessages = runLint(
+		tempProjectDir,
+		'eslint.base.config.js',
+		'base-smoke.ts',
+	);
+	if (
+		!baseMessages.some(
+			(message) => message.ruleId === 'expo/no-dynamic-env-var',
+		)
+	) {
+		throw new Error('Base preset did not report expo/no-dynamic-env-var.');
+	}
+	if (
+		!baseMessages.some(
+			(message) => message.ruleId === 'expo/no-env-var-destructuring',
+		)
+	) {
+		throw new Error(
+			'Base preset did not report expo/no-env-var-destructuring.',
+		);
+	}
+	if (baseMessages.some((message) => message.ruleId === 'no-console')) {
+		throw new Error('Base preset should not report no-console.');
+	}
+
+	const defaultMessages = runLint(
+		tempProjectDir,
+		'eslint.default.config.js',
+		'default-smoke.ts',
+	);
+	if (!defaultMessages.some((message) => message.ruleId === 'no-console')) {
+		throw new Error('Default preset did not report no-console.');
+	}
+	if (
+		!defaultMessages.some((message) => message.ruleId === 'import-x/order')
+	) {
+		throw new Error('Default preset did not report import-x/order.');
+	}
+	if (
+		!defaultMessages.some((message) => message.ruleId === 'prettier/prettier')
+	) {
+		throw new Error('Default preset did not report prettier/prettier.');
+	}
+
 	const strictMessages = runLint(
 		tempProjectDir,
 		'eslint.strict.config.js',
@@ -273,10 +374,34 @@ function validateLane(tempProjectDir) {
 	) {
 		throw new Error('no-prettier preset did not report import-x/order.');
 	}
+
+	const factoryMessages = runLint(
+		tempProjectDir,
+		'eslint.factory.config.js',
+		'factory-custom-smoke.ts',
+	);
+	if (!factoryMessages.some((message) => message.ruleId === 'no-console')) {
+		throw new Error('Factory config did not report no-console.');
+	}
+	if (!factoryMessages.some((message) => message.ruleId === 'import-x/order')) {
+		throw new Error('Factory config did not report import-x/order.');
+	}
+	if (factoryMessages.some((message) => message.ruleId === 'prettier/prettier')) {
+		throw new Error('Factory config should not report prettier/prettier.');
+	}
+	if (
+		factoryMessages.some((message) => message.ruleId === 'jest/no-disabled-tests')
+	) {
+		throw new Error('Factory config should not enable Jest rules when testing is false.');
+	}
 }
 
 function main() {
-	const lanes = process.argv.includes('--preview') ? previewSmokeLanes : smokeLanes;
+	const lanes = process.argv.includes('--all-lanes')
+		? [...smokeLanes, ...previewSmokeLanes]
+		: process.argv.includes('--preview')
+			? previewSmokeLanes
+			: smokeLanes;
 	const tarballsBefore = new Set(listTarballs());
 	let generatedTarballPath;
 	const tempProjectDirs = [];

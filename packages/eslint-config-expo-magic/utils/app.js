@@ -3,7 +3,6 @@
 module.exports = [
 	{
 		rules: {
-			'expo/prefer-box-shadow': 'warn',
 			'no-console': 'warn',
 			'no-restricted-imports': [
 				'error',

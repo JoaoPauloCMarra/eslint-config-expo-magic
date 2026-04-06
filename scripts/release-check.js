@@ -17,6 +17,7 @@ function run(command, args) {
 }
 
 run('bun', ['run', 'check-pm']);
+run('bun', ['run', 'report:config']);
 run('bun', ['run', 'test']);
 run('bun', ['run', 'validate']);
-run('bun', ['run', 'smoke:pack']);
+run('bun', ['run', 'smoke:release']);

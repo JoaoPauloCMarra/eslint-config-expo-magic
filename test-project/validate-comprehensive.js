@@ -155,6 +155,8 @@ function parseLintResults(result) {
 
 function resolvePresetModulePath(presetModule) {
 	const localPresetFiles = {
+		'eslint-config-expo-magic': 'index.js',
+		'eslint-config-expo-magic/base': 'base.js',
 		'eslint-config-expo-magic/strict': 'strict.js',
 		'eslint-config-expo-magic/no-prettier': 'no-prettier.js',
 		'eslint-config-expo-magic/typed': 'typed.js',
@@ -351,6 +353,28 @@ function runValidation() {
 		],
 	});
 
+	const basePresetPassed = validatePreset({
+		label: 'base',
+		presetModule: 'eslint-config-expo-magic/base',
+		targets: ['preset-fixtures/base-only.ts'],
+		requiredRules: [
+			{ ruleId: 'expo/no-dynamic-env-var', severity: 2 },
+			{ ruleId: 'expo/no-env-var-destructuring', severity: 2 },
+		],
+		forbiddenRules: ['no-console', 'prettier/prettier'],
+	});
+
+	const defaultPresetPassed = validatePreset({
+		label: 'default',
+		presetModule: 'eslint-config-expo-magic',
+		targets: ['preset-fixtures/default-only.ts'],
+		requiredRules: [
+			{ ruleId: 'no-console', severity: 1 },
+			{ ruleId: 'import-x/order', severity: 2 },
+			{ ruleId: 'prettier/prettier', severity: 2 },
+		],
+	});
+
 	const noPrettierPresetPassed = validatePreset({
 		label: 'no-prettier',
 		presetModule: 'eslint-config-expo-magic/no-prettier',
@@ -374,6 +398,8 @@ function runValidation() {
 	if (
 		missingRules.length === 0 &&
 		missingRuleFileCoverage.length === 0 &&
+		basePresetPassed &&
+		defaultPresetPassed &&
 		strictPresetPassed &&
 		noPrettierPresetPassed &&
 		typedPresetPassed

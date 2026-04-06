@@ -13,6 +13,9 @@
 		"validate": "cd test-project && bun run validate",
 		"smoke:pack": "bun scripts/smoke-packed-consumer.js",
 		"smoke:preview": "bun scripts/smoke-packed-consumer.js --preview",
+		"smoke:release": "bun scripts/smoke-packed-consumer.js --all-lanes",
+		"report:config": "node scripts/generate-config-report.js",
+		"report:release-notes": "node scripts/generate-release-notes.js",
 		"release:check": "node scripts/release-check.js",
 		"cleanup:npm": "rimraf node_modules packages/**/node_modules test-project/node_modules",
 		"publish-package": "bun scripts/publish-package.js"

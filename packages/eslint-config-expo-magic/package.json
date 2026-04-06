@@ -1,17 +1,23 @@
 {
 	"name": "eslint-config-expo-magic",
-	"version": "2.3.0",
-	"description": "A powerful, opinionated ESLint configuration for React Native and Expo projects with TypeScript support",
+	"version": "2.4.0",
+	"description": "ESLint flat config for Expo, React Native, and TypeScript projects",
 	"keywords": [
 		"eslint",
+		"eslint-flat-config",
 		"eslintconfig",
 		"eslint-config",
+		"eslint-plugin",
 		"react",
 		"react-native",
 		"expo",
+		"eslint-expo",
+		"expo-eslint",
+		"react-native-eslint",
 		"typescript",
 		"prettier",
 		"jest",
+		"testing-library",
 		"mobile",
 		"linting"
 	],
@@ -38,6 +44,11 @@
 			"require": "./index.js",
 			"import": "./index.mjs"
 		},
+		"./base": {
+			"types": "./base.d.ts",
+			"require": "./base.js",
+			"import": "./base.mjs"
+		},
 		"./strict": {
 			"types": "./strict.d.ts",
 			"require": "./strict.js",
@@ -59,6 +70,8 @@
 	"files": [
 		"index.js",
 		"index.mjs",
+		"base.js",
+		"base.mjs",
 		"strict.js",
 		"strict.mjs",
 		"no-prettier.js",
@@ -66,6 +79,7 @@
 		"typed.js",
 		"typed.mjs",
 		"index.d.ts",
+		"base.d.ts",
 		"strict.d.ts",
 		"no-prettier.d.ts",
 		"typed.d.ts",
