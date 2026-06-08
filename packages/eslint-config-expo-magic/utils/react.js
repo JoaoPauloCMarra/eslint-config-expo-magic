@@ -44,6 +44,7 @@ module.exports = [
 		rules: {
 			...pluginReactHooks.configs.flat.recommended.rules,
 			'react-hooks/exhaustive-deps': 'error',
+			'react-hooks/set-state-in-effect': 'off',
 			'react/jsx-no-leaked-render': 'error',
 			'react/jsx-no-useless-fragment': 'error',
 			'react/jsx-key': 'error',

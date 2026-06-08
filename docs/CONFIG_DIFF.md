@@ -1,6 +1,6 @@
 # Config Diff
 
-Package version: `2.5.0`
+Package version: `2.5.1`
 Expo config version: `56.0.4`
 
 ## Rule Counts
@@ -525,6 +525,7 @@ Expo config version: `56.0.4`
 - `import/no-unresolved`
 - `no-unused-vars`
 - `react-hooks/exhaustive-deps`
+- `react-hooks/set-state-in-effect`
 - `react/jsx-key`
 
 ### Removed
