@@ -79,6 +79,60 @@ function runDirectoryLint(
 	}>;
 }
 
+function writeJsonFile(filePath: string, value: unknown) {
+	fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+function runFixtureLint({
+	configSource,
+	files,
+	targets = Object.keys(files),
+}: {
+	configSource: string;
+	files: Record<string, string>;
+	targets?: string[];
+}) {
+	const tempDir = fs.mkdtempSync(
+		path.join(rootDir, '.tmp-eslint-config-expo-magic-fixture-'),
+	);
+	const configPath = path.join(tempDir, 'eslint.config.js');
+
+	try {
+		fs.writeFileSync(configPath, configSource);
+		writeJsonFile(path.join(tempDir, 'tsconfig.json'), {
+			compilerOptions: {
+				module: 'esnext',
+				target: 'es2022',
+				moduleResolution: 'bundler',
+				jsx: 'react-jsx',
+				strict: true,
+			},
+			include: ['**/*.ts', '**/*.tsx'],
+		});
+
+		for (const [fileName, source] of Object.entries(files)) {
+			const filePath = path.join(tempDir, fileName);
+			fs.mkdirSync(path.dirname(filePath), { recursive: true });
+			fs.writeFileSync(filePath, source);
+		}
+
+		return getRuleMessages(runDirectoryLint(tempDir, configPath, targets));
+	} finally {
+		fs.rmSync(tempDir, { recursive: true, force: true });
+	}
+}
+
+function createPackageConfigSource(optionsSource: string) {
+	return [
+		"const { createConfig } = require(",
+		`\t${JSON.stringify(path.join(__dirname, 'index.js'))},`,
+		');',
+		'',
+		`module.exports = createConfig(${optionsSource});`,
+		'',
+	].join('\n');
+}
+
 describe('eslint-config-expo-magic', () => {
 	describe('config structure', () => {
 		it('exports an array', () => {
@@ -367,6 +421,33 @@ describe('eslint-config-expo-magic', () => {
 				'error',
 			);
 		});
+
+		it('keeps JSX helper rules preventing false unused component reports', () => {
+			const messages = runFixtureLint({
+				configSource: createPackageConfigSource(`{
+					prettier: false,
+					testing: false
+				}`),
+				files: {
+					'jsx-usage.tsx': [
+						"import React from 'react';",
+						'',
+						'const LocalComponent = () => null;',
+						'',
+						'export const Screen = () => <LocalComponent />;',
+						'',
+					].join('\n'),
+				},
+			});
+
+			expect(
+				messages.some(
+					(message) =>
+						message.ruleId === 'no-unused-vars' ||
+						message.ruleId === '@typescript-eslint/no-unused-vars',
+				),
+			).toBe(false);
+		}, 15_000);
 	});
 
 	describe('import rules', () => {
@@ -564,6 +645,69 @@ describe('eslint-config-expo-magic', () => {
 			);
 		});
 
+		it('can replace native UI restrictions for apps with different wrappers', () => {
+			const nativeUiConfig = config.createNativeUiConfig({
+				restrictions: [
+					{
+						name: 'expo-router',
+						importNames: ['Link'],
+						message: 'Use app link wrapper.',
+					},
+				],
+			});
+			const restrictionEntry = nativeUiConfig.find(
+				(entry: FlatConfig) => entry.rules?.['no-restricted-imports'],
+			);
+			const restrictedPaths =
+				restrictionEntry.rules['no-restricted-imports'][1].paths;
+
+			expect(restrictedPaths).toEqual([
+				expect.objectContaining({
+					name: 'expo-router',
+					importNames: ['Link'],
+				}),
+			]);
+		});
+
+		it('applies native UI allow files after default and additional restrictions', () => {
+			const messages = runFixtureLint({
+				configSource: createPackageConfigSource(`{
+					prettier: false,
+					testing: false,
+					nativeUi: {
+						allowFiles: ['allowed.tsx'],
+						additionalRestrictions: [
+							{
+								name: 'expo-router',
+								importNames: ['Link'],
+								message: 'Use app link wrapper.'
+							}
+						]
+					}
+				}`),
+				files: {
+					'blocked.tsx': [
+						"import { Button } from 'react-native';",
+						"import { Link } from 'expo-router';",
+						'',
+						'export const blocked = [Button, Link];',
+						'',
+					].join('\n'),
+					'allowed.tsx': [
+						"import { Button } from 'react-native';",
+						"import { Link } from 'expo-router';",
+						'',
+						'export const allowed = [Button, Link];',
+						'',
+					].join('\n'),
+				},
+			});
+
+			expect(
+				messages.filter((message) => message.ruleId === 'no-restricted-imports'),
+			).toHaveLength(2);
+		}, 15_000);
+
 		it('prefers box shadow', () => {
 			const appConfig = config.find(
 				(c: FlatConfig) => c.rules && c.rules['expo/prefer-box-shadow'],
@@ -715,6 +859,46 @@ describe('eslint-config-expo-magic', () => {
 					expect.objectContaining({
 						type: 'feature-shared-component',
 						pattern: 'features/*/components/request-user-phone-flow.tsx',
+					}),
+				]),
+			);
+		});
+
+		it('can replace same-feature dependency selectors and then append custom ones', () => {
+			const boundaryConfig = config.createFeatureBoundaryConfig({
+				featureElementTypes: ['feature-screen'],
+				additionalFeatureElementTypes: ['feature-model'],
+			});
+			const boundaryEntry = boundaryConfig.find(
+				(entry: FlatConfig) => entry.rules?.['boundaries/dependencies'],
+			);
+			const dependencyRules =
+				boundaryEntry.rules['boundaries/dependencies'][1].rules;
+			const featureAtomRule = dependencyRules.find(
+				(rule: { from: { type: string } }) => rule.from.type === 'feature-atom',
+			);
+
+			expect(featureAtomRule.allow).toEqual(
+				expect.arrayContaining([
+					expect.objectContaining({
+						to: expect.objectContaining({
+							type: 'feature-screen',
+						}),
+					}),
+					expect.objectContaining({
+						to: expect.objectContaining({
+							type: 'feature-model',
+						}),
+					}),
+				]),
+			);
+			expect(featureAtomRule.allow).not.toEqual(
+				expect.arrayContaining([
+					expect.objectContaining({
+						to: expect.objectContaining({
+							type: 'feature-api',
+							captured: { feature: '{{from.captured.feature}}' },
+						}),
 					}),
 				]),
 			);
@@ -1105,6 +1289,45 @@ describe('eslint-config-expo-magic', () => {
 			).toContain('debugger');
 		});
 
+		it('rejects unknown PR guardrail presets', () => {
+			expect(() =>
+				prGuardrails.createPrGuardrailOptions({ preset: 'unknown-preset' }),
+			).toThrow('Unknown PR guardrails preset');
+		});
+
+		it('allows large PRs only with the large approval label', () => {
+			const changedFiles = Array.from(
+				{ length: 81 },
+				(_value, index) => `src/file-${index}.ts`,
+			);
+			const withoutApproval = prGuardrails.validateGuardrails({
+				eventName: 'pull_request',
+				prBody: '',
+				labels: [],
+				changedFiles,
+				changedPatch: '+const value = 1;\n',
+			});
+			const withApproval = prGuardrails.validateGuardrails({
+				eventName: 'pull_request',
+				prBody: '',
+				labels: ['large-approved'],
+				changedFiles,
+				changedPatch: '+const value = 1;\n',
+			});
+
+			expect(withoutApproval.passed).toBe(false);
+			expect(withoutApproval.failures).toEqual(
+				expect.arrayContaining([
+					expect.stringContaining('PR size exceeds guardrail threshold'),
+				]),
+			);
+			expect(withApproval.failures).not.toEqual(
+				expect.arrayContaining([
+					expect.stringContaining('PR size exceeds guardrail threshold'),
+				]),
+			);
+		});
+
 		it('ignores configured files for risky patch checks', () => {
 			const result = prGuardrails.validateGuardrails(
 				{
@@ -1129,6 +1352,39 @@ describe('eslint-config-expo-magic', () => {
 			);
 		});
 
+		it('does not ignore risky additions outside configured files', () => {
+			const result = prGuardrails.validateGuardrails(
+				{
+					eventName: 'pull_request',
+					prBody: guardrailBody(),
+					labels: ['owner-approved'],
+					changedFiles: [
+						'scripts/validate-pr-guardrails.ts',
+						'features/home/screens/home-screen.tsx',
+					],
+					changedPatch: [
+						'diff --git a/scripts/validate-pr-guardrails.ts b/scripts/validate-pr-guardrails.ts',
+						'+++ b/scripts/validate-pr-guardrails.ts',
+						'+const value: any = input;',
+						'diff --git a/features/home/screens/home-screen.tsx b/features/home/screens/home-screen.tsx',
+						'+++ b/features/home/screens/home-screen.tsx',
+						'+it.only("focus", () => {});',
+					].join('\n'),
+				},
+				{
+					preset: 'mobileApp',
+					ignoredRiskyFilePatterns: [/scripts\/validate-pr-guardrails\.ts/],
+				},
+			);
+
+			expect(result.failures).toEqual(
+				expect.arrayContaining([expect.stringContaining('focused test')]),
+			);
+			expect(result.failures).not.toEqual(
+				expect.arrayContaining([expect.stringContaining('explicit any')]),
+			);
+		});
+
 		it('reads PR guardrail options from a config file', () => {
 			const tempDir = fs.mkdtempSync(
 				path.join(rootDir, '.tmp-eslint-config-expo-magic-guardrails-'),
@@ -1148,6 +1404,35 @@ describe('eslint-config-expo-magic', () => {
 				);
 				expect(resolvedOptions.requiredCheckboxes).toContain('Custom CI');
 			} finally {
+				fs.rmSync(tempDir, { recursive: true, force: true });
+			}
+		});
+
+		it('lets the environment preset override config file options', () => {
+			const tempDir = fs.mkdtempSync(
+				path.join(rootDir, '.tmp-eslint-config-expo-magic-guardrails-env-'),
+			);
+			const originalPreset = process.env.EXPO_MAGIC_PR_GUARDRAILS_PRESET;
+
+			try {
+				fs.writeFileSync(
+					path.join(tempDir, 'expo-magic.pr-guardrails.cjs'),
+					"module.exports = { preset: 'default' };\n",
+				);
+				process.env.EXPO_MAGIC_PR_GUARDRAILS_PRESET = 'mobileApp';
+
+				const options = prGuardrails.readCliOptionsFromEnv(tempDir);
+				const resolvedOptions = prGuardrails.createPrGuardrailOptions(options);
+
+				expect(resolvedOptions.requiredCheckboxes).toContain(
+					'`bun run lint:ci`',
+				);
+			} finally {
+				if (originalPreset === undefined) {
+					delete process.env.EXPO_MAGIC_PR_GUARDRAILS_PRESET;
+				} else {
+					process.env.EXPO_MAGIC_PR_GUARDRAILS_PRESET = originalPreset;
+				}
 				fs.rmSync(tempDir, { recursive: true, force: true });
 			}
 		});
