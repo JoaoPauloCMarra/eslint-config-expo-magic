@@ -331,6 +331,15 @@ describe('eslint-config-expo-magic', () => {
 			expect(hasRule).toBe(true);
 		});
 
+		it('keeps synchronous effect state updates opt-in', () => {
+			const hooksConfig = config.find(
+				(c: FlatConfig) =>
+					c.rules && c.rules['react-hooks/set-state-in-effect'],
+			);
+			expect(hooksConfig).toBeDefined();
+			expect(hooksConfig.rules['react-hooks/set-state-in-effect']).toBe('off');
+		});
+
 		it('enables react-native rules', () => {
 			const rnConfig = config.find(
 				(c: FlatConfig) =>
