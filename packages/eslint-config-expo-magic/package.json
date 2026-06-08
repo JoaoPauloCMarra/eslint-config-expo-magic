@@ -1,6 +1,6 @@
 {
 	"name": "eslint-config-expo-magic",
-	"version": "2.5.1",
+	"version": "2.5.2",
 	"description": "ESLint flat config for Expo, React Native, and TypeScript projects",
 	"keywords": [
 		"eslint",
@@ -102,7 +102,7 @@
 		"./package.json": "./package.json"
 	},
 	"bin": {
-		"expo-magic-pr-guardrails": "./bin/pr-guardrails.js"
+		"expo-magic-pr-guardrails": "bin/pr-guardrails.js"
 	},
 	"sideEffects": false,
 	"files": [

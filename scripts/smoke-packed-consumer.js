@@ -109,6 +109,15 @@ function listTarballs() {
 		});
 }
 
+function snapshotTarballs() {
+	return new Map(
+		listTarballs().map((file) => [
+			file,
+			fs.statSync(path.join(packageDir, file)).mtimeMs,
+		]),
+	);
+}
+
 function createFixturePackageJson(tarballPath, lane) {
 	return {
 		name: `eslint-config-expo-magic-smoke-${lane.name}`,
@@ -495,7 +504,7 @@ function main() {
 		: process.argv.includes('--preview')
 			? previewSmokeLanes
 			: smokeLanes;
-	const tarballsBefore = new Set(listTarballs());
+	const tarballsBefore = snapshotTarballs();
 	let generatedTarballPath;
 	const tempProjectDirs = [];
 
@@ -503,7 +512,14 @@ function main() {
 		console.log('Packing local tarball...');
 		run('bun', ['pm', 'pack'], { cwd: packageDir });
 
-		const newTarball = listTarballs().find((file) => !tarballsBefore.has(file));
+		const newTarball = listTarballs().find((file) => {
+			const previousMtimeMs = tarballsBefore.get(file);
+			if (previousMtimeMs === undefined) {
+				return true;
+			}
+
+			return fs.statSync(path.join(packageDir, file)).mtimeMs > previousMtimeMs;
+		});
 		if (!newTarball) {
 			throw new Error('Could not find generated tarball from bun pm pack.');
 		}

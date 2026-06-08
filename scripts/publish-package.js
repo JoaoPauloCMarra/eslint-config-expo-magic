@@ -72,18 +72,33 @@ function ensureRequiredFiles() {
 	}
 }
 
+function runReleaseCheck() {
+	console.log('\nRunning release checks...');
+	run('node', [path.join(ROOT_DIR, 'scripts', 'release-check.js')], {
+		cwd: ROOT_DIR,
+	});
+}
+
 function main() {
 	const args = process.argv.slice(2);
 	const shouldPublish = args.includes('--publish');
 	const publishArgs = args.filter((arg) => arg !== '--publish');
 
 	ensureRequiredFiles();
+	runReleaseCheck();
 
 	console.log('\nRunning tarball dry-run...');
 	run('bun', ['pm', 'pack', '--dry-run']);
 
 	console.log('\nRunning registry dry-run...');
-	run('bun', ['publish', '--dry-run', ...publishArgs]);
+	run('npm', [
+		'publish',
+		'--dry-run',
+		'--ignore-scripts',
+		'--access',
+		'public',
+		...publishArgs,
+	]);
 
 	if (!shouldPublish) {
 		console.log(
@@ -93,7 +108,14 @@ function main() {
 	}
 
 	console.log('\nPublishing package...');
-	run('bun', ['publish', ...publishArgs]);
+	run('npm', [
+		'publish',
+		'--ignore-scripts',
+		'--access',
+		'public',
+		...(process.env.GITHUB_ACTIONS === 'true' ? ['--provenance'] : []),
+		...publishArgs,
+	]);
 	console.log('\nPublish completed.');
 }
 
