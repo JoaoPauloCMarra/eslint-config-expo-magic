@@ -140,6 +140,58 @@ module.exports = [...strict];
 - `no-console` becomes an error
 - Selected TypeScript async and assertion rules become stricter
 
+## From local production-app overrides to package options
+
+Use this path when a project has local `no-restricted-imports`, `no-restricted-syntax`, feature boundary, Storybook, or PR guardrail logic that should be shared across Expo apps.
+
+### Before
+
+```js
+const config = require('eslint-config-expo-magic');
+
+module.exports = [
+	...config,
+	{
+		rules: {
+			'no-restricted-syntax': ['error'],
+		},
+	},
+];
+```
+
+### After
+
+```js
+const { createConfig } = require('eslint-config-expo-magic');
+
+module.exports = createConfig({
+	appGuardrails: true,
+	reactCompiler: true,
+	worklets: true,
+	nativeUi: true,
+	featureBoundaries: true,
+	storybook: true,
+});
+```
+
+### Lowest-risk path
+
+Enable one layer at a time:
+
+1. `extraIgnores`
+2. `reactCompiler`
+3. `worklets`
+4. `appGuardrails`
+5. `nativeUi`
+6. `featureBoundaries`
+7. `storybook`
+
+`nativeUi` and `featureBoundaries` are the most project-shaped options. Prefer configuring `allowFiles` and `sharedComponentPatterns` before turning them on in CI.
+
+## From SDK 55 support to SDK 56 support
+
+Version 2.5 and later validate Expo SDK 56 as a stable packed-consumer lane. Projects on Expo SDK 56 should update the package and rerun lint before removing any local compatibility overrides.
+
 ## Upgrade checklist for new package versions
 
 1. Read the generated config diff in `docs/CONFIG_DIFF.md`.

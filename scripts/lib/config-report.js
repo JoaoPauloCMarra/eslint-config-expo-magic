@@ -86,6 +86,31 @@ function createConfigReport() {
 		noPrettier: createPresetSummary('noPrettier', magicConfig.noPrettier),
 		typed: createPresetSummary('typed', magicConfig.typed),
 		strict: createPresetSummary('strict', magicConfig.strict),
+		appGuardrails: createPresetSummary(
+			'appGuardrails',
+			magicConfig.appGuardrails,
+		),
+		featureBoundaries: createPresetSummary(
+			'featureBoundaries',
+			magicConfig.featureBoundaries,
+		),
+		nativeUi: createPresetSummary('nativeUi', magicConfig.nativeUi),
+		reactCompiler: createPresetSummary(
+			'reactCompiler',
+			magicConfig.reactCompiler,
+		),
+		storybook: createPresetSummary('storybook', magicConfig.storybook),
+		worklets: createPresetSummary('worklets', magicConfig.worklets),
+		productionApp: createPresetSummary(
+			'productionApp',
+			magicConfig.createConfig({
+				appGuardrails: true,
+				nativeUi: true,
+				reactCompiler: true,
+				storybook: true,
+				worklets: true,
+			}),
+		),
 	};
 
 	return {
@@ -106,6 +131,10 @@ function createConfigReport() {
 			strictVsDefault: createRuleDiff(
 				presets.default.rules,
 				presets.strict.rules,
+			),
+			productionAppVsDefault: createRuleDiff(
+				presets.default.rules,
+				presets.productionApp.rules,
 			),
 		},
 	};

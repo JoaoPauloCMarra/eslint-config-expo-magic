@@ -1,6 +1,6 @@
 {
 	"name": "eslint-config-expo-magic",
-	"version": "2.4.0",
+	"version": "2.5.0",
 	"description": "ESLint flat config for Expo, React Native, and TypeScript projects",
 	"keywords": [
 		"eslint",
@@ -64,7 +64,45 @@
 			"require": "./typed.js",
 			"import": "./typed.mjs"
 		},
+		"./app-guardrails": {
+			"types": "./app-guardrails.d.ts",
+			"require": "./app-guardrails.js",
+			"import": "./app-guardrails.mjs"
+		},
+		"./feature-boundaries": {
+			"types": "./feature-boundaries.d.ts",
+			"require": "./feature-boundaries.js",
+			"import": "./feature-boundaries.mjs"
+		},
+		"./native-ui": {
+			"types": "./native-ui.d.ts",
+			"require": "./native-ui.js",
+			"import": "./native-ui.mjs"
+		},
+		"./pr-guardrails": {
+			"types": "./pr-guardrails.d.ts",
+			"require": "./pr-guardrails.js",
+			"import": "./pr-guardrails.mjs"
+		},
+		"./react-compiler": {
+			"types": "./react-compiler.d.ts",
+			"require": "./react-compiler.js",
+			"import": "./react-compiler.mjs"
+		},
+		"./storybook": {
+			"types": "./storybook.d.ts",
+			"require": "./storybook.js",
+			"import": "./storybook.mjs"
+		},
+		"./worklets": {
+			"types": "./worklets.d.ts",
+			"require": "./worklets.js",
+			"import": "./worklets.mjs"
+		},
 		"./package.json": "./package.json"
+	},
+	"bin": {
+		"expo-magic-pr-guardrails": "./bin/pr-guardrails.js"
 	},
 	"sideEffects": false,
 	"files": [
@@ -78,12 +116,34 @@
 		"no-prettier.mjs",
 		"typed.js",
 		"typed.mjs",
+		"app-guardrails.js",
+		"app-guardrails.mjs",
+		"feature-boundaries.js",
+		"feature-boundaries.mjs",
+		"native-ui.js",
+		"native-ui.mjs",
+		"pr-guardrails.js",
+		"pr-guardrails.mjs",
+		"react-compiler.js",
+		"react-compiler.mjs",
+		"storybook.js",
+		"storybook.mjs",
+		"worklets.js",
+		"worklets.mjs",
 		"index.d.ts",
 		"base.d.ts",
 		"strict.d.ts",
 		"no-prettier.d.ts",
 		"typed.d.ts",
+		"app-guardrails.d.ts",
+		"feature-boundaries.d.ts",
+		"native-ui.d.ts",
+		"pr-guardrails.d.ts",
+		"react-compiler.d.ts",
+		"storybook.d.ts",
+		"worklets.d.ts",
 		"README.md",
+		"bin/*.js",
 		"utils/*.js",
 		".prettierrc.js"
 	],
@@ -98,31 +158,32 @@
 		"build": "bun run --if-present"
 	},
 	"dependencies": {
+		"@eslint/compat": "^2.0.3",
 		"@typescript-eslint/eslint-plugin": "^8.58.0",
 		"@typescript-eslint/parser": "^8.58.0",
 		"@typescript-eslint/utils": "^8.58.0",
-		"eslint-config-expo": "^55.0.0",
+		"eslint": "^10.1.0",
+		"eslint-config-expo": "^56.0.4",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-import-resolver-typescript": "^4.4.4",
+		"eslint-plugin-boundaries": "^6.0.2",
 		"eslint-plugin-import-x": "^4.16.2",
 		"eslint-plugin-jest": "^29.15.1",
 		"eslint-plugin-prettier": "^5.5.5",
 		"eslint-plugin-react": "^7.37.5",
+		"eslint-plugin-react-19-upgrade": "^1.7.0",
 		"eslint-plugin-react-hooks": "^7.0.1",
 		"eslint-plugin-react-native": "^5.0.0",
-		"eslint-plugin-react-19-upgrade": "^1.7.0",
 		"eslint-plugin-testing-library": "^7.16.2",
 		"eslint-plugin-unused-imports": "^4.4.1",
-		"@eslint/compat": "^2.0.3",
-		"eslint": "^10.1.0",
 		"prettier": "^3.8.1",
 		"typescript-eslint": "^8.58.0"
 	},
 	"peerDependencies": {
-		"expo": "^54.0.33 || ^55.0.0",
+		"expo": "^54.0.33 || ^55.0.0 || ^56.0.0",
 		"react": "^19.1.0 || ^19.2.0",
 		"react-test-renderer": "^19.1.0 || ^19.2.0",
-		"typescript": "^5.9.3"
+		"typescript": ">=5.9.3 <7.0.0"
 	},
 	"installPeers": false,
 	"engines": {

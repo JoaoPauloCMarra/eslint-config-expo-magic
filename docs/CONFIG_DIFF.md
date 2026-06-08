@@ -1,18 +1,25 @@
 # Config Diff
 
-Package version: `2.4.0`
-Expo config version: `55.0.0`
+Package version: `2.5.0`
+Expo config version: `56.0.4`
 
 ## Rule Counts
 
 | Preset | Rule count |
 | --- | ---: |
-| expo | 70 |
+| expo | 85 |
 | base | 46 |
 | default | 517 |
 | noPrettier | 158 |
 | typed | 586 |
 | strict | 518 |
+| appGuardrails | 4 |
+| featureBoundaries | 1 |
+| nativeUi | 1 |
+| reactCompiler | 1 |
+| storybook | 1 |
+| worklets | 1 |
+| productionApp | 520 |
 
 ## baseVsExpo
 
@@ -26,8 +33,23 @@ Expo config version: `55.0.0`
 
 ### Removed
 
+- `react-hooks/component-hook-factories`
+- `react-hooks/config`
+- `react-hooks/error-boundaries`
 - `react-hooks/exhaustive-deps`
+- `react-hooks/gating`
+- `react-hooks/globals`
+- `react-hooks/immutability`
+- `react-hooks/incompatible-library`
+- `react-hooks/preserve-manual-memoization`
+- `react-hooks/purity`
+- `react-hooks/refs`
 - `react-hooks/rules-of-hooks`
+- `react-hooks/set-state-in-effect`
+- `react-hooks/set-state-in-render`
+- `react-hooks/static-components`
+- `react-hooks/unsupported-syntax`
+- `react-hooks/use-memo`
 - `react/display-name`
 - `react/jsx-key`
 - `react/jsx-no-comment-textnodes`
@@ -390,21 +412,6 @@ Expo config version: `55.0.0`
 - `react-19-upgrade/no-legacy-context`
 - `react-19-upgrade/no-prop-types`
 - `react-19-upgrade/no-string-refs`
-- `react-hooks/component-hook-factories`
-- `react-hooks/config`
-- `react-hooks/error-boundaries`
-- `react-hooks/gating`
-- `react-hooks/globals`
-- `react-hooks/immutability`
-- `react-hooks/incompatible-library`
-- `react-hooks/preserve-manual-memoization`
-- `react-hooks/purity`
-- `react-hooks/refs`
-- `react-hooks/set-state-in-effect`
-- `react-hooks/set-state-in-render`
-- `react-hooks/static-components`
-- `react-hooks/unsupported-syntax`
-- `react-hooks/use-memo`
 - `react-native/no-inline-styles`
 - `react-native/no-raw-text`
 - `react-native/no-single-element-style-arrays`
@@ -1003,6 +1010,24 @@ Expo config version: `55.0.0`
 ### Changed
 
 - `@typescript-eslint/no-non-null-assertion`
+
+### Removed
+
+- None
+
+## productionAppVsDefault
+
+### Added
+
+- `@typescript-eslint/ban-ts-comment`
+- `no-restricted-syntax`
+- `no-warning-comments`
+
+### Changed
+
+- `@typescript-eslint/no-non-null-assertion`
+- `no-console`
+- `no-restricted-imports`
 
 ### Removed
 

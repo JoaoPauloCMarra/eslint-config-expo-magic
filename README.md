@@ -23,20 +23,20 @@ Production-focused ESLint flat config for Expo and React Native projects, with T
 - Node.js: `>=18.0.0`
 - Bun: `>=1.0.0` (recommended for development and publishing)
 - ESLint: `10.x` flat config
-- Expo: `^54.0.33 || ^55.0.0` (peer dependency)
+- Expo: `^54.0.33 || ^55.0.0 || ^56.0.0` (peer dependency)
 - React: `^19.1.0 || ^19.2.0` (peer dependency)
 - React Test Renderer: `^19.1.0 || ^19.2.0` (peer dependency)
-- TypeScript: `>=5.9.3` (peer dependency)
+- TypeScript: `>=5.9.3 <7.0.0` (peer dependency)
 
 Validated lanes:
 
-- Full fixture validation: Expo SDK 55.0.9, React Native 0.83.4, React 19.2.0
-- Packed-consumer smoke validation: Expo SDK 54.0.33 and 55.0.9, React Native 0.81.5 and 0.83.4, React 19.1.0 and 19.2.0
+- Full fixture validation: Expo SDK 56.0.9, React Native 0.85.3, React 19.2.3
+- Packed-consumer smoke validation: Expo SDK 54.0.33, 55.0.9, and 56.0.9
 
 Support policy:
 
 - Stable support tracks the latest stable Expo SDK.
-- Standalone React Native releases newer than Expo stable are treated as preview coverage until the matching Expo SDK ships. As of March 30, 2026, React Native 0.84 is newer than Expo stable and should not be advertised as stable Expo support yet.
+- Standalone React Native releases newer than Expo stable are treated as preview coverage until the matching Expo SDK ships.
 - Preview smoke coverage is available for Expo canary via `bun run smoke:preview`.
 
 ## Installation
@@ -113,6 +113,13 @@ This package exposes:
 - `eslint-config-expo-magic/strict` -> strict config array
 - `eslint-config-expo-magic/no-prettier` -> base config array without Prettier plugin/rules
 - `eslint-config-expo-magic/typed` -> base config array plus type-aware TypeScript rules
+- `eslint-config-expo-magic/app-guardrails` -> app hygiene layer for suppressions, assertions, query-hook return types, and snapshots
+- `eslint-config-expo-magic/react-compiler` -> React Compiler syntax hardening layer
+- `eslint-config-expo-magic/worklets` -> Worklets `scheduleOnRN` hardening layer
+- `eslint-config-expo-magic/native-ui` -> factory for React Native primitive import restrictions
+- `eslint-config-expo-magic/feature-boundaries` -> factory for feature/app/service/UIKit dependency boundaries
+- `eslint-config-expo-magic/storybook` -> story-file overrides
+- `eslint-config-expo-magic/pr-guardrails` -> reusable PR guardrail validator and CLI
 
 ### `default` export
 
@@ -183,6 +190,13 @@ The package ships declaration files:
 - `strict.d.ts`
 - `no-prettier.d.ts`
 - `typed.d.ts`
+- `app-guardrails.d.ts`
+- `react-compiler.d.ts`
+- `worklets.d.ts`
+- `native-ui.d.ts`
+- `feature-boundaries.d.ts`
+- `storybook.d.ts`
+- `pr-guardrails.d.ts`
 
 This improves IntelliSense/autocomplete when composing config arrays.
 
@@ -274,6 +288,45 @@ module.exports = [
 | Same as base, with stricter TypeScript and `no-console: error`  | `eslint-config-expo-magic/strict`      |
 | Same as base, with type-aware TypeScript rules                  | `eslint-config-expo-magic/typed`       |
 | Use a separate formatter pipeline (no `prettier/prettier` rule) | `eslint-config-expo-magic/no-prettier` |
+| Harden production app flows with React Compiler/Worklets/UI rules | `createConfig({ appGuardrails: true, reactCompiler: true, worklets: true })` |
+
+### Production App Hardening
+
+```js
+const { createConfig } = require('eslint-config-expo-magic');
+
+module.exports = createConfig({
+	extraIgnores: ['.eas/**', '.github/**', '.vscode/**', 'assets/**'],
+	appGuardrails: true,
+	reactCompiler: true,
+	worklets: true,
+	storybook: true,
+	nativeUi: {
+		allowFiles: [
+			'**/uikit/components/pressables.tsx',
+			'**/uikit/components/scroll-view.tsx',
+			'**/uikit/components/modal.tsx',
+			'**/hooks/use-navigator.ts',
+		],
+	},
+	featureBoundaries: {
+		sharedComponentPatterns: [
+			'features/*/components/focus-selection-form.tsx',
+			'features/*/components/request-user-phone-flow.tsx',
+		],
+	},
+});
+```
+
+The optional layers are available as subpaths when manual composition is clearer:
+
+```js
+const expoMagic = require('eslint-config-expo-magic');
+const reactCompiler = require('eslint-config-expo-magic/react-compiler');
+const worklets = require('eslint-config-expo-magic/worklets');
+
+module.exports = [...expoMagic, ...reactCompiler, ...worklets];
+```
 
 ## Monorepo Usage
 

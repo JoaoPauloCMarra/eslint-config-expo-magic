@@ -77,7 +77,6 @@ const expectedRules = {
 		'index.js',
 		'metro.config.js',
 		'validate-comprehensive.js',
-		'validate.js',
 	],
 	'no-dupe-args': ['GeneralAdvanced.tsx'],
 	'no-dupe-keys': ['App.tsx'],
@@ -85,7 +84,6 @@ const expectedRules = {
 	'no-empty-pattern': ['App.tsx'],
 	'no-extend-native': ['GeneralAdvanced.tsx'],
 	'no-restricted-imports': ['App.tsx'],
-	'no-undef': ['validate.js'],
 	'no-unreachable': ['App.tsx'],
 	'no-unsafe-negation': ['App.tsx'],
 	'no-unused-expressions': ['App.tsx', 'GeneralAdvanced.tsx'],
@@ -94,7 +92,6 @@ const expectedRules = {
 		'App.test.tsx',
 		'App.tsx',
 		'metro.config.js',
-		'validate.js',
 	],
 	'no-var': ['App.tsx'],
 	'no-with': ['GeneralAdvanced.tsx'],
@@ -114,7 +111,6 @@ const expectedRules = {
 		'index.js',
 		'jest.config.js',
 		'metro.config.js',
-		'validate.js',
 	],
 };
 
