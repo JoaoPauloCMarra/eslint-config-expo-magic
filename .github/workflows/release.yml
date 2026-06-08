@@ -38,36 +38,47 @@ jobs:
           version="$(node -p "require('./packages/eslint-config-expo-magic/package.json').version")"
           tag="v${version}"
           latest_tag="$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq .tag_name 2>/dev/null || true)"
+          published_version="$(bun pm view "eslint-config-expo-magic@${version}" version 2>/dev/null | tr -d '"' || true)"
+
+          should_create=true
+          create_reason=
 
           if [ "${latest_tag}" = "${tag}" ]; then
-            {
-              echo "should_create=false"
-              echo "reason=Latest release already matches ${tag}."
-            } >> "${GITHUB_OUTPUT}"
-            exit 0
+            should_create=false
+            create_reason="Latest release already matches ${tag}."
+          elif gh release view "${tag}" >/dev/null 2>&1; then
+            should_create=false
+            create_reason="Release ${tag} already exists."
           fi
 
-          if gh release view "${tag}" >/dev/null 2>&1; then
-            {
-              echo "should_create=false"
-              echo "reason=Release ${tag} already exists."
-            } >> "${GITHUB_OUTPUT}"
-            exit 0
+          should_publish=true
+          publish_reason=
+
+          if [ "${published_version}" = "${version}" ]; then
+            should_publish=false
+            publish_reason="npm already has eslint-config-expo-magic@${version}."
           fi
 
           {
-            echo "should_create=true"
             echo "version=${version}"
             echo "tag=${tag}"
             echo "latest_tag=${latest_tag}"
+            echo "should_create=${should_create}"
+            echo "should_publish=${should_publish}"
+            echo "create_reason=${create_reason}"
+            echo "publish_reason=${publish_reason}"
           } >> "${GITHUB_OUTPUT}"
 
       - name: Explain skipped release
         if: steps.release.outputs.should_create != 'true'
-        run: echo "${{ steps.release.outputs.reason }}"
+        run: echo "${{ steps.release.outputs.create_reason }}"
+
+      - name: Explain skipped publish
+        if: steps.release.outputs.should_publish != 'true'
+        run: echo "${{ steps.release.outputs.publish_reason }}"
 
       - name: Install dependencies
-        if: steps.release.outputs.should_create == 'true'
+        if: steps.release.outputs.should_create == 'true' || steps.release.outputs.should_publish == 'true'
         run: bun run ci
 
       - name: Generate release body
@@ -87,3 +98,21 @@ jobs:
             --target "${RELEASE_TARGET}" \
             --title "${RELEASE_TAG}" \
             --notes-file docs/RELEASE_NOTES.next.md
+
+      - name: Configure npm auth
+        if: steps.release.outputs.should_publish == 'true'
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${NPM_TOKEN}" ]; then
+            echo "NPM_TOKEN secret is required to publish to npm."
+            exit 1
+          fi
+
+          printf "//registry.npmjs.org/:_authToken=%s\n" "${NPM_TOKEN}" > "${HOME}/.npmrc"
+
+      - name: Publish npm package
+        if: steps.release.outputs.should_publish == 'true'
+        run: bun scripts/publish-package.js --publish
