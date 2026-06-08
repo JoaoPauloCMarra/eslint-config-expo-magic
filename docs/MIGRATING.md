@@ -186,7 +186,7 @@ Enable one layer at a time:
 6. `featureBoundaries`
 7. `storybook`
 
-`nativeUi` and `featureBoundaries` are the most project-shaped options. Prefer configuring `allowFiles` and `sharedComponentPatterns` before turning them on in CI.
+`nativeUi` and `featureBoundaries` are the most project-shaped options. Prefer configuring `allowFiles`, `additionalRestrictions`, `sharedComponentPatterns`, and `additionalSharedComponentPatterns` before turning them on in CI.
 
 ## From SDK 55 support to SDK 56 support
 

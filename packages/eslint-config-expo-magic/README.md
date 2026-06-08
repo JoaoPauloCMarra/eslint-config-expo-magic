@@ -155,13 +155,13 @@ Supported options:
 - `tsconfigProjects`: custom TypeScript project globs for import resolution
 - `prettier`: include or omit lint-time Prettier
 - `testing`: include or omit Jest and Testing Library rules
-- `typeChecked`: opt into `typescript-eslint` type-aware rules
+- `typeChecked`: opt into the broader maintained `typescript-eslint` type-aware presets; the default config already enables project service for the package's selected TypeScript rules
 - `strict`: apply the package's strict console and TypeScript overrides
 - `extraIgnores`: append generated/native/review-surface ignore globs
 - `appGuardrails`: enforce suppression, assertion, query-hook, non-null, and snapshot hygiene
 - `reactCompiler`: block React Compiler syntax hazards in component and hook render scope
 - `worklets`: block inline `scheduleOnRN` callbacks
-- `nativeUi`: restrict direct React Native primitives in favor of app UI wrappers
+- `nativeUi`: restrict direct React Native primitives in favor of app UI wrappers; use `additionalRestrictions` to add project-specific imports without copying defaults
 - `featureBoundaries`: add a feature/app/service/UIKit dependency boundary preset
 - `storybook`: apply Storybook story-file overrides
 

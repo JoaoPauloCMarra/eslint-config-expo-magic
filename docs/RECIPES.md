@@ -181,6 +181,13 @@ const { createConfig } = require('eslint-config-expo-magic');
 
 module.exports = createConfig({
 	nativeUi: {
+		additionalRestrictions: [
+			{
+				name: 'expo-router',
+				importNames: ['Link'],
+				message: "Use your app's link wrapper.",
+			},
+		],
 		allowFiles: [
 			'**/uikit/components/pressables.tsx',
 			'**/uikit/components/scroll-view.tsx',
@@ -197,7 +204,7 @@ const { createConfig } = require('eslint-config-expo-magic');
 
 module.exports = createConfig({
 	featureBoundaries: {
-		sharedComponentPatterns: [
+		additionalSharedComponentPatterns: [
 			'features/*/components/focus-selection-form.tsx',
 		],
 	},
@@ -215,3 +222,20 @@ module.exports = createConfig({
 ```
 
 The CLI reads `GITHUB_EVENT_NAME`, `GITHUB_EVENT_PATH`, and the pull request diff from Git. For local tests or custom CI integrations, import `validateGuardrails` from `eslint-config-expo-magic/pr-guardrails`.
+
+The default CLI configuration is intentionally generic. Expo app repositories can opt into the stricter mobile-app preset with an environment variable:
+
+```sh
+EXPO_MAGIC_PR_GUARDRAILS_PRESET=mobileApp expo-magic-pr-guardrails
+```
+
+For project-specific checks, add `expo-magic.pr-guardrails.cjs`:
+
+```js
+module.exports = {
+	preset: 'mobileApp',
+	additionalRequiredCheckboxes: ['Custom CI passed'],
+	additionalProtectedFilePatterns: [/^services\/billing\//],
+	ignoredRiskyFilePatterns: [/scripts\/validate-pr-guardrails\.(ts|js)/],
+};
+```

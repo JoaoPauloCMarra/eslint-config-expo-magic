@@ -2,7 +2,9 @@ import type { Linter } from 'eslint';
 
 export type FeatureBoundaryOptions = {
 	featureElementTypes?: string[];
+	additionalFeatureElementTypes?: string[];
 	sharedComponentPatterns?: string[];
+	additionalSharedComponentPatterns?: string[];
 };
 
 export declare function createFeatureBoundaryConfig(

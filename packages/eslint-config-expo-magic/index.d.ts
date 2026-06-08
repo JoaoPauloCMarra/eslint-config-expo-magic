@@ -28,12 +28,15 @@ type NativeUiRestriction = {
 
 type NativeUiOptions = {
 	restrictions?: NativeUiRestriction[];
+	additionalRestrictions?: NativeUiRestriction[];
 	allowFiles?: string[];
 };
 
 type FeatureBoundaryOptions = {
 	featureElementTypes?: string[];
+	additionalFeatureElementTypes?: string[];
 	sharedComponentPatterns?: string[];
+	additionalSharedComponentPatterns?: string[];
 };
 
 declare const config: FlatConfig[] & {

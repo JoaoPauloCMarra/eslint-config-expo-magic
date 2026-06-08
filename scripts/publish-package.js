@@ -12,33 +12,6 @@ const PKG_DIR = path.join(
 	'eslint-config-expo-magic',
 );
 
-const REQUIRED_FILES = [
-	'index.js',
-	'index.mjs',
-	'base.js',
-	'base.mjs',
-	'strict.js',
-	'strict.mjs',
-	'no-prettier.js',
-	'no-prettier.mjs',
-	'typed.js',
-	'typed.mjs',
-	'index.d.ts',
-	'base.d.ts',
-	'strict.d.ts',
-	'no-prettier.d.ts',
-	'typed.d.ts',
-	'package.json',
-	'.prettierrc.js',
-	'utils/app.js',
-	'utils/extensions.js',
-	'utils/imports.js',
-	'utils/jest.js',
-	'utils/prettier.js',
-	'utils/react.js',
-	'utils/typescript.js',
-];
-
 function run(command, args, options = {}) {
 	const result = spawnSync(command, args, {
 		cwd: PKG_DIR,
@@ -51,11 +24,109 @@ function run(command, args, options = {}) {
 	}
 }
 
+function collectTargetPaths(value, targets = new Set()) {
+	if (!value) {
+		return targets;
+	}
+
+	if (typeof value === 'string') {
+		targets.add(value.replace(/^\.\//, ''));
+		return targets;
+	}
+
+	if (Array.isArray(value)) {
+		for (const item of value) {
+			collectTargetPaths(item, targets);
+		}
+		return targets;
+	}
+
+	if (typeof value === 'object') {
+		for (const item of Object.values(value)) {
+			collectTargetPaths(item, targets);
+		}
+	}
+
+	return targets;
+}
+
+function collectRequiredFiles(packageJson) {
+	const requiredFiles = new Set();
+
+	for (const field of ['main', 'module', 'types']) {
+		collectTargetPaths(packageJson[field], requiredFiles);
+	}
+	collectTargetPaths(packageJson.exports, requiredFiles);
+	collectTargetPaths(packageJson.bin, requiredFiles);
+
+	return [...requiredFiles].sort();
+}
+
+function isNpmAlwaysIncludedFile(targetPath) {
+	return /^(package\.json|readme(\.[^/]*)?|license(\.[^/]*)?)$/i.test(
+		targetPath,
+	);
+}
+
+function splitGlobEntry(entry) {
+	const wildcardIndex = entry.indexOf('*');
+	if (wildcardIndex === -1) {
+		return null;
+	}
+
+	const prefix = entry.slice(0, wildcardIndex);
+	const lastSlashIndex = prefix.lastIndexOf('/');
+	const dir = lastSlashIndex === -1 ? '.' : prefix.slice(0, lastSlashIndex);
+	const filePrefix =
+		lastSlashIndex === -1 ? prefix : prefix.slice(lastSlashIndex + 1);
+
+	return {
+		dir: path.join(PKG_DIR, dir),
+		prefix: filePrefix,
+		suffix: entry.slice(wildcardIndex + 1),
+	};
+}
+
+function packageFilesEntryExists(entry) {
+	const glob = splitGlobEntry(entry);
+	if (!glob) {
+		return fs.existsSync(path.join(PKG_DIR, entry));
+	}
+
+	if (!fs.existsSync(glob.dir)) {
+		return false;
+	}
+
+	return fs
+		.readdirSync(glob.dir)
+		.some((file) => file.startsWith(glob.prefix) && file.endsWith(glob.suffix));
+}
+
+function packageFilesEntryIncludesPath(entry, targetPath) {
+	if (entry === targetPath) {
+		return true;
+	}
+
+	if (!entry.includes('*')) {
+		return targetPath.startsWith(`${entry.replace(/\/$/, '')}/`);
+	}
+
+	const wildcardIndex = entry.indexOf('*');
+	const prefix = entry.slice(0, wildcardIndex);
+	const suffix = entry.slice(wildcardIndex + 1);
+	return targetPath.startsWith(prefix) && targetPath.endsWith(suffix);
+}
+
 function ensureRequiredFiles() {
-	console.log('Checking package files:\n');
+	const packageJson = JSON.parse(
+		fs.readFileSync(path.join(PKG_DIR, 'package.json'), 'utf8'),
+	);
+	const packageFiles = packageJson.files ?? [];
+	const requiredFiles = collectRequiredFiles(packageJson);
 
 	let allPresent = true;
-	for (const file of REQUIRED_FILES) {
+	console.log('Checking package entrypoints:\n');
+	for (const file of requiredFiles) {
 		const filePath = path.join(PKG_DIR, file);
 		if (fs.existsSync(filePath)) {
 			console.log(`  OK  ${file}`);
@@ -63,6 +134,30 @@ function ensureRequiredFiles() {
 		}
 
 		console.log(`  MISSING  ${file}`);
+		allPresent = false;
+	}
+
+	console.log('\nChecking package file allowlist:\n');
+	for (const entry of packageFiles) {
+		if (packageFilesEntryExists(entry)) {
+			console.log(`  OK  ${entry}`);
+			continue;
+		}
+
+		console.log(`  MISSING  ${entry}`);
+		allPresent = false;
+	}
+
+	for (const file of requiredFiles) {
+		if (isNpmAlwaysIncludedFile(file)) {
+			continue;
+		}
+
+		if (packageFiles.some((entry) => packageFilesEntryIncludesPath(entry, file))) {
+			continue;
+		}
+
+		console.log(`  NOT LISTED  ${file}`);
 		allPresent = false;
 	}
 

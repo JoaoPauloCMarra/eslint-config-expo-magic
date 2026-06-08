@@ -1,7 +1,10 @@
 const { existsSync, readFileSync } = require('node:fs');
+const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
-const defaultRequiredCheckboxes = [
+const defaultRequiredCheckboxes = [];
+
+const mobileAppRequiredCheckboxes = [
 	'`bun run lint:ci`',
 	'`bun run typecheck`',
 	'`bun run test:unit`',
@@ -20,12 +23,19 @@ const defaultRuntimeTargetCheckbox =
 const defaultProtectedFilePatterns = [
 	/^package\.json$/,
 	/^bun\.lock$/,
+	/^package-lock\.json$/,
+	/^pnpm-lock\.yaml$/,
+	/^yarn\.lock$/,
 	/^\.github\//,
 	/^AGENTS\.md$/,
 	/^CLAUDE\.md$/,
 	/^app\.config\./,
 	/^eas\.json$/,
 	/^\.eas\//,
+];
+
+const mobileAppProtectedFilePatterns = [
+	...defaultProtectedFilePatterns,
 	/^app\//,
 	/^features\/auth\//,
 	/^features\/core\/api\//,
@@ -38,21 +48,38 @@ const defaultProtectedFilePatterns = [
 
 const defaultMobileRuntimePatterns = [
 	/^app\//,
-	/^features\/.*\/screens\//,
-	/^features\/.*\/components\//,
-	/^features\/.*\/hooks\//,
-	/^features\/.*\/api\//,
-	/^uikit\//,
+	/^src\/.*\/screens\//,
+	/^src\/.*\/components\//,
+	/^src\/.*\/hooks\//,
+	/^components\//,
+	/^screens\//,
 	/^hooks\//,
-	/^services\/(api|analytics|sentry|storage|startup-routing|push-notifications|linking-routing)/,
-	/^.*storybook/i,
-	/^\.storybook\//,
 	/^app\.config\./,
 	/^eas\.json$/,
 	/^\.eas\//,
 ];
 
+const mobileAppRuntimePatterns = [
+	...defaultMobileRuntimePatterns,
+	/^features\/.*\/screens\//,
+	/^features\/.*\/components\//,
+	/^features\/.*\/hooks\//,
+	/^features\/.*\/api\//,
+	/^uikit\//,
+	/^services\/(api|analytics|sentry|storage|startup-routing|push-notifications|linking-routing)/,
+	/^.*storybook/i,
+	/^\.storybook\//,
+];
+
 const defaultScreenOrComponentPatterns = [
+	/^src\/.*\/screens\/.*\.(ts|tsx)$/,
+	/^src\/.*\/components\/.*\.(ts|tsx)$/,
+	/^components\/.*\.(ts|tsx)$/,
+	/^screens\/.*\.(ts|tsx)$/,
+];
+
+const mobileAppScreenOrComponentPatterns = [
+	...defaultScreenOrComponentPatterns,
 	/^features\/.*\/screens\/.*\.(ts|tsx)$/,
 	/^features\/.*\/components\/.*\.(ts|tsx)$/,
 	/^uikit\/.*\.(ts|tsx)$/,
@@ -81,26 +108,104 @@ const defaultOptions = {
 	mobileRuntimePatterns: defaultMobileRuntimePatterns,
 	screenOrComponentPatterns: defaultScreenOrComponentPatterns,
 	riskyPatterns: defaultRiskyPatterns,
+	ignoredRiskyFilePatterns: [],
 	ownerApprovedLabel: 'owner-approved',
 	largeApprovedLabel: 'large-approved',
 	maxChangedFiles: 80,
 	maxChangedLines: 2500,
 };
 
+const mobileAppOptions = {
+	...defaultOptions,
+	requiredCheckboxes: mobileAppRequiredCheckboxes,
+	protectedFilePatterns: mobileAppProtectedFilePatterns,
+	mobileRuntimePatterns: mobileAppRuntimePatterns,
+	screenOrComponentPatterns: mobileAppScreenOrComponentPatterns,
+};
+
+const presets = {
+	default: defaultOptions,
+	mobileApp: mobileAppOptions,
+	'mobile-app': mobileAppOptions,
+};
+
+function resolvePreset(preset) {
+	if (!preset) {
+		return defaultOptions;
+	}
+
+	if (typeof preset === 'string') {
+		const presetOptions = presets[preset];
+		if (!presetOptions) {
+			throw new Error(`Unknown PR guardrails preset: ${preset}`);
+		}
+		return presetOptions;
+	}
+
+	return preset;
+}
+
+function combineOptionList(baseOptions, options, key, additionalKey) {
+	return [
+		...(options[key] ?? baseOptions[key]),
+		...(options[additionalKey] ?? []),
+	];
+}
+
 function createPrGuardrailOptions(options = {}) {
+	const baseOptions = resolvePreset(options.preset);
+	const {
+		preset: _ignoredPreset,
+		additionalRequiredCheckboxes: _ignoredAdditionalRequiredCheckboxes,
+		additionalProtectedFilePatterns: _ignoredAdditionalProtectedFilePatterns,
+		additionalMobileRuntimePatterns: _ignoredAdditionalMobileRuntimePatterns,
+		additionalScreenOrComponentPatterns:
+			_ignoredAdditionalScreenOrComponentPatterns,
+		additionalRiskyPatterns: _ignoredAdditionalRiskyPatterns,
+		additionalIgnoredRiskyFilePatterns:
+			_ignoredAdditionalIgnoredRiskyFilePatterns,
+		...optionOverrides
+	} = options;
+
 	return {
-		...defaultOptions,
-		...options,
-		requiredCheckboxes:
-			options.requiredCheckboxes ?? defaultOptions.requiredCheckboxes,
-		protectedFilePatterns:
-			options.protectedFilePatterns ?? defaultOptions.protectedFilePatterns,
-		mobileRuntimePatterns:
-			options.mobileRuntimePatterns ?? defaultOptions.mobileRuntimePatterns,
-		screenOrComponentPatterns:
-			options.screenOrComponentPatterns ??
-			defaultOptions.screenOrComponentPatterns,
-		riskyPatterns: options.riskyPatterns ?? defaultOptions.riskyPatterns,
+		...baseOptions,
+		...optionOverrides,
+		requiredCheckboxes: combineOptionList(
+			baseOptions,
+			options,
+			'requiredCheckboxes',
+			'additionalRequiredCheckboxes',
+		),
+		protectedFilePatterns: combineOptionList(
+			baseOptions,
+			options,
+			'protectedFilePatterns',
+			'additionalProtectedFilePatterns',
+		),
+		mobileRuntimePatterns: combineOptionList(
+			baseOptions,
+			options,
+			'mobileRuntimePatterns',
+			'additionalMobileRuntimePatterns',
+		),
+		screenOrComponentPatterns: combineOptionList(
+			baseOptions,
+			options,
+			'screenOrComponentPatterns',
+			'additionalScreenOrComponentPatterns',
+		),
+		riskyPatterns: combineOptionList(
+			baseOptions,
+			options,
+			'riskyPatterns',
+			'additionalRiskyPatterns',
+		),
+		ignoredRiskyFilePatterns: combineOptionList(
+			baseOptions,
+			options,
+			'ignoredRiskyFilePatterns',
+			'additionalIgnoredRiskyFilePatterns',
+		),
 	};
 }
 
@@ -157,8 +262,12 @@ function validateGuardrails(input, options = {}) {
 		);
 	}
 
+	const riskyPatch = patchWithoutIgnoredFiles(
+		input.changedPatch,
+		resolvedOptions.ignoredRiskyFilePatterns,
+	);
 	for (const riskyPattern of resolvedOptions.riskyPatterns) {
-		if (riskyPattern.pattern.test(input.changedPatch)) {
+		if (riskyPattern.pattern.test(riskyPatch)) {
 			failures.push(
 				`Risky pattern detected in added lines: ${riskyPattern.name}`,
 			);
@@ -215,6 +324,27 @@ function countChangedLines(patch) {
 		.length;
 }
 
+function patchWithoutIgnoredFiles(patch, ignoredFilePatterns) {
+	if (ignoredFilePatterns.length === 0) {
+		return patch;
+	}
+
+	const lines = patch.split('\n');
+	const filteredLines = [];
+	let includeCurrentFile = true;
+	for (const line of lines) {
+		if (line.startsWith('diff --git ')) {
+			includeCurrentFile = !ignoredFilePatterns.some((pattern) =>
+				pattern.test(line),
+			);
+		}
+		if (includeCurrentFile) {
+			filteredLines.push(line);
+		}
+	}
+	return filteredLines.join('\n');
+}
+
 function hasRelatedTestOrStory(changedFiles) {
 	return changedFiles.some((filePath) =>
 		/(\.test\.(ts|tsx)|\.stories\.(ts|tsx))$/.test(filePath),
@@ -268,6 +398,33 @@ function runCommand(command) {
 		);
 	}
 	return result.stdout;
+}
+
+function readPrGuardrailConfig(cwd = process.cwd()) {
+	for (const fileName of [
+		'expo-magic.pr-guardrails.cjs',
+		'expo-magic.pr-guardrails.js',
+	]) {
+		const configPath = path.join(cwd, fileName);
+		if (!existsSync(configPath)) {
+			continue;
+		}
+
+		const configModule = require(configPath);
+		return configModule.default ?? configModule;
+	}
+
+	return {};
+}
+
+function readCliOptionsFromEnv(cwd = process.cwd()) {
+	const configOptions = readPrGuardrailConfig(cwd);
+	const preset = process.env.EXPO_MAGIC_PR_GUARDRAILS_PRESET;
+
+	return {
+		...configOptions,
+		...(preset ? { preset } : {}),
+	};
 }
 
 async function readPullRequestInputFromEnv() {
@@ -345,8 +502,11 @@ async function readLivePullRequestMetadata(prNumber) {
 	};
 }
 
-async function runCli() {
-	const result = validateGuardrails(await readPullRequestInputFromEnv());
+async function runCli(options) {
+	const result = validateGuardrails(
+		await readPullRequestInputFromEnv(),
+		options ?? readCliOptionsFromEnv(),
+	);
 	for (const warning of result.warnings) {
 		console.warn(`Warning: ${warning}`);
 	}
@@ -363,9 +523,14 @@ module.exports = {
 	countChangedLines,
 	createPrGuardrailOptions,
 	defaultOptions,
+	mobileAppOptions,
+	patchWithoutIgnoredFiles,
+	presets,
 	hasCheckedCheckbox,
 	hasRelatedTestOrStory,
 	mentionsRuntimeTarget,
+	readCliOptionsFromEnv,
+	readPrGuardrailConfig,
 	readPullRequestInputFromEnv,
 	runCli,
 	validateGuardrails,

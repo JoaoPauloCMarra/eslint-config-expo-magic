@@ -1,6 +1,6 @@
 # Changes
 
-- Package version: `2.5.2`
+- Package version: `2.6.0`
 - Expo base version: `56.0.4`
 - Base preset vs Expo: 1 rule added, 0 rules changed, 40 rules removed.
   - Added: `expo/prefer-box-shadow`
@@ -15,5 +15,5 @@
   - Added: `@typescript-eslint/ban-ts-comment`, `no-restricted-syntax`, `no-warning-comments`
   - Changed: `@typescript-eslint/no-non-null-assertion`, `no-console`, `no-restricted-imports`
 - Upgrade notes:
-  - Review `docs/CONFIG_DIFF.md` before publishing.
+  - Review `docs/CONFIG_DIFF.md` before upgrading.
   - If a new rule is too aggressive, recommend `base`, `no-prettier`, or `createConfig(...)` overrides.

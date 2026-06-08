@@ -284,11 +284,16 @@ describe('eslint-config-expo-magic', () => {
 				(c: FlatConfig) =>
 					c.languageOptions &&
 					c.languageOptions.globals &&
-					c.languageOptions.globals.__DEV__ === 'readonly',
+					(c.languageOptions.globals as Record<string, unknown>).__DEV__ ===
+						'readonly',
 			);
+			const globals = globalsConfig?.languageOptions?.globals as
+				| Record<string, unknown>
+				| undefined;
+
 			expect(globalsConfig).toBeDefined();
-			expect(globalsConfig.languageOptions.globals.fetch).toBe(false);
-			expect(globalsConfig.languageOptions.globals.__DEV__).toBe('readonly');
+			expect(globals?.fetch).toBe(false);
+			expect(globals?.__DEV__).toBe('readonly');
 		});
 
 		it('has node globals for config files', () => {
@@ -298,7 +303,8 @@ describe('eslint-config-expo-magic', () => {
 					c.files.includes('**/*.config.{js,cjs,mjs,ts,mts,cts}') &&
 					c.languageOptions &&
 					c.languageOptions.globals &&
-					c.languageOptions.globals.module !== undefined,
+					(c.languageOptions.globals as Record<string, unknown>).module !==
+						undefined,
 			);
 			expect(nodeConfig).toBeDefined();
 		});
@@ -528,6 +534,36 @@ describe('eslint-config-expo-magic', () => {
 			expect(rule[1].paths[0].importNames).toContain('SafeAreaView');
 		});
 
+		it('adds native UI restrictions without replacing defaults', () => {
+			const nativeUiConfig = config.createNativeUiConfig({
+				additionalRestrictions: [
+					{
+						name: 'expo-router',
+						importNames: ['Link'],
+						message: 'Use app link wrapper.',
+					},
+				],
+			});
+			const restrictionEntry = nativeUiConfig.find(
+				(entry: FlatConfig) => entry.rules?.['no-restricted-imports'],
+			);
+			const restrictedPaths =
+				restrictionEntry.rules['no-restricted-imports'][1].paths;
+
+			expect(restrictedPaths).toEqual(
+				expect.arrayContaining([
+					expect.objectContaining({
+						name: 'react-native',
+						importNames: expect.arrayContaining(['SafeAreaView']),
+					}),
+					expect.objectContaining({
+						name: 'expo-router',
+						importNames: expect.arrayContaining(['Link']),
+					}),
+				]),
+			);
+		});
+
 		it('prefers box shadow', () => {
 			const appConfig = config.find(
 				(c: FlatConfig) => c.rules && c.rules['expo/prefer-box-shadow'],
@@ -655,6 +691,30 @@ describe('eslint-config-expo-magic', () => {
 					expect.objectContaining({
 						type: 'feature-shared-component',
 						pattern: 'features/*/components/focus-selection-form.tsx',
+					}),
+				]),
+			);
+		});
+
+		it('adds feature boundary patterns without replacing defaults', () => {
+			const boundaryConfig = config.createFeatureBoundaryConfig({
+				additionalSharedComponentPatterns: [
+					'features/*/components/request-user-phone-flow.tsx',
+				],
+			});
+			const boundaryEntry = boundaryConfig.find(
+				(entry: FlatConfig) => entry.rules?.['boundaries/dependencies'],
+			);
+
+			expect(boundaryEntry.settings['boundaries/elements']).toEqual(
+				expect.arrayContaining([
+					expect.objectContaining({
+						type: 'feature-api',
+						pattern: 'features/*/api/**/*',
+					}),
+					expect.objectContaining({
+						type: 'feature-shared-component',
+						pattern: 'features/*/components/request-user-phone-flow.tsx',
 					}),
 				]),
 			);
@@ -993,22 +1053,103 @@ describe('eslint-config-expo-magic', () => {
 		});
 
 		it('accepts mobile flow files with runtime evidence and coverage', () => {
-			const result = prGuardrails.validateGuardrails({
-				eventName: 'pull_request',
-				prBody: guardrailBody([
-					'- [x] Confirmed this machine can build and run the app in iOS Simulator or Android Emulator',
-					'- [x] Simulator/emulator target used for validation is named in the PR body',
-					'Validated on iPhone 16 Simulator.',
-				]),
-				labels: [],
-				changedFiles: [
-					'features/home/screens/home-screen.tsx',
-					'features/home/screens/home-screen.test.tsx',
-				],
-				changedPatch: '+const value = 1;\n',
-			});
+			const result = prGuardrails.validateGuardrails(
+				{
+					eventName: 'pull_request',
+					prBody: guardrailBody([
+						'- [x] Confirmed this machine can build and run the app in iOS Simulator or Android Emulator',
+						'- [x] Simulator/emulator target used for validation is named in the PR body',
+						'Validated on iPhone 16 Simulator.',
+					]),
+					labels: [],
+					changedFiles: [
+						'features/home/screens/home-screen.tsx',
+						'features/home/screens/home-screen.test.tsx',
+					],
+					changedPatch: '+const value = 1;\n',
+				},
+				{ preset: 'mobileApp' },
+			);
 
 			expect(result.passed).toBe(true);
+		});
+
+		it('keeps default PR guardrails generic', () => {
+			const options = prGuardrails.createPrGuardrailOptions();
+
+			expect(options.requiredCheckboxes).toEqual([]);
+			expect(
+				options.protectedFilePatterns.some((pattern: RegExp) =>
+					pattern.test('features/auth/login.ts'),
+				),
+			).toBe(false);
+		});
+
+		it('supports additive PR guardrail options', () => {
+			const options = prGuardrails.createPrGuardrailOptions({
+				additionalRequiredCheckboxes: ['Custom check'],
+				additionalProtectedFilePatterns: [/^custom\//],
+				additionalRiskyPatterns: [
+					{ name: 'debugger', pattern: /^\+.*\bdebugger\b/m },
+				],
+			});
+
+			expect(options.requiredCheckboxes).toContain('Custom check');
+			expect(
+				options.protectedFilePatterns.some((pattern: RegExp) =>
+					pattern.test('custom/file.ts'),
+				),
+			).toBe(true);
+			expect(
+				options.riskyPatterns.map((pattern: { name: string }) => pattern.name),
+			).toContain('debugger');
+		});
+
+		it('ignores configured files for risky patch checks', () => {
+			const result = prGuardrails.validateGuardrails(
+				{
+					eventName: 'pull_request',
+					prBody: guardrailBody(),
+					labels: ['owner-approved'],
+					changedFiles: ['scripts/validate-pr-guardrails.ts'],
+					changedPatch: [
+						'diff --git a/scripts/validate-pr-guardrails.ts b/scripts/validate-pr-guardrails.ts',
+						'+++ b/scripts/validate-pr-guardrails.ts',
+						'+const value: any = input;',
+					].join('\n'),
+				},
+				{
+					preset: 'mobileApp',
+					ignoredRiskyFilePatterns: [/scripts\/validate-pr-guardrails\.ts/],
+				},
+			);
+
+			expect(result.failures).not.toEqual(
+				expect.arrayContaining([expect.stringContaining('explicit any')]),
+			);
+		});
+
+		it('reads PR guardrail options from a config file', () => {
+			const tempDir = fs.mkdtempSync(
+				path.join(rootDir, '.tmp-eslint-config-expo-magic-guardrails-'),
+			);
+
+			try {
+				fs.writeFileSync(
+					path.join(tempDir, 'expo-magic.pr-guardrails.cjs'),
+					"module.exports = { preset: 'mobileApp', additionalRequiredCheckboxes: ['Custom CI'] };\n",
+				);
+
+				const options = prGuardrails.readCliOptionsFromEnv(tempDir);
+				const resolvedOptions = prGuardrails.createPrGuardrailOptions(options);
+
+				expect(resolvedOptions.requiredCheckboxes).toContain(
+					'`bun run lint:ci`',
+				);
+				expect(resolvedOptions.requiredCheckboxes).toContain('Custom CI');
+			} finally {
+				fs.rmSync(tempDir, { recursive: true, force: true });
+			}
 		});
 	});
 

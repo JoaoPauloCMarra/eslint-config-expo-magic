@@ -72,7 +72,7 @@ function createReleaseNotes(report = createConfigReport()) {
 
 	sections.push(
 		'- Upgrade notes:',
-		'  - Review `docs/CONFIG_DIFF.md` before publishing.',
+		'  - Review `docs/CONFIG_DIFF.md` before upgrading.',
 		'  - If a new rule is too aggressive, recommend `base`, `no-prettier`, or `createConfig(...)` overrides.',
 	);
 
