@@ -115,4 +115,6 @@ jobs:
 
       - name: Publish npm package
         if: steps.release.outputs.should_publish == 'true'
+        env:
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: bun scripts/publish-package.js --publish
