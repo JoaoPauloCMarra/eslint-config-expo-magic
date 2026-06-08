@@ -1,0 +1,89 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  github-release:
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.ref_name == 'main') || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: 1.3.11
+
+      - name: Check release version
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          version="$(node -p "require('./packages/eslint-config-expo-magic/package.json').version")"
+          tag="v${version}"
+          latest_tag="$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq .tag_name 2>/dev/null || true)"
+
+          if [ "${latest_tag}" = "${tag}" ]; then
+            {
+              echo "should_create=false"
+              echo "reason=Latest release already matches ${tag}."
+            } >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          if gh release view "${tag}" >/dev/null 2>&1; then
+            {
+              echo "should_create=false"
+              echo "reason=Release ${tag} already exists."
+            } >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          {
+            echo "should_create=true"
+            echo "version=${version}"
+            echo "tag=${tag}"
+            echo "latest_tag=${latest_tag}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Explain skipped release
+        if: steps.release.outputs.should_create != 'true'
+        run: echo "${{ steps.release.outputs.reason }}"
+
+      - name: Install dependencies
+        if: steps.release.outputs.should_create == 'true'
+        run: bun run ci
+
+      - name: Generate release body
+        if: steps.release.outputs.should_create == 'true'
+        run: bun run report:release-notes
+
+      - name: Create GitHub release
+        if: steps.release.outputs.should_create == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          RELEASE_TARGET: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          set -euo pipefail
+
+          gh release create "${RELEASE_TAG}" \
+            --target "${RELEASE_TARGET}" \
+            --title "${RELEASE_TAG}" \
+            --notes-file docs/RELEASE_NOTES.next.md

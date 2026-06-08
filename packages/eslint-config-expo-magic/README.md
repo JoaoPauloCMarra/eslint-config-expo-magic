@@ -218,6 +218,7 @@ bun run report:config
 
 - Upgrade paths and adoption order: [`docs/MIGRATING.md`](../../docs/MIGRATING.md)
 - Common override snippets: [`docs/RECIPES.md`](../../docs/RECIPES.md)
+- Release automation: [`docs/RELEASING.md`](../../docs/RELEASING.md)
 - Draft release notes generated from the current config diff: [`docs/RELEASE_NOTES.next.md`](../../docs/RELEASE_NOTES.next.md)
 
 ## Path alias support for TypeScript and Expo
