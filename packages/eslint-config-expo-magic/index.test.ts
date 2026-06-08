@@ -12,6 +12,13 @@ const baseSubpath = require('./base.js');
 const strictSubpath = require('./strict.js');
 const noPrettierSubpath = require('./no-prettier.js');
 const typedSubpath = require('./typed.js');
+const appGuardrailsSubpath = require('./app-guardrails.js');
+const featureBoundariesSubpath = require('./feature-boundaries.js');
+const nativeUiSubpath = require('./native-ui.js');
+const prGuardrails = require('./pr-guardrails.js');
+const reactCompilerSubpath = require('./react-compiler.js');
+const storybookSubpath = require('./storybook.js');
+const workletsSubpath = require('./worklets.js');
 
 type FlatConfig = Linter.Config;
 const rootDir = path.resolve(__dirname, '../..');
@@ -28,29 +35,7 @@ function runPresetLint(presetModulePath: string, targets: string[]) {
 			`const preset = require(${JSON.stringify(presetModulePath)});\n\nmodule.exports = [...preset];\n`,
 		);
 
-		const result = spawnSync(
-			'bunx',
-			[
-				'eslint',
-				...targets,
-				'--no-config-lookup',
-				'--config',
-				configPath,
-				'--format=json',
-			],
-			{
-				cwd: rootDir,
-				encoding: 'utf8',
-			},
-		);
-
-		if (![0, 1].includes(result.status ?? -1)) {
-			throw new Error(result.stderr || result.stdout);
-		}
-
-		return JSON.parse(result.stdout || '[]') as Array<{
-			messages: Array<{ ruleId: string | null; severity: number }>;
-		}>;
+		return runDirectoryLint(rootDir, configPath, targets);
 	} finally {
 		fs.rmSync(tempDir, { recursive: true, force: true });
 	}
@@ -62,6 +47,36 @@ function getRuleMessages(
 	}>,
 ) {
 	return results.flatMap((result) => result.messages ?? []);
+}
+
+function runDirectoryLint(
+	cwd: string,
+	configPath: string,
+	targets: string[],
+) {
+	const result = spawnSync(
+		'bunx',
+		[
+			'eslint',
+			...targets,
+			'--no-config-lookup',
+			'--config',
+			configPath,
+			'--format=json',
+		],
+		{
+			cwd,
+			encoding: 'utf8',
+		},
+	);
+
+	if (![0, 1].includes(result.status ?? -1)) {
+		throw new Error(result.stderr || result.stdout);
+	}
+
+	return JSON.parse(result.stdout || '[]') as Array<{
+		messages: Array<{ ruleId: string | null; severity: number }>;
+	}>;
 }
 
 describe('eslint-config-expo-magic', () => {
@@ -102,6 +117,18 @@ describe('eslint-config-expo-magic', () => {
 			expect(Array.isArray(typedSubpath)).toBe(true);
 			expect(typedSubpath).toBe(config.typed);
 			expect(Array.isArray(typedSubpath.noPrettier)).toBe(true);
+		});
+
+		it('exports app hardening subpaths', () => {
+			expect(Array.isArray(appGuardrailsSubpath)).toBe(true);
+			expect(typeof featureBoundariesSubpath.createFeatureBoundaryConfig).toBe(
+				'function',
+			);
+			expect(typeof nativeUiSubpath.createNativeUiConfig).toBe('function');
+			expect(typeof prGuardrails.validateGuardrails).toBe('function');
+			expect(Array.isArray(reactCompilerSubpath)).toBe(true);
+			expect(Array.isArray(storybookSubpath)).toBe(true);
+			expect(Array.isArray(workletsSubpath)).toBe(true);
 		});
 
 		it('exports createConfig factory', () => {
@@ -239,6 +266,17 @@ describe('eslint-config-expo-magic', () => {
 			expect(
 				settingsConfig.settings['import-x/resolver'].typescript.project,
 			).toEqual(['./apps/mobile/tsconfig.json']);
+		});
+
+		it('createConfig accepts extra ignore patterns', () => {
+			const customConfig = config.createConfig({
+				extraIgnores: ['**/.eas/**', 'expo-env.d.ts'],
+			});
+			const ignoreConfig = customConfig.find((entry: FlatConfig) => entry.ignores);
+
+			expect(ignoreConfig.ignores).toContain('**/.eas/**');
+			expect(ignoreConfig.ignores).toContain('expo-env.d.ts');
+			expect(ignoreConfig.ignores).toContain('**/node_modules/**');
 		});
 
 		it('has browser and mobile globals', () => {
@@ -488,6 +526,200 @@ describe('eslint-config-expo-magic', () => {
 			expect(appConfig).toBeDefined();
 			expect(appConfig.rules['expo/prefer-box-shadow']).toBe('warn');
 		});
+
+		it('composes optional production app hardening rules', () => {
+			const tempDir = fs.mkdtempSync(
+				path.join(rootDir, '.tmp-eslint-config-expo-magic-app-'),
+			);
+			const configPath = path.join(tempDir, 'eslint.config.js');
+			const targetPath = path.join(tempDir, 'hardening-smoke.tsx');
+			const storyPath = path.join(tempDir, 'hardening.stories.tsx');
+			const tsconfigPath = path.join(tempDir, 'tsconfig.json');
+
+			try {
+				fs.writeFileSync(
+					configPath,
+					[
+						"const { createConfig } = require(",
+						`\t${JSON.stringify(path.join(__dirname, 'index.js'))},`,
+						');',
+						'',
+						'module.exports = createConfig({',
+						"\tprettier: false,",
+						"\ttesting: false,",
+						"\tappGuardrails: true,",
+						"\tnativeUi: true,",
+						"\treactCompiler: true,",
+						"\tstorybook: true,",
+						"\tworklets: true,",
+						'});',
+						'',
+					].join('\n'),
+				);
+
+				fs.writeFileSync(
+					tsconfigPath,
+					`${JSON.stringify(
+						{
+							compilerOptions: {
+								module: 'esnext',
+								target: 'es2022',
+								moduleResolution: 'bundler',
+								jsx: 'react-jsx',
+							},
+							include: ['*.ts', '*.tsx'],
+						},
+						null,
+						2,
+					)}\n`,
+				);
+
+				fs.writeFileSync(
+					targetPath,
+					[
+						"import { Button } from 'react-native';",
+						'',
+						'declare const value: unknown;',
+						'declare function useGetPeople(): { data: string[] };',
+						'declare function scheduleOnRN(callback: () => void): void;',
+						'',
+						'type QueryResult = ReturnType<typeof useGetPeople>;',
+						'const unsafeValue = value as unknown as string;',
+						'const queryResult = {} as QueryResult;',
+						'',
+						'export function HardeningSmoke() {',
+						'\ttry {',
+						'\t\tvalue?.toString();',
+						'\t} finally {',
+						'\t\tscheduleOnRN(() => {});',
+						'\t}',
+						'',
+						'\treturn <Button title={`${unsafeValue}:${queryResult.data.length}`} />;',
+						'}',
+						'',
+					].join('\n'),
+				);
+
+				fs.writeFileSync(
+					storyPath,
+					[
+						'export const Story = () => {',
+						"\tconsole.log('story diagnostics');",
+						'\treturn null;',
+						'};',
+						'',
+					].join('\n'),
+				);
+
+				const results = runPresetLint(configPath, [targetPath, storyPath]);
+				const messages = getRuleMessages(results);
+
+				expect(
+					messages.some((message) => message.ruleId === 'no-restricted-imports'),
+				).toBe(true);
+				expect(
+					messages.filter((message) => message.ruleId === 'no-restricted-syntax')
+						.length,
+				).toBeGreaterThanOrEqual(4);
+				expect(
+					messages.some((message) => message.ruleId === 'no-console'),
+				).toBe(false);
+			} finally {
+				fs.rmSync(tempDir, { recursive: true, force: true });
+			}
+		}, 15_000);
+
+		it('creates feature boundary config with shared component patterns', () => {
+			const boundaryConfig = config.createFeatureBoundaryConfig({
+				sharedComponentPatterns: [
+					'features/*/components/focus-selection-form.tsx',
+				],
+			});
+			const boundaryEntry = boundaryConfig.find(
+				(entry: FlatConfig) => entry.rules?.['boundaries/dependencies'],
+			);
+
+			expect(boundaryEntry).toBeDefined();
+			expect(boundaryEntry.plugins.boundaries).toBeDefined();
+			expect(boundaryEntry.settings['boundaries/elements']).toEqual(
+				expect.arrayContaining([
+					expect.objectContaining({
+						type: 'feature-shared-component',
+						pattern: 'features/*/components/focus-selection-form.tsx',
+					}),
+				]),
+			);
+		});
+
+		it('runs feature boundary rules end to end', () => {
+			const tempDir = fs.mkdtempSync(
+				path.join(rootDir, '.tmp-eslint-config-expo-magic-boundaries-'),
+			);
+			const configPath = path.join(tempDir, 'eslint.config.js');
+			const uikitDir = path.join(tempDir, 'uikit');
+			const featureApiDir = path.join(tempDir, 'features', 'people', 'api');
+
+			try {
+				fs.mkdirSync(uikitDir, { recursive: true });
+				fs.mkdirSync(featureApiDir, { recursive: true });
+				fs.writeFileSync(
+					configPath,
+					[
+						"const { createConfig } = require(",
+						`\t${JSON.stringify(path.join(__dirname, 'index.js'))},`,
+						');',
+						'',
+						'module.exports = createConfig({',
+						"\tprettier: false,",
+						"\ttesting: false,",
+						"\tfeatureBoundaries: true,",
+						'});',
+						'',
+					].join('\n'),
+				);
+				fs.writeFileSync(
+					path.join(tempDir, 'tsconfig.json'),
+					`${JSON.stringify(
+						{
+							compilerOptions: {
+								module: 'esnext',
+								target: 'es2022',
+								moduleResolution: 'bundler',
+								strict: true,
+							},
+							include: ['**/*.ts'],
+						},
+						null,
+						2,
+					)}\n`,
+				);
+				fs.writeFileSync(
+					path.join(featureApiDir, 'client.ts'),
+					"export const peopleClient = 'people';\n",
+				);
+				fs.writeFileSync(
+					path.join(uikitDir, 'button.ts'),
+					[
+						"import { peopleClient } from '../features/people/api/client';",
+						'',
+						'export const buttonLabel = peopleClient;',
+						'',
+					].join('\n'),
+				);
+
+				const messages = getRuleMessages(
+					runDirectoryLint(tempDir, configPath, ['uikit/button.ts']),
+				);
+
+				expect(
+					messages.some(
+						(message) => message.ruleId === 'boundaries/dependencies',
+					),
+				).toBe(true);
+			} finally {
+				fs.rmSync(tempDir, { recursive: true, force: true });
+			}
+		}, 15_000);
 	});
 
 	describe('test environments', () => {
@@ -648,6 +880,27 @@ describe('eslint-config-expo-magic', () => {
 			const typedEsm = await import(
 				pathToFileURL(path.join(__dirname, 'typed.mjs')).href
 			);
+			const appGuardrailsEsm = await import(
+				pathToFileURL(path.join(__dirname, 'app-guardrails.mjs')).href
+			);
+			const featureBoundariesEsm = await import(
+				pathToFileURL(path.join(__dirname, 'feature-boundaries.mjs')).href
+			);
+			const nativeUiEsm = await import(
+				pathToFileURL(path.join(__dirname, 'native-ui.mjs')).href
+			);
+			const prGuardrailsEsm = await import(
+				pathToFileURL(path.join(__dirname, 'pr-guardrails.mjs')).href
+			);
+			const reactCompilerEsm = await import(
+				pathToFileURL(path.join(__dirname, 'react-compiler.mjs')).href
+			);
+			const storybookEsm = await import(
+				pathToFileURL(path.join(__dirname, 'storybook.mjs')).href
+			);
+			const workletsEsm = await import(
+				pathToFileURL(path.join(__dirname, 'worklets.mjs')).href
+			);
 
 			expect(Array.isArray(indexEsm.default)).toBe(true);
 			expect(Array.isArray(indexEsm.base)).toBe(true);
@@ -661,6 +914,15 @@ describe('eslint-config-expo-magic', () => {
 			expect(Array.isArray(strictEsm.default)).toBe(true);
 			expect(Array.isArray(typedEsm.default)).toBe(true);
 			expect(Array.isArray(typedEsm.noPrettier)).toBe(true);
+			expect(Array.isArray(appGuardrailsEsm.default)).toBe(true);
+			expect(typeof featureBoundariesEsm.createFeatureBoundaryConfig).toBe(
+				'function',
+			);
+			expect(typeof nativeUiEsm.createNativeUiConfig).toBe('function');
+			expect(typeof prGuardrailsEsm.validateGuardrails).toBe('function');
+			expect(Array.isArray(reactCompilerEsm.default)).toBe(true);
+			expect(Array.isArray(storybookEsm.default)).toBe(true);
+			expect(Array.isArray(workletsEsm.default)).toBe(true);
 		});
 	});
 
@@ -686,6 +948,58 @@ describe('eslint-config-expo-magic', () => {
 		it('exposes typed presets on the main export', () => {
 			expect(Array.isArray(config.typed)).toBe(true);
 			expect(Array.isArray(config.typedNoPrettier)).toBe(true);
+		});
+	});
+
+	describe('pr guardrails helper', () => {
+		function guardrailBody(extraLines: string[] = []) {
+			return [
+				'- [x] `bun run lint:ci`',
+				'- [x] `bun run typecheck`',
+				'- [x] `bun run test:unit`',
+				'- [x] `bun run validate:pr-guardrails`',
+				'- [x] Watched GitHub CI after the latest push until `Validate Code` passed or a blocker was documented',
+				'- [x] No skipped tests, loosened types, broad ignores, fake mocks, or unrelated rewrites to make CI pass',
+				'- [x] No unrelated `package.json` or `bun.lock` changes',
+				...extraLines,
+			].join('\n');
+		}
+
+		it('validates reusable PR guardrails', () => {
+			const result = prGuardrails.validateGuardrails({
+				eventName: 'pull_request',
+				prBody: guardrailBody(),
+				labels: [],
+				changedFiles: ['package.json'],
+				changedPatch: '+const value: any = input;\n',
+			});
+
+			expect(result.passed).toBe(false);
+			expect(result.failures).toEqual(
+				expect.arrayContaining([
+					expect.stringContaining('Protected files changed'),
+					expect.stringContaining('explicit any'),
+				]),
+			);
+		});
+
+		it('accepts mobile flow files with runtime evidence and coverage', () => {
+			const result = prGuardrails.validateGuardrails({
+				eventName: 'pull_request',
+				prBody: guardrailBody([
+					'- [x] Confirmed this machine can build and run the app in iOS Simulator or Android Emulator',
+					'- [x] Simulator/emulator target used for validation is named in the PR body',
+					'Validated on iPhone 16 Simulator.',
+				]),
+				labels: [],
+				changedFiles: [
+					'features/home/screens/home-screen.tsx',
+					'features/home/screens/home-screen.test.tsx',
+				],
+				changedPatch: '+const value = 1;\n',
+			});
+
+			expect(result.passed).toBe(true);
 		});
 	});
 

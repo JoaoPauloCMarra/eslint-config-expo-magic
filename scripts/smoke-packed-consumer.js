@@ -22,6 +22,15 @@ const smokeLanes = [
 		react: '19.2.0',
 		reactNative: '0.83.4',
 		reactTestRenderer: '19.2.0',
+		typescript: '^5.9.3',
+	},
+	{
+		name: 'sdk-56',
+		expo: '56.0.9',
+		react: '19.2.3',
+		reactNative: '0.85.3',
+		reactTestRenderer: '19.2.3',
+		typescript: '^6.0.3',
 	},
 ];
 
@@ -111,7 +120,7 @@ function createFixturePackageJson(tarballPath, lane) {
 			react: lane.react,
 			'react-native': lane.reactNative,
 			'react-test-renderer': lane.reactTestRenderer,
-			typescript: '^5.9.3',
+			typescript: lane.typescript ?? '^5.9.3',
 			'eslint-config-expo-magic': `file:${tarballPath}`,
 		},
 	};
@@ -129,13 +138,14 @@ function writeFixtureFiles(tempProjectDir) {
 					module: 'esnext',
 					target: 'es2022',
 					moduleResolution: 'bundler',
+					jsx: 'react-jsx',
 					strict: true,
 					baseUrl: '.',
 					paths: {
 						'@/*': ['src/*'],
 					},
 				},
-				include: ['**/*.ts'],
+				include: ['**/*.ts', '**/*.tsx'],
 			},
 			null,
 			2,
@@ -223,6 +233,43 @@ function writeFixtureFiles(tempProjectDir) {
 	);
 
 	fs.writeFileSync(
+		path.join(tempProjectDir, 'hardening-smoke.tsx'),
+		[
+			"import { Button } from 'react-native';",
+			'',
+			'declare const value: unknown;',
+			'declare function useGetPeople(): { data: string[] };',
+			'declare function scheduleOnRN(callback: () => void): void;',
+			'',
+			'type QueryResult = ReturnType<typeof useGetPeople>;',
+			'const unsafeValue = value as unknown as string;',
+			'const queryResult = {} as QueryResult;',
+			'',
+			'export function HardeningSmoke() {',
+			'\ttry {',
+			'\t\tvalue?.toString();',
+			'\t} finally {',
+			'\t\tscheduleOnRN(() => {});',
+			'\t}',
+			'',
+			'\treturn <Button title={`${unsafeValue}:${queryResult.data.length}`} />;',
+			'}',
+			'',
+		].join('\n'),
+	);
+
+	fs.writeFileSync(
+		path.join(tempProjectDir, 'hardening.stories.tsx'),
+		[
+			'export const Story = () => {',
+			"\tconsole.log('story diagnostics');",
+			'\treturn null;',
+			'};',
+			'',
+		].join('\n'),
+	);
+
+	fs.writeFileSync(
 		path.join(tempProjectDir, 'eslint.base.config.js'),
 		"const base = require('eslint-config-expo-magic/base');\n\nmodule.exports = [...base];\n",
 	);
@@ -258,6 +305,23 @@ function writeFixtureFiles(tempProjectDir) {
 			'\t\ttesting: false,',
 			'\t}),',
 			'];',
+			'',
+		].join('\n'),
+	);
+	fs.writeFileSync(
+		path.join(tempProjectDir, 'eslint.hardening.config.js'),
+		[
+			"const { createConfig } = require('eslint-config-expo-magic');",
+			'',
+			'module.exports = createConfig({',
+			'\tprettier: false,',
+			'\ttesting: false,',
+			'\tappGuardrails: true,',
+			'\tnativeUi: true,',
+			'\treactCompiler: true,',
+			'\tstorybook: true,',
+			'\tworklets: true,',
+			'});',
 			'',
 		].join('\n'),
 	);
@@ -393,6 +457,35 @@ function validateLane(tempProjectDir) {
 		factoryMessages.some((message) => message.ruleId === 'jest/no-disabled-tests')
 	) {
 		throw new Error('Factory config should not enable Jest rules when testing is false.');
+	}
+
+	const hardeningMessages = runLint(
+		tempProjectDir,
+		'eslint.hardening.config.js',
+		'hardening-smoke.tsx',
+	);
+	if (
+		!hardeningMessages.some(
+			(message) => message.ruleId === 'no-restricted-imports',
+		)
+	) {
+		throw new Error('Hardening config did not report no-restricted-imports.');
+	}
+	if (
+		hardeningMessages.filter(
+			(message) => message.ruleId === 'no-restricted-syntax',
+		).length < 4
+	) {
+		throw new Error('Hardening config did not compose no-restricted-syntax rules.');
+	}
+
+	const storyMessages = runLint(
+		tempProjectDir,
+		'eslint.hardening.config.js',
+		'hardening.stories.tsx',
+	);
+	if (storyMessages.some((message) => message.ruleId === 'no-console')) {
+		throw new Error('Storybook config should allow console in stories.');
 	}
 }
 

@@ -13,21 +13,22 @@ ESLint and Prettier are bundled with the config package. Consumer projects still
 - Import ordering, unused import cleanup, and path alias support
 - React, React Native, Jest, and Testing Library rules in one package
 - Optional `base`, `typed`, `strict`, and `no-prettier` presets
+- Optional production app hardening layers for React Compiler, Worklets, native UI wrappers, feature boundaries, Storybook, and PR guardrails
 - Monorepo-friendly config factory for custom `tsconfig` layouts
 - Validated against packed consumer apps, not only local fixtures
 
 ## Validation coverage
 
-- Full fixture-app validation on Expo SDK 55.0.9 / React Native 0.83.4 / React 19.2.0
-- Packed-consumer smoke validation on Expo SDK 54.0.33 and 55.0.9
+- Full fixture-app validation on Expo SDK 56.0.9 / React Native 0.85.3 / React 19.2.3
+- Packed-consumer smoke validation on Expo SDK 54.0.33, 55.0.9, and 56.0.9
 
 ## Compatibility
 
 - Node.js `>=18`
-- Expo `54.x` and `55.x`
+- Expo `54.x`, `55.x`, and `56.x`
 - React `19.1.x || 19.2.x`
 - React Test Renderer `19.1.x || 19.2.x`
-- TypeScript `5.9.3+`
+- TypeScript `>=5.9.3 <7`
 
 React Native support follows stable Expo SDK releases. Newer standalone RN versions should be treated as preview-only until the corresponding Expo SDK is stable.
 Preview smoke coverage is available for Expo canary via `bun run smoke:preview`.
@@ -156,6 +157,54 @@ Supported options:
 - `testing`: include or omit Jest and Testing Library rules
 - `typeChecked`: opt into `typescript-eslint` type-aware rules
 - `strict`: apply the package's strict console and TypeScript overrides
+- `extraIgnores`: append generated/native/review-surface ignore globs
+- `appGuardrails`: enforce suppression, assertion, query-hook, non-null, and snapshot hygiene
+- `reactCompiler`: block React Compiler syntax hazards in component and hook render scope
+- `worklets`: block inline `scheduleOnRN` callbacks
+- `nativeUi`: restrict direct React Native primitives in favor of app UI wrappers
+- `featureBoundaries`: add a feature/app/service/UIKit dependency boundary preset
+- `storybook`: apply Storybook story-file overrides
+
+## Production app hardening
+
+Use these layers for larger Expo apps that have shared UI wrappers, feature folders, React Compiler, and Reanimated/Worklets:
+
+```js
+const { createConfig } = require('eslint-config-expo-magic');
+
+module.exports = createConfig({
+	extraIgnores: ['.eas/**', '.github/**', '.vscode/**', 'assets/**'],
+	prettier: false,
+	appGuardrails: true,
+	reactCompiler: true,
+	worklets: true,
+	storybook: true,
+	nativeUi: {
+		allowFiles: [
+			'**/uikit/components/pressables.tsx',
+			'**/uikit/components/scroll-view.tsx',
+			'**/uikit/components/modal.tsx',
+			'**/hooks/use-navigator.ts',
+		],
+	},
+	featureBoundaries: {
+		sharedComponentPatterns: [
+			'features/*/components/focus-selection-form.tsx',
+			'features/*/components/request-user-phone-flow.tsx',
+		],
+	},
+});
+```
+
+The hardening layers are also available as subpaths when manual composition is clearer:
+
+```js
+const expoMagic = require('eslint-config-expo-magic');
+const reactCompiler = require('eslint-config-expo-magic/react-compiler');
+const worklets = require('eslint-config-expo-magic/worklets');
+
+module.exports = [...expoMagic, ...reactCompiler, ...worklets];
+```
 
 ## Rule diff and config comparison
 
@@ -169,6 +218,7 @@ bun run report:config
 
 - Upgrade paths and adoption order: [`docs/MIGRATING.md`](../../docs/MIGRATING.md)
 - Common override snippets: [`docs/RECIPES.md`](../../docs/RECIPES.md)
+- Release automation: [`docs/RELEASING.md`](../../docs/RELEASING.md)
 - Draft release notes generated from the current config diff: [`docs/RELEASE_NOTES.next.md`](../../docs/RELEASE_NOTES.next.md)
 
 ## Path alias support for TypeScript and Expo

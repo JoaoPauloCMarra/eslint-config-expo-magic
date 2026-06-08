@@ -115,3 +115,103 @@ module.exports = [
 	},
 ];
 ```
+
+## Production Expo app hardening
+
+```js
+const { createConfig } = require('eslint-config-expo-magic');
+
+module.exports = createConfig({
+	extraIgnores: [
+		'.eas/**',
+		'.expo/**',
+		'.github/**',
+		'.vscode/**',
+		'assets/**',
+		'e2e/**',
+		'targets/**',
+		'expo-env.d.ts',
+	],
+	prettier: false,
+	appGuardrails: true,
+	reactCompiler: true,
+	worklets: true,
+	storybook: true,
+	nativeUi: {
+		allowFiles: [
+			'**/uikit/components/pressables.tsx',
+			'**/uikit/components/scroll-view.tsx',
+			'**/uikit/components/modal.tsx',
+			'**/hooks/use-navigator.ts',
+		],
+	},
+	featureBoundaries: {
+		sharedComponentPatterns: [
+			'features/*/components/focus-selection-form.tsx',
+			'features/*/components/request-user-phone-flow.tsx',
+		],
+	},
+});
+```
+
+## React Compiler hardening only
+
+```js
+const { createConfig } = require('eslint-config-expo-magic');
+
+module.exports = createConfig({
+	reactCompiler: true,
+});
+```
+
+## Reanimated and Worklets `scheduleOnRN`
+
+```js
+const { createConfig } = require('eslint-config-expo-magic');
+
+module.exports = createConfig({
+	worklets: true,
+});
+```
+
+## Native UI wrapper restrictions
+
+```js
+const { createConfig } = require('eslint-config-expo-magic');
+
+module.exports = createConfig({
+	nativeUi: {
+		allowFiles: [
+			'**/uikit/components/pressables.tsx',
+			'**/uikit/components/scroll-view.tsx',
+			'**/uikit/components/modal.tsx',
+		],
+	},
+});
+```
+
+## Feature folder dependency boundaries
+
+```js
+const { createConfig } = require('eslint-config-expo-magic');
+
+module.exports = createConfig({
+	featureBoundaries: {
+		sharedComponentPatterns: [
+			'features/*/components/focus-selection-form.tsx',
+		],
+	},
+});
+```
+
+## PR guardrails CLI
+
+```json
+{
+	"scripts": {
+		"validate:pr-guardrails": "expo-magic-pr-guardrails"
+	}
+}
+```
+
+The CLI reads `GITHUB_EVENT_NAME`, `GITHUB_EVENT_PATH`, and the pull request diff from Git. For local tests or custom CI integrations, import `validateGuardrails` from `eslint-config-expo-magic/pr-guardrails`.

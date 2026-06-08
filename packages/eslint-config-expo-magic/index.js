@@ -8,12 +8,21 @@ const { createNodeResolver } = require('eslint-plugin-import-x');
 const tseslint = require('typescript-eslint');
 
 const appConfig = require('./utils/app.js');
+const appGuardrailsConfig = require('./utils/app-guardrails.js');
 const allExtensions = require('./utils/extensions.js');
+const featureBoundaryConfig = require('./utils/feature-boundaries.js');
 const importsConfig = require('./utils/imports.js');
 const jestConfig = require('./utils/jest.js');
+const nativeUiConfig = require('./utils/native-ui.js');
 const prettierConfig = require('./utils/prettier.js');
 const reactConfig = require('./utils/react.js');
+const reactCompilerConfig = require('./utils/react-compiler.js');
+const {
+	createComposedRestrictedSyntaxConfigs,
+} = require('./utils/restricted-syntax.js');
+const storybookConfig = require('./utils/storybook.js');
 const typescriptConfig = require('./utils/typescript.js');
+const workletsConfig = require('./utils/worklets.js');
 
 const typeScriptFiles = [
 	'**/*.ts',
@@ -33,6 +42,23 @@ const defaultTsconfigProjectGlobs = [
 	'./packages/*/tsconfig.json',
 	'./test-project/tsconfig.json',
 ];
+
+const defaultIgnorePatterns = [
+	'**/node_modules/**',
+	'**/dist/**',
+	'**/build/**',
+	'**/.expo/**',
+	'**/ios/**',
+	'**/android/**',
+];
+
+function normalizeOptionConfig(value, createConfigForValue) {
+	if (!value) {
+		return [];
+	}
+
+	return createConfigForValue(value === true ? undefined : value);
+}
 
 function widenTypeScriptFiles(files) {
 	if (
@@ -104,7 +130,7 @@ function createTypeScriptImportResolverConfig(tsconfigProjects) {
 	};
 }
 
-function createSharedConfig(tsconfigProjects) {
+function createSharedConfig(tsconfigProjects, extraIgnores = []) {
 	const typescriptImportResolver = createTypeScriptImportResolverConfig(
 		tsconfigProjects,
 	);
@@ -115,14 +141,7 @@ function createSharedConfig(tsconfigProjects) {
 
 	return [
 		{
-			ignores: [
-				'**/node_modules/**',
-				'**/dist/**',
-				'**/build/**',
-				'**/.expo/**',
-				'**/ios/**',
-				'**/android/**',
-			],
+			ignores: [...new Set([...defaultIgnorePatterns, ...extraIgnores])],
 		},
 		{
 			name: 'import-ignores',
@@ -210,9 +229,9 @@ const strictTypeScriptRules = {
 	'@typescript-eslint/no-misused-promises': 'error',
 };
 
-function createBasePreset(tsconfigProjects) {
+function createBasePreset(tsconfigProjects, extraIgnores) {
 	return [
-		...createSharedConfig(tsconfigProjects),
+		...createSharedConfig(tsconfigProjects, extraIgnores),
 		{
 			rules: {
 				'expo/prefer-box-shadow': 'warn',
@@ -221,9 +240,12 @@ function createBasePreset(tsconfigProjects) {
 	];
 }
 
-function createDefaultPreset(tsconfigProjects, { testing = true } = {}) {
+function createDefaultPreset(
+	tsconfigProjects,
+	{ extraIgnores = [], testing = true } = {},
+) {
 	const defaultPreset = [
-		...createBasePreset(tsconfigProjects),
+		...createBasePreset(tsconfigProjects, extraIgnores),
 		...typescriptConfig,
 		...reactConfig,
 		...importsConfig,
@@ -257,14 +279,60 @@ function createConfig(options = {}) {
 		typeChecked = false,
 		strict = false,
 		tsconfigProjects = defaultTsconfigProjectGlobs,
+		extraIgnores = [],
+		appGuardrails = false,
+		featureBoundaries = false,
+		nativeUi = false,
+		reactCompiler = false,
+		storybook = false,
+		worklets = false,
 	} = options;
+	const restrictedSyntaxGroups = [];
 
 	const presetConfig =
 		preset === 'base'
-			? createBasePreset(tsconfigProjects)
-			: createDefaultPreset(tsconfigProjects, { testing });
+			? createBasePreset(tsconfigProjects, extraIgnores)
+			: createDefaultPreset(tsconfigProjects, { extraIgnores, testing });
 
 	const finalConfig = [...presetConfig];
+
+	if (appGuardrails) {
+		finalConfig.push(...appGuardrailsConfig.base);
+		restrictedSyntaxGroups.push(...appGuardrailsConfig.restrictedSyntaxGroups);
+	}
+
+	if (featureBoundaries) {
+		finalConfig.push(
+			...normalizeOptionConfig(
+				featureBoundaries,
+				featureBoundaryConfig.createFeatureBoundaryConfig,
+			),
+		);
+	}
+
+	if (nativeUi) {
+		finalConfig.push(
+			...normalizeOptionConfig(nativeUi, nativeUiConfig.createNativeUiConfig),
+		);
+	}
+
+	if (reactCompiler) {
+		restrictedSyntaxGroups.push(...reactCompilerConfig.restrictedSyntaxGroups);
+	}
+
+	if (storybook) {
+		finalConfig.push(...storybookConfig);
+	}
+
+	if (worklets) {
+		restrictedSyntaxGroups.push(...workletsConfig.restrictedSyntaxGroups);
+	}
+
+	if (restrictedSyntaxGroups.length > 0) {
+		finalConfig.push(
+			...createComposedRestrictedSyntaxConfigs(restrictedSyntaxGroups),
+		);
+	}
 
 	if (typeChecked) {
 		finalConfig.push(...createTypeCheckedConfigs());
@@ -315,3 +383,12 @@ module.exports.typed = typed;
 module.exports.noPrettier = noPrettier;
 module.exports.strictNoPrettier = strictNoPrettier;
 module.exports.typedNoPrettier = typedNoPrettier;
+module.exports.appGuardrails = appGuardrailsConfig;
+module.exports.createFeatureBoundaryConfig =
+	featureBoundaryConfig.createFeatureBoundaryConfig;
+module.exports.createNativeUiConfig = nativeUiConfig.createNativeUiConfig;
+module.exports.featureBoundaries = featureBoundaryConfig.recommended;
+module.exports.nativeUi = nativeUiConfig.recommended;
+module.exports.reactCompiler = reactCompilerConfig;
+module.exports.storybook = storybookConfig;
+module.exports.worklets = workletsConfig;
