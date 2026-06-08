@@ -175,7 +175,7 @@ describe('more jest rules', () => {
 	// ❌ Test using interpolation in snaps	// ❌ This should trigger jest/no-interpolation-in-snapshots
 	it('triggers no-interpolation-in-snapshots', () => {
 		const val = 1;
-		expect(val).toMatchSnapshot(`interpolated ${val}`);
+		expect(val).toMatchInlineSnapshot(`interpolated ${val}`);
 	});
 
 	// ❌ Test using expect in promise (should trigger jest/valid-expect-in-promise)

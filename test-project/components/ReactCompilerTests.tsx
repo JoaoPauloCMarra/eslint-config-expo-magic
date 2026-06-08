@@ -294,6 +294,26 @@ export const ComplexNestedClosures = () => {
 	return <Text onPress={outer}>{mutableState}</Text>;
 };
 
+export const DynamicComponentDuringRender = () => {
+	const Nested = () => <Text>Nested</Text>;
+
+	return <Nested />;
+};
+
+export const TryCatchWithJsx = () => {
+	try {
+		return <Text>Recovered</Text>;
+	} catch (_error) {
+		return null;
+	}
+};
+
+export const AsyncUseMemoCallback = () => {
+	const value = useMemo(async () => 1, []);
+
+	return <Text>{String(value)}</Text>;
+};
+
 // ============================================================================
 // 12. ASYNC COMPONENT PATTERNS (from react-compiler-marker fixtures)
 // Various async function declarations that should compile

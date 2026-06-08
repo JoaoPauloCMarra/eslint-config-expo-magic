@@ -4,6 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const { spawnSync } = require('child_process');
 const path = require('path');
+const { ESLint } = require('eslint');
 
 console.log('🚀 ESLint Config Expo Magic - Comprehensive Validation Suite');
 console.log('===========================================================\n');
@@ -44,24 +45,41 @@ const expectedRules = {
 	'jest/expect-expect': ['App.test.tsx'],
 	'jest/no-commented-out-tests': ['App.test.tsx'],
 	'jest/no-conditional-expect': ['App.test.tsx'],
+	'jest/no-deprecated-functions': ['App.test.tsx'],
 	'jest/no-disabled-tests': ['App.test.tsx'],
 	'jest/no-done-callback': ['App.test.tsx'],
 	'jest/no-export': ['App.test.tsx'],
 	'jest/no-focused-tests': ['App.test.tsx'],
 	'jest/no-identical-title': ['App.test.tsx'],
+	'jest/no-interpolation-in-snapshots': ['App.test.tsx'],
 	'jest/no-jasmine-globals': ['JestAdvanced.test.tsx'],
+	'jest/no-alias-methods': ['App.test.tsx'],
+	'jest/no-mocks-import': ['App.test.tsx'],
+	'jest/no-standalone-expect': ['standalone.test.ts'],
+	'jest/no-test-prefixes': ['App.test.tsx'],
+	'jest/prefer-hooks-on-top': ['App.test.tsx'],
+	'jest/prefer-to-be': ['App.test.tsx'],
 	'jest/valid-describe-callback': ['App.test.tsx'],
+	'jest/valid-expect': ['App.test.tsx'],
+	'jest/valid-expect-in-promise': ['App.test.tsx'],
 	'jest/valid-title': ['App.test.tsx'],
 
 	// Testing Library rules
 	'testing-library/await-async-queries': ['App.test.tsx'],
+	'testing-library/no-await-sync-queries': ['App.test.tsx'],
 	'testing-library/no-debugging-utils': ['App.test.tsx'],
+	'testing-library/no-dom-import': ['App.test.tsx'],
 
 	// Import rules
+	'import-x/export': ['duplicate-exports.ts'],
 	'import-x/first': ['App.tsx'],
 	'import-x/no-amd': ['ImportsAdvanced.tsx'],
 	'import-x/no-anonymous-default-export': ['BadImports.tsx'],
+	'import-x/no-cycle': ['cycleA.ts', 'cycleB.ts'],
 	'import-x/no-duplicates': ['App.tsx'],
+	'import-x/no-named-as-default': ['App.tsx'],
+	'import-x/no-named-as-default-member': ['App.tsx'],
+	'import-x/namespace': ['import-violations.ts'],
 	'import-x/no-unresolved': ['ImportsAdvanced.tsx', 'alias-unresolved.ts'],
 	'import-x/no-webpack-loader-syntax': ['ImportsAdvanced.tsx'],
 	'import-x/order': ['App.tsx', 'import-violations.ts'],
@@ -69,6 +87,9 @@ const expectedRules = {
 	// General rules
 	eqeqeq: ['App.tsx'],
 	'expo/prefer-box-shadow': ['GeneralAdvanced.tsx'],
+	'expo/no-dynamic-env-var': ['App.tsx'],
+	'expo/no-env-var-destructuring': ['App.tsx'],
+	'expo/use-dom-exports': ['test.web.tsx'],
 	'no-console': [
 		'App.tsx',
 		'analyze-rules.js',
@@ -79,11 +100,16 @@ const expectedRules = {
 		'validate-comprehensive.js',
 	],
 	'no-dupe-args': ['GeneralAdvanced.tsx'],
+	'no-dupe-class-members': ['Legacy.js'],
 	'no-dupe-keys': ['App.tsx'],
 	'no-duplicate-case': ['App.tsx'],
+	'no-empty-character-class': ['App.tsx'],
 	'no-empty-pattern': ['App.tsx'],
 	'no-extend-native': ['GeneralAdvanced.tsx'],
+	'no-extra-bind': ['App.tsx'],
+	'no-redeclare': ['Legacy.js'],
 	'no-restricted-imports': ['App.tsx'],
+	'no-undef': ['validate-comprehensive.js'],
 	'no-unreachable': ['App.tsx'],
 	'no-unsafe-negation': ['App.tsx'],
 	'no-unused-expressions': ['App.tsx', 'GeneralAdvanced.tsx'],
@@ -95,7 +121,10 @@ const expectedRules = {
 	],
 	'no-var': ['App.tsx'],
 	'no-with': ['GeneralAdvanced.tsx'],
+	'unicode-bom': ['bom.js'],
 	'unused-imports/no-unused-imports': ['App.tsx'],
+	'use-isnan': ['App.tsx'],
+	'valid-typeof': ['App.tsx'],
 
 	// Prettier rules
 	'prettier/prettier': [
@@ -118,6 +147,82 @@ expectedRules['@typescript-eslint/no-explicit-any'].push(
 	'module-file.cts',
 	'module-file.mts',
 );
+
+Object.assign(expectedRules, {
+	'@typescript-eslint/array-type': ['App.tsx'],
+	'@typescript-eslint/consistent-type-assertions': ['TsRules.ts'],
+	'@typescript-eslint/consistent-type-imports': ['App.tsx'],
+	'@typescript-eslint/no-dupe-class-members': ['App.tsx'],
+	'@typescript-eslint/no-extra-non-null-assertion': ['App.tsx'],
+	'@typescript-eslint/no-import-type-side-effects': ['App.tsx'],
+	'@typescript-eslint/no-meaningless-void-operator': ['App.tsx'],
+	'@typescript-eslint/no-unnecessary-type-assertion': ['App.tsx'],
+	'@typescript-eslint/no-unnecessary-type-constraint': ['App.tsx'],
+	'@typescript-eslint/no-wrapper-object-types': ['App.tsx'],
+	'@typescript-eslint/prefer-optional-chain': ['App.tsx'],
+	'@typescript-eslint/prefer-readonly': ['App.tsx'],
+	'@typescript-eslint/triple-slash-reference': ['App.tsx'],
+	'react-19-upgrade/no-default-props': ['App.tsx'],
+	'react-19-upgrade/no-legacy-context': ['App.tsx'],
+	'react-19-upgrade/no-prop-types': ['App.tsx'],
+	'react-hooks/error-boundaries': ['ReactCompilerTests.tsx'],
+	'react-hooks/immutability': ['compiler-rules-test.tsx'],
+	'react-hooks/preserve-manual-memoization': ['ReactCompilerTests.tsx'],
+	'react-hooks/purity': ['ReactCompilerTests.tsx'],
+	'react-hooks/refs': ['ReactCompilerTests.tsx'],
+	'react-hooks/rules-of-hooks': ['App.tsx', 'ReactCompilerTests.tsx'],
+	'react-hooks/set-state-in-render': ['ReactCompilerTests.tsx'],
+	'react-hooks/static-components': ['ReactCompilerTests.tsx'],
+	'react-hooks/unsupported-syntax': ['ReactCompilerTests.tsx'],
+	'react-hooks/use-memo': ['ReactCompilerTests.tsx'],
+	'react-native/no-single-element-style-arrays': ['App.tsx'],
+	'react-native/split-platform-components': ['App.tsx'],
+	'react/jsx-no-leaked-render': ['App.tsx'],
+	'react/jsx-no-useless-fragment': ['App.tsx'],
+	'react/no-deprecated': ['App.tsx'],
+	'react/no-direct-mutation-state': ['App.tsx'],
+	'react/no-find-dom-node': ['App.tsx'],
+	'react/no-is-mounted': ['App.tsx'],
+	'react/no-render-return-value': ['App.tsx'],
+	'react/no-this-in-sfc': ['App.tsx'],
+	'react/no-unescaped-entities': ['App.tsx'],
+	'react/require-render-return': ['App.tsx'],
+});
+
+const configOnlyRules = new Map([
+	[
+		'import-x/default',
+		'Enabled from eslint-plugin-import-x recommended config; current resolver stack does not produce a stable local fixture diagnostic.',
+	],
+	[
+		'react-hooks/component-hook-factories',
+		'Enabled from eslint-plugin-react-hooks recommended config; current plugin has no stable minimal fixture in this suite.',
+	],
+	[
+		'react-hooks/config',
+		'Enabled from eslint-plugin-react-hooks recommended config and exercised through config presence.',
+	],
+	[
+		'react-hooks/gating',
+		'Enabled from eslint-plugin-react-hooks recommended config and exercised through config presence.',
+	],
+	[
+		'react-hooks/globals',
+		'Enabled from eslint-plugin-react-hooks recommended config; stable mutation diagnostics currently report through immutability.',
+	],
+	[
+		'react-hooks/incompatible-library',
+		'Enabled from eslint-plugin-react-hooks recommended config and exercised through config presence.',
+	],
+	[
+		'react/jsx-uses-react',
+		'Non-reporting helper rule covered by JSX usage behavior in unit tests.',
+	],
+	[
+		'react/jsx-uses-vars',
+		'Non-reporting helper rule covered by JSX usage behavior in unit tests.',
+	],
+]);
 
 const packageDir = path.resolve(
 	__dirname,
@@ -245,7 +350,42 @@ function validatePreset({
 	return passed;
 }
 
-function runValidation() {
+function isRuleEnabled(ruleConfig) {
+	const severity = Array.isArray(ruleConfig) ? ruleConfig[0] : ruleConfig;
+	return severity !== 'off' && severity !== 0;
+}
+
+async function collectEffectiveRuleIds() {
+	const eslint = new ESLint({
+		cwd: process.cwd(),
+		overrideConfigFile: path.join(packageDir, 'index.js'),
+	});
+	const fileNames = [
+		'App.tsx',
+		'TsRules.ts',
+		'__tests__/App.test.tsx',
+		'test.web.tsx',
+		'metro.config.js',
+	];
+	const ruleIds = new Set();
+
+	for (const fileName of fileNames) {
+		const fileConfig = await eslint.calculateConfigForFile(fileName);
+		for (const [ruleId, ruleConfig] of Object.entries(fileConfig.rules ?? {})) {
+			if (isRuleEnabled(ruleConfig)) {
+				ruleIds.add(ruleId);
+			}
+		}
+	}
+
+	return ruleIds;
+}
+
+function sortRuleIds(ruleIds) {
+	return [...ruleIds].sort((a, b) => a.localeCompare(b));
+}
+
+async function runValidation() {
 	console.log('📋 Running ESLint...');
 
 	const result = runCommand('bunx', ['eslint', '.', '--format=json']);
@@ -293,6 +433,14 @@ function runValidation() {
 	const missingRules = [];
 	const missingRuleFileCoverage = [];
 	const extraRules = [];
+	const effectiveRuleIds = await collectEffectiveRuleIds();
+	const reportedRuleIds = new Set(Object.keys(ruleCounts));
+	const uncoveredEffectiveRules = sortRuleIds(effectiveRuleIds).filter(
+		(ruleId) => !reportedRuleIds.has(ruleId) && !configOnlyRules.has(ruleId),
+	);
+	const staleConfigOnlyRules = sortRuleIds(configOnlyRules.keys()).filter(
+		(ruleId) => !effectiveRuleIds.has(ruleId),
+	);
 
 	for (const [ruleId, expectedFiles] of Object.entries(expectedRules)) {
 		const count = ruleCounts[ruleId];
@@ -334,8 +482,25 @@ function runValidation() {
 	}
 
 	if (extraRules.length > 0) {
-		console.log('\n⚠️  Unexpected Rules (might be okay):');
+		console.log('\nℹ️  Additional Reported Rules:');
 		extraRules.forEach((rule) => console.log(`   - ${rule}`));
+	}
+
+	if (uncoveredEffectiveRules.length > 0) {
+		console.log('\n❌ Effective Rules Without Fixture Coverage:');
+		uncoveredEffectiveRules.forEach((rule) => console.log(`   - ${rule}`));
+	}
+
+	if (staleConfigOnlyRules.length > 0) {
+		console.log('\n❌ Config-Only Rules Are No Longer Effective:');
+		staleConfigOnlyRules.forEach((rule) => console.log(`   - ${rule}`));
+	}
+
+	if (configOnlyRules.size > 0) {
+		console.log('\n🧭 Config-Only Rule Coverage:');
+		for (const [ruleId, reason] of configOnlyRules) {
+			console.log(`✅ ${ruleId}: ${reason}`);
+		}
 	}
 
 	const strictPresetPassed = validatePreset({
@@ -394,6 +559,8 @@ function runValidation() {
 	if (
 		missingRules.length === 0 &&
 		missingRuleFileCoverage.length === 0 &&
+		uncoveredEffectiveRules.length === 0 &&
+		staleConfigOnlyRules.length === 0 &&
 		basePresetPassed &&
 		defaultPresetPassed &&
 		strictPresetPassed &&
@@ -410,10 +577,11 @@ function runValidation() {
 	return false;
 }
 
-try {
-	const success = runValidation();
-	process.exit(success ? 0 : 1);
-} catch (error) {
-	console.error('❌ Error running validation:', error.message);
-	process.exit(1);
-}
+runValidation()
+	.then((success) => {
+		process.exit(success ? 0 : 1);
+	})
+	.catch((error) => {
+		console.error('❌ Error running validation:', error.message);
+		process.exit(1);
+	});

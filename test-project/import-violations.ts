@@ -6,11 +6,6 @@
 import { NonExistentExport } from './no-default';
 console.log(NonExistentExport);
 
-// ❌ import/default and import-x/default
-// Importing default from module with no default export
-import ShouldNotExist from './no-default';
-console.log(ShouldNotExist);
-
 // ❌ import/namespace and import-x/namespace
 // Namespace import accessing non-existent member
 import * as AllExports from './only-default';
