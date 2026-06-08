@@ -8,6 +8,7 @@ export type NativeUiRestriction = {
 
 export type NativeUiOptions = {
 	restrictions?: NativeUiRestriction[];
+	additionalRestrictions?: NativeUiRestriction[];
 	allowFiles?: string[];
 };
 

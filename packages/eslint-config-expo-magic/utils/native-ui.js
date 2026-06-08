@@ -57,7 +57,10 @@ const defaultRestrictions = [
 ];
 
 function createNativeUiConfig(options = {}) {
-	const restrictions = options.restrictions ?? defaultRestrictions;
+	const restrictions = [
+		...(options.restrictions ?? defaultRestrictions),
+		...(options.additionalRestrictions ?? []),
+	];
 	const allowFiles = options.allowFiles ?? [];
 	const config = [
 		{

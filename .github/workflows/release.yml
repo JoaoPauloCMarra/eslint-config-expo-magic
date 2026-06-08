@@ -92,6 +92,32 @@ jobs:
         if: steps.release.outputs.should_create == 'true'
         run: bun run report:release-notes
 
+      - name: Publish npm package
+        if: steps.release.outputs.should_publish == 'true'
+        run: bun scripts/publish-package.js --publish
+
+      - name: Verify npm package
+        if: steps.release.outputs.should_publish == 'true'
+        run: |
+          set -euo pipefail
+
+          version="${{ steps.release.outputs.version }}"
+          for attempt in {1..20}; do
+            published_version="$(npm view "eslint-config-expo-magic@${version}" version --json 2>/dev/null | tr -d '"' || true)"
+            latest_version="$(npm view eslint-config-expo-magic dist-tags.latest --json 2>/dev/null | tr -d '"' || true)"
+
+            if [ "${published_version}" = "${version}" ] && [ "${latest_version}" = "${version}" ]; then
+              echo "Verified eslint-config-expo-magic@${version} on npm."
+              exit 0
+            fi
+
+            echo "Waiting for npm registry propagation (${attempt}/20)."
+            sleep 10
+          done
+
+          echo "npm registry did not expose eslint-config-expo-magic@${version} as latest." >&2
+          exit 1
+
       - name: Create GitHub release
         if: steps.release.outputs.should_create == 'true'
         env:
@@ -105,7 +131,3 @@ jobs:
             --target "${RELEASE_TARGET}" \
             --title "${RELEASE_TAG}" \
             --notes-file docs/RELEASE_NOTES.next.md
-
-      - name: Publish npm package
-        if: steps.release.outputs.should_publish == 'true'
-        run: bun scripts/publish-package.js --publish

@@ -203,10 +203,14 @@ function createDependencyRules(featureElementTypes) {
 }
 
 function createFeatureBoundaryConfig(options = {}) {
-	const featureElementTypes =
-		options.featureElementTypes ?? defaultFeatureElementTypes;
-	const sharedComponentPatterns =
-		options.sharedComponentPatterns ?? defaultSharedComponentPatterns;
+	const featureElementTypes = [
+		...(options.featureElementTypes ?? defaultFeatureElementTypes),
+		...(options.additionalFeatureElementTypes ?? []),
+	];
+	const sharedComponentPatterns = [
+		...(options.sharedComponentPatterns ?? defaultSharedComponentPatterns),
+		...(options.additionalSharedComponentPatterns ?? []),
+	];
 
 	return [
 		{
