@@ -1,5 +1,5 @@
 {
-  "packageVersion": "2.6.0",
+  "packageVersion": "2.7.0",
   "expoConfigVersion": "56.0.4",
   "presets": {
     "expo": {
@@ -2553,6 +2553,48 @@
         ]
       }
     },
+    "componentStructure": {
+      "name": "componentStructure",
+      "ruleCount": 4,
+      "rules": {
+        "expo-magic/default-export-placement": "error",
+        "expo-magic/no-inline-props": "error",
+        "expo-magic/props-type-order": [
+          "warn"
+        ],
+        "expo-magic/require-children-usage": "warn"
+      }
+    },
+    "deprecatedApis": {
+      "name": "deprecatedApis",
+      "ruleCount": 2,
+      "rules": {
+        "@typescript-eslint/no-restricted-types": [
+          "error",
+          {
+            "types": {
+              "MutableRefObject": {
+                "message": "`MutableRefObject` is removed from React 19 typings. Use `RefObject` instead.",
+                "fixWith": "RefObject"
+              }
+            }
+          }
+        ],
+        "no-restricted-properties": [
+          "error",
+          {
+            "object": "StyleSheet",
+            "property": "absoluteFillObject",
+            "message": "`StyleSheet.absoluteFillObject` is deprecated. Use `StyleSheet.absoluteFill`."
+          },
+          {
+            "object": "AccessibilityInfo",
+            "property": "setAccessibilityFocus",
+            "message": "`AccessibilityInfo.setAccessibilityFocus` is deprecated. Use `AccessibilityInfo.sendAccessibilityEvent`."
+          }
+        ]
+      }
+    },
     "featureBoundaries": {
       "name": "featureBoundaries",
       "ruleCount": 1,
@@ -3132,23 +3174,47 @@
     },
     "reactCompiler": {
       "name": "reactCompiler",
+      "ruleCount": 7,
+      "rules": {
+        "react-hooks/immutability": "error",
+        "react-hooks/incompatible-library": "error",
+        "react-hooks/preserve-manual-memoization": "error",
+        "react-hooks/purity": "error",
+        "react-hooks/set-state-in-render": "error",
+        "react-hooks/static-components": "error",
+        "react-hooks/unsupported-syntax": "error"
+      }
+    },
+    "reanimated": {
+      "name": "reanimated",
       "ruleCount": 1,
       "rules": {
         "no-restricted-syntax": [
           "error",
           {
-            "selector": "TryStatement[finalizer!=null]",
-            "message": "React Compiler does not support try/finally in component or hook render scope. Use Promise.finally or explicit cleanup paths."
+            "selector": "CallExpression[callee.name=\"useSharedValue\"] > CallExpression[callee.property.name=\"get\"]",
+            "message": "Do not read a shared value with `.get()` inside `useSharedValue(...)`. Initialize from a plain value and sync in an effect or worklet reaction."
           },
           {
-            "selector": "TryStatement ThrowStatement",
-            "message": "React Compiler does not support throw inside try/catch in component or hook render scope. Prefer early returns and callback/onError handling."
+            "selector": "CallExpression[callee.name=\"useSharedValue\"] > MemberExpression[property.name=\"value\"]",
+            "message": "Do not read a shared value with `.value` inside `useSharedValue(...)`. Initialize from a plain value and sync in an effect or worklet reaction."
           },
           {
-            "selector": "TryStatement ChainExpression",
-            "message": "React Compiler can fail on optional chaining inside try/catch render scope. Resolve optional values before entering try/catch."
+            "selector": "CallExpression[callee.name=/^(useAnimatedStyle|useAnimatedReaction|useDerivedValue|useAnimatedProps)$/] CallExpression[callee.property.name=\"get\"]",
+            "message": "Use `.value`, not `.get()`, when reading shared values inside Reanimated worklet hooks."
+          },
+          {
+            "selector": "CallExpression[callee.name=/^(usePanGesture)$/] > ObjectExpression",
+            "message": "Memoize gesture config before passing it to RNGH gesture hooks so Reanimated does not rebuild worklet closures on every render."
           }
         ]
+      }
+    },
+    "semanticColors": {
+      "name": "semanticColors",
+      "ruleCount": 1,
+      "rules": {
+        "no-restricted-syntax": "off"
       }
     },
     "storybook": {
@@ -3177,7 +3243,7 @@
     },
     "productionApp": {
       "name": "productionApp",
-      "ruleCount": 520,
+      "ruleCount": 526,
       "rules": {
         "@babel/object-curly-spacing": "off",
         "@babel/semi": "off",
@@ -3431,6 +3497,17 @@
             ]
           }
         ],
+        "@typescript-eslint/no-restricted-types": [
+          "error",
+          {
+            "types": {
+              "MutableRefObject": {
+                "message": "`MutableRefObject` is removed from React 19 typings. Use `RefObject` instead.",
+                "fixWith": "RefObject"
+              }
+            }
+          }
+        ],
         "@typescript-eslint/no-unnecessary-type-assertion": "error",
         "@typescript-eslint/no-unnecessary-type-constraint": "error",
         "@typescript-eslint/no-unused-vars": [
@@ -3478,6 +3555,12 @@
           "warn",
           "smart"
         ],
+        "expo-magic/default-export-placement": "error",
+        "expo-magic/no-inline-props": "error",
+        "expo-magic/props-type-order": [
+          "warn"
+        ],
+        "expo-magic/require-children-usage": "warn",
         "expo/no-dynamic-env-var": [
           "error"
         ],
@@ -3719,41 +3802,20 @@
             ]
           }
         ],
-        "no-restricted-syntax": [
+        "no-restricted-properties": [
           "error",
           {
-            "selector": "TSAsExpression > TSAsExpression",
-            "message": "Avoid double type assertions. Prefer proper type guards or generic typing."
+            "object": "StyleSheet",
+            "property": "absoluteFillObject",
+            "message": "`StyleSheet.absoluteFillObject` is deprecated. Use `StyleSheet.absoluteFill`."
           },
           {
-            "selector": "TSTypeReference[typeName.name=\"ReturnType\"] TSTypeQuery > Identifier[name=/^useGet[A-Z]/]",
-            "message": "Avoid `ReturnType<typeof useGet...>` with selector-capable query hooks. Use domain types or shared query-result helpers."
-          },
-          {
-            "selector": "CallExpression[callee.property.name=\"toMatchSnapshot\"], CallExpression[callee.name=\"toMatchSnapshot\"]",
-            "message": "Prefer focused assertions over snapshots for production app regressions."
-          },
-          {
-            "selector": "TryStatement[finalizer!=null]",
-            "message": "React Compiler does not support try/finally in component or hook render scope. Use Promise.finally or explicit cleanup paths."
-          },
-          {
-            "selector": "TryStatement ThrowStatement",
-            "message": "React Compiler does not support throw inside try/catch in component or hook render scope. Prefer early returns and callback/onError handling."
-          },
-          {
-            "selector": "TryStatement ChainExpression",
-            "message": "React Compiler can fail on optional chaining inside try/catch render scope. Resolve optional values before entering try/catch."
-          },
-          {
-            "selector": "CallExpression[callee.name=\"scheduleOnRN\"] > ArrowFunctionExpression",
-            "message": "Pass an RN-runtime function reference to `scheduleOnRN` instead of an inline callback."
-          },
-          {
-            "selector": "CallExpression[callee.name=\"scheduleOnRN\"] > FunctionExpression",
-            "message": "Pass an RN-runtime function reference to `scheduleOnRN` instead of an inline callback."
+            "object": "AccessibilityInfo",
+            "property": "setAccessibilityFocus",
+            "message": "`AccessibilityInfo.setAccessibilityFocus` is deprecated. Use `AccessibilityInfo.sendAccessibilityEvent`."
           }
         ],
+        "no-restricted-syntax": "off",
         "no-space-before-semi": "off",
         "no-spaced-func": "off",
         "no-tabs": 0,
@@ -3815,7 +3877,7 @@
         "react-hooks/gating": "error",
         "react-hooks/globals": "error",
         "react-hooks/immutability": "error",
-        "react-hooks/incompatible-library": "warn",
+        "react-hooks/incompatible-library": "error",
         "react-hooks/preserve-manual-memoization": "error",
         "react-hooks/purity": "error",
         "react-hooks/refs": "error",
@@ -3823,9 +3885,9 @@
         "react-hooks/set-state-in-effect": "off",
         "react-hooks/set-state-in-render": "error",
         "react-hooks/static-components": "error",
-        "react-hooks/unsupported-syntax": "warn",
+        "react-hooks/unsupported-syntax": "error",
         "react-hooks/use-memo": "error",
-        "react-native/no-inline-styles": "off",
+        "react-native/no-inline-styles": "warn",
         "react-native/no-raw-text": "off",
         "react-native/no-single-element-style-arrays": "error",
         "react-native/no-unused-styles": "error",
@@ -4927,6 +4989,12 @@
     "productionAppVsDefault": {
       "added": [
         "@typescript-eslint/ban-ts-comment",
+        "@typescript-eslint/no-restricted-types",
+        "expo-magic/default-export-placement",
+        "expo-magic/no-inline-props",
+        "expo-magic/props-type-order",
+        "expo-magic/require-children-usage",
+        "no-restricted-properties",
         "no-restricted-syntax",
         "no-warning-comments"
       ],
@@ -4934,7 +5002,10 @@
       "changed": [
         "@typescript-eslint/no-non-null-assertion",
         "no-console",
-        "no-restricted-imports"
+        "no-restricted-imports",
+        "react-hooks/incompatible-library",
+        "react-hooks/unsupported-syntax",
+        "react-native/no-inline-styles"
       ]
     }
   }

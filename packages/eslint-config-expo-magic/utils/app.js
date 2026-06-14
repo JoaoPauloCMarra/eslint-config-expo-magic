@@ -1,5 +1,7 @@
 /** @type {import('eslint').Linter.Config[]} */
 // Rationale: https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/RULES.md#mobile-first-infrastructure
+const { baseRestrictedImports } = require('./restricted-imports.js');
+
 module.exports = [
 	{
 		rules: {
@@ -7,14 +9,7 @@ module.exports = [
 			'no-restricted-imports': [
 				'error',
 				{
-					paths: [
-						{
-							name: 'react-native',
-							importNames: ['SafeAreaView'],
-							message:
-								"Use 'SafeAreaView' from 'react-native-safe-area-context' instead.",
-						},
-					],
+					paths: [...baseRestrictedImports],
 				},
 			],
 			'no-unused-vars': [

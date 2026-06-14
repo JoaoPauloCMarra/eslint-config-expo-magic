@@ -90,6 +90,14 @@ function createConfigReport() {
 			'appGuardrails',
 			magicConfig.appGuardrails,
 		),
+		componentStructure: createPresetSummary(
+			'componentStructure',
+			magicConfig.componentStructure,
+		),
+		deprecatedApis: createPresetSummary(
+			'deprecatedApis',
+			magicConfig.deprecatedApis,
+		),
 		featureBoundaries: createPresetSummary(
 			'featureBoundaries',
 			magicConfig.featureBoundaries,
@@ -99,14 +107,24 @@ function createConfigReport() {
 			'reactCompiler',
 			magicConfig.reactCompiler,
 		),
+		reanimated: createPresetSummary('reanimated', magicConfig.reanimated),
+		semanticColors: createPresetSummary(
+			'semanticColors',
+			magicConfig.semanticColors,
+		),
 		storybook: createPresetSummary('storybook', magicConfig.storybook),
 		worklets: createPresetSummary('worklets', magicConfig.worklets),
 		productionApp: createPresetSummary(
 			'productionApp',
 			magicConfig.createConfig({
 				appGuardrails: true,
+				componentStructure: true,
+				deprecatedApis: true,
+				inlineStyles: true,
 				nativeUi: true,
 				reactCompiler: true,
+				reanimated: true,
+				semanticColors: true,
 				storybook: true,
 				worklets: true,
 			}),

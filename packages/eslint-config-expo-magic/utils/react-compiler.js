@@ -1,29 +1,24 @@
-const { createRestrictedSyntaxConfigs } = require('./restricted-syntax.js');
+const { fixupPluginRules } = require('@eslint/compat');
+const pluginReactHooks = require('eslint-plugin-react-hooks');
 
-const restrictedSyntaxGroups = [
+const rules = {
+	'react-hooks/incompatible-library': 'error',
+	'react-hooks/unsupported-syntax': 'error',
+	'react-hooks/immutability': 'error',
+	'react-hooks/purity': 'error',
+	'react-hooks/preserve-manual-memoization': 'error',
+	'react-hooks/set-state-in-render': 'error',
+	'react-hooks/static-components': 'error',
+};
+
+const config = [
 	{
-		files: ['**/*.tsx'],
-		selectors: [
-			{
-				selector: 'TryStatement[finalizer!=null]',
-				message:
-					'React Compiler does not support try/finally in component or hook render scope. Use Promise.finally or explicit cleanup paths.',
-			},
-			{
-				selector: 'TryStatement ThrowStatement',
-				message:
-					'React Compiler does not support throw inside try/catch in component or hook render scope. Prefer early returns and callback/onError handling.',
-			},
-			{
-				selector: 'TryStatement ChainExpression',
-				message:
-					'React Compiler can fail on optional chaining inside try/catch render scope. Resolve optional values before entering try/catch.',
-			},
-		],
+		plugins: {
+			'react-hooks': fixupPluginRules(pluginReactHooks),
+		},
+		rules: { ...rules },
 	},
 ];
 
-const config = createRestrictedSyntaxConfigs(restrictedSyntaxGroups);
-
 module.exports = config;
-module.exports.restrictedSyntaxGroups = restrictedSyntaxGroups;
+module.exports.rules = rules;

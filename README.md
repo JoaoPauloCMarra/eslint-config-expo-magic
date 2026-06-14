@@ -16,6 +16,7 @@ Production-focused ESLint flat config for Expo and React Native projects, with T
 - [Customization Patterns](#customization-patterns)
 - [Monorepo Usage](#monorepo-usage)
 - [Troubleshooting](#troubleshooting)
+- [Changelog](#changelog)
 - [Contributing](#contributing)
 
 ## Compatibility
@@ -113,9 +114,13 @@ This package exposes:
 - `eslint-config-expo-magic/strict` -> strict config array
 - `eslint-config-expo-magic/no-prettier` -> base config array without Prettier plugin/rules
 - `eslint-config-expo-magic/typed` -> base config array plus type-aware TypeScript rules
-- `eslint-config-expo-magic/app-guardrails` -> app hygiene layer for suppressions, assertions, query-hook return types, and snapshots
-- `eslint-config-expo-magic/react-compiler` -> React Compiler syntax hardening layer
+- `eslint-config-expo-magic/app-guardrails` -> app hygiene layer for suppressions, assertions, query-hook return types, and snapshots (factory accepts a custom `queryHookPattern`)
+- `eslint-config-expo-magic/react-compiler` -> promotes the React Compiler diagnostics shipped by `eslint-plugin-react-hooks` v7 (`unsupported-syntax`, `purity`, `immutability`, …) to `error`
+- `eslint-config-expo-magic/reanimated` -> Reanimated/RNGH hardening (shared-value render reads, worklet-hook `.get()`, inline gesture config; factory accepts custom gesture hook names)
 - `eslint-config-expo-magic/worklets` -> Worklets `scheduleOnRN` hardening layer
+- `eslint-config-expo-magic/deprecated-apis` -> flags deprecated React Native / React 19 symbols (`MutableRefObject`, `StyleSheet.absoluteFillObject`, `AccessibilityInfo.setAccessibilityFocus`)
+- `eslint-config-expo-magic/component-structure` -> custom `expo-magic` plugin rules for prop-type ordering, default-export placement, inline props, and unused child slots
+- `eslint-config-expo-magic/semantic-colors` -> factory enforcing semantic color tokens over raw color literals/direct token access
 - `eslint-config-expo-magic/native-ui` -> factory for React Native primitive import restrictions
 - `eslint-config-expo-magic/feature-boundaries` -> factory for feature/app/service/UIKit dependency boundaries
 - `eslint-config-expo-magic/storybook` -> story-file overrides
@@ -192,7 +197,11 @@ The package ships declaration files:
 - `typed.d.ts`
 - `app-guardrails.d.ts`
 - `react-compiler.d.ts`
+- `reanimated.d.ts`
 - `worklets.d.ts`
+- `deprecated-apis.d.ts`
+- `component-structure.d.ts`
+- `semantic-colors.d.ts`
 - `native-ui.d.ts`
 - `feature-boundaries.d.ts`
 - `storybook.d.ts`
@@ -246,6 +255,13 @@ Import resolution is configured for monorepos and app/package layouts:
 
 `import-x` is treated as the source of truth. Overlapping legacy `import/*` diagnostics are disabled to avoid duplicate noise.
 
+### Restricted Rule Composition
+
+`no-restricted-imports` and `no-restricted-syntax` are single-slot ESLint rules: the last matching config entry replaces the rule entirely rather than merging. To avoid clobbering:
+
+- All selector-based hardening (`appGuardrails`, `reactCompiler` precursors, `reanimated`, `worklets`, `semanticColors`) is merged into one composed `no-restricted-syntax` config per file group, so enabling several layers together preserves every selector.
+- The base `SafeAreaView` import restriction is shared from one source between the default app rules and `nativeUi`. Replacing `nativeUi` restrictions intentionally drops the base set; pass them back via `restrictions` or use `additionalRestrictions` to extend instead.
+
 ## Customization Patterns
 
 Append your own override object after the preset:
@@ -288,9 +304,11 @@ module.exports = [
 | Same as base, with stricter TypeScript and `no-console: error`  | `eslint-config-expo-magic/strict`      |
 | Same as base, with type-aware TypeScript rules                  | `eslint-config-expo-magic/typed`       |
 | Use a separate formatter pipeline (no `prettier/prettier` rule) | `eslint-config-expo-magic/no-prettier` |
-| Harden production app flows with React Compiler/Worklets/UI rules | `createConfig({ appGuardrails: true, reactCompiler: true, worklets: true })` |
+| Harden production app flows (React Compiler, Reanimated, deprecated APIs, structure) | `createConfig({ appGuardrails: true, reactCompiler: true, reanimated: true, deprecatedApis: true, componentStructure: true })` |
 
 ### Production App Hardening
+
+All hardening layers are opt-in; the default/strict/typed presets are unchanged. Enable any combination:
 
 ```js
 const { createConfig } = require('eslint-config-expo-magic');
@@ -298,7 +316,12 @@ const { createConfig } = require('eslint-config-expo-magic');
 module.exports = createConfig({
 	extraIgnores: ['.eas/**', '.github/**', '.vscode/**', 'assets/**'],
 	appGuardrails: true,
+	componentStructure: true,
+	deprecatedApis: true,
+	inlineStyles: true,
 	reactCompiler: true,
+	reanimated: true,
+	semanticColors: true,
 	worklets: true,
 	storybook: true,
 	nativeUi: {
@@ -318,14 +341,26 @@ module.exports = createConfig({
 });
 ```
 
+Each hardening option also accepts configuration for project-specific conventions:
+
+```js
+module.exports = createConfig({
+	appGuardrails: { queryHookPattern: '^useFetch[A-Z]' },
+	reanimated: { additionalGestureHooks: ['useFlingGesture'] },
+	semanticColors: { tokenModule: 'theme/palette', importName: 'palette' },
+	componentStructure: { propsTypePattern: 'Props$' },
+});
+```
+
 The optional layers are available as subpaths when manual composition is clearer:
 
 ```js
 const expoMagic = require('eslint-config-expo-magic');
 const reactCompiler = require('eslint-config-expo-magic/react-compiler');
-const worklets = require('eslint-config-expo-magic/worklets');
+const reanimated = require('eslint-config-expo-magic/reanimated');
+const deprecatedApis = require('eslint-config-expo-magic/deprecated-apis');
 
-module.exports = [...expoMagic, ...reactCompiler, ...worklets];
+module.exports = [...expoMagic, ...reactCompiler, ...reanimated, ...deprecatedApis];
 ```
 
 ## Monorepo Usage
@@ -360,9 +395,14 @@ This package disables overlapping legacy `import/*` rules. If you still see dupl
 
 Make sure you are using ESLint 10+ and an `eslint.config.js` or `eslint.config.mjs` file (not legacy `.eslintrc*`).
 
+## Changelog
+
+Consumer-facing changes are documented in [`CHANGELOG.md`](./CHANGELOG.md). Per-release notes are also published on the [GitHub releases page](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
+
 ## Contributing
 
 - Rule rationale: [`RULES.md`](./RULES.md)
+- Changelog: [`CHANGELOG.md`](./CHANGELOG.md)
 - Main config entry: [`packages/eslint-config-expo-magic/index.js`](./packages/eslint-config-expo-magic/index.js)
 - Validation harness: [`test-project/validate-comprehensive.js`](./test-project/validate-comprehensive.js)
 
@@ -371,6 +411,7 @@ Run locally:
 ```bash
 bun install
 bun run test
+bun run typecheck
 bun run validate
 bun run smoke:pack
 ```

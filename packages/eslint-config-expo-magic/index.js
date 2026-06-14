@@ -9,6 +9,8 @@ const tseslint = require('typescript-eslint');
 
 const appConfig = require('./utils/app.js');
 const appGuardrailsConfig = require('./utils/app-guardrails.js');
+const componentStructureConfig = require('./utils/component-structure.js');
+const deprecatedApisConfig = require('./utils/deprecated-apis.js');
 const allExtensions = require('./utils/extensions.js');
 const featureBoundaryConfig = require('./utils/feature-boundaries.js');
 const importsConfig = require('./utils/imports.js');
@@ -17,9 +19,11 @@ const nativeUiConfig = require('./utils/native-ui.js');
 const prettierConfig = require('./utils/prettier.js');
 const reactConfig = require('./utils/react.js');
 const reactCompilerConfig = require('./utils/react-compiler.js');
+const reanimatedConfig = require('./utils/reanimated.js');
 const {
 	createComposedRestrictedSyntaxConfigs,
 } = require('./utils/restricted-syntax.js');
+const semanticColorsConfig = require('./utils/semantic-colors.js');
 const storybookConfig = require('./utils/storybook.js');
 const typescriptConfig = require('./utils/typescript.js');
 const workletsConfig = require('./utils/worklets.js');
@@ -131,9 +135,8 @@ function createTypeScriptImportResolverConfig(tsconfigProjects) {
 }
 
 function createSharedConfig(tsconfigProjects, extraIgnores = []) {
-	const typescriptImportResolver = createTypeScriptImportResolverConfig(
-		tsconfigProjects,
-	);
+	const typescriptImportResolver =
+		createTypeScriptImportResolverConfig(tsconfigProjects);
 	const importXResolvers = [
 		createTypeScriptImportResolver(typescriptImportResolver),
 		createNodeResolver({ extensions: allExtensions }),
@@ -281,13 +284,19 @@ function createConfig(options = {}) {
 		tsconfigProjects = defaultTsconfigProjectGlobs,
 		extraIgnores = [],
 		appGuardrails = false,
+		componentStructure = false,
+		deprecatedApis = false,
 		featureBoundaries = false,
+		inlineStyles = false,
 		nativeUi = false,
 		reactCompiler = false,
+		reanimated = false,
+		semanticColors = false,
 		storybook = false,
 		worklets = false,
 	} = options;
 	const restrictedSyntaxGroups = [];
+	const postCompositionConfig = [];
 
 	const presetConfig =
 		preset === 'base'
@@ -297,8 +306,30 @@ function createConfig(options = {}) {
 	const finalConfig = [...presetConfig];
 
 	if (appGuardrails) {
+		const appGuardrailsOptions =
+			appGuardrails === true ? undefined : appGuardrails;
 		finalConfig.push(...appGuardrailsConfig.base);
-		restrictedSyntaxGroups.push(...appGuardrailsConfig.restrictedSyntaxGroups);
+		restrictedSyntaxGroups.push(
+			...appGuardrailsConfig.createRestrictedSyntaxGroups(appGuardrailsOptions),
+		);
+	}
+
+	if (componentStructure) {
+		finalConfig.push(
+			...normalizeOptionConfig(
+				componentStructure,
+				componentStructureConfig.createComponentStructureConfig,
+			),
+		);
+	}
+
+	if (deprecatedApis) {
+		finalConfig.push(
+			...normalizeOptionConfig(
+				deprecatedApis,
+				deprecatedApisConfig.createDeprecatedApiConfig,
+			),
+		);
 	}
 
 	if (featureBoundaries) {
@@ -310,6 +341,16 @@ function createConfig(options = {}) {
 		);
 	}
 
+	if (inlineStyles && preset !== 'base') {
+		finalConfig.push({
+			files: ['**/*.tsx'],
+			rules: {
+				'react-native/no-inline-styles':
+					inlineStyles === true ? 'warn' : inlineStyles,
+			},
+		});
+	}
+
 	if (nativeUi) {
 		finalConfig.push(
 			...normalizeOptionConfig(nativeUi, nativeUiConfig.createNativeUiConfig),
@@ -317,7 +358,27 @@ function createConfig(options = {}) {
 	}
 
 	if (reactCompiler) {
-		restrictedSyntaxGroups.push(...reactCompilerConfig.restrictedSyntaxGroups);
+		finalConfig.push({ rules: { ...reactCompilerConfig.rules } });
+	}
+
+	if (reanimated) {
+		const reanimatedOptions = reanimated === true ? undefined : reanimated;
+		restrictedSyntaxGroups.push(
+			...reanimatedConfig.createRestrictedSyntaxGroups(reanimatedOptions),
+		);
+	}
+
+	if (semanticColors) {
+		const semanticColorsOptions =
+			semanticColors === true ? undefined : semanticColors;
+		restrictedSyntaxGroups.push(
+			...semanticColorsConfig.createRestrictedSyntaxGroups(
+				semanticColorsOptions,
+			),
+		);
+		postCompositionConfig.push(
+			...semanticColorsConfig.createAllowConfig(semanticColorsOptions),
+		);
 	}
 
 	if (storybook) {
@@ -332,6 +393,10 @@ function createConfig(options = {}) {
 		finalConfig.push(
 			...createComposedRestrictedSyntaxConfigs(restrictedSyntaxGroups),
 		);
+	}
+
+	if (postCompositionConfig.length > 0) {
+		finalConfig.push(...postCompositionConfig);
 	}
 
 	if (typeChecked) {
@@ -384,11 +449,24 @@ module.exports.noPrettier = noPrettier;
 module.exports.strictNoPrettier = strictNoPrettier;
 module.exports.typedNoPrettier = typedNoPrettier;
 module.exports.appGuardrails = appGuardrailsConfig;
+module.exports.createAppGuardrailsConfig =
+	appGuardrailsConfig.createAppGuardrailsConfig;
+module.exports.componentStructure = componentStructureConfig.recommended;
+module.exports.createComponentStructureConfig =
+	componentStructureConfig.createComponentStructureConfig;
+module.exports.deprecatedApis = deprecatedApisConfig.recommended;
+module.exports.createDeprecatedApiConfig =
+	deprecatedApisConfig.createDeprecatedApiConfig;
 module.exports.createFeatureBoundaryConfig =
 	featureBoundaryConfig.createFeatureBoundaryConfig;
 module.exports.createNativeUiConfig = nativeUiConfig.createNativeUiConfig;
 module.exports.featureBoundaries = featureBoundaryConfig.recommended;
 module.exports.nativeUi = nativeUiConfig.recommended;
 module.exports.reactCompiler = reactCompilerConfig;
+module.exports.reanimated = reanimatedConfig;
+module.exports.createReanimatedConfig = reanimatedConfig.createReanimatedConfig;
+module.exports.semanticColors = semanticColorsConfig;
+module.exports.createSemanticColorsConfig =
+	semanticColorsConfig.createSemanticColorsConfig;
 module.exports.storybook = storybookConfig;
 module.exports.worklets = workletsConfig;

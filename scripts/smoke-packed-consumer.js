@@ -244,24 +244,31 @@ function writeFixtureFiles(tempProjectDir) {
 	fs.writeFileSync(
 		path.join(tempProjectDir, 'hardening-smoke.tsx'),
 		[
-			"import { Button } from 'react-native';",
+			"import { Button, StyleSheet } from 'react-native';",
 			'',
 			'declare const value: unknown;',
+			'declare const shared: { value: number };',
 			'declare function useGetPeople(): { data: string[] };',
+			'declare function useSharedValue<T>(v: T): { value: T };',
+			'declare function usePanGesture(cfg: object): object;',
 			'declare function scheduleOnRN(callback: () => void): void;',
 			'',
 			'type QueryResult = ReturnType<typeof useGetPeople>;',
 			'const unsafeValue = value as unknown as string;',
 			'const queryResult = {} as QueryResult;',
+			'const fill = StyleSheet.absoluteFillObject;',
+			"const brand = '#ff0000';",
 			'',
 			'export function HardeningSmoke() {',
-			'\ttry {',
-			'\t\tvalue?.toString();',
-			'\t} finally {',
-			'\t\tscheduleOnRN(() => {});',
-			'\t}',
+			'\tconst animated = useSharedValue(shared.value);',
+			'\tconst gesture = usePanGesture({ onStart: () => {} });',
+			'\tscheduleOnRN(() => {});',
 			'',
-			'\treturn <Button title={`${unsafeValue}:${queryResult.data.length}`} />;',
+			'\treturn (',
+			'\t\t<Button',
+			'\t\t\ttitle={`${unsafeValue}:${queryResult.data.length}:${animated.value}:${brand}:${String(fill)}:${String(gesture)}`}',
+			'\t\t/>',
+			'\t);',
 			'}',
 			'',
 		].join('\n'),
@@ -326,8 +333,13 @@ function writeFixtureFiles(tempProjectDir) {
 			'\tprettier: false,',
 			'\ttesting: false,',
 			'\tappGuardrails: true,',
+			'\tcomponentStructure: true,',
+			'\tdeprecatedApis: true,',
+			'\tinlineStyles: true,',
 			'\tnativeUi: true,',
 			'\treactCompiler: true,',
+			'\treanimated: true,',
+			'\tsemanticColors: true,',
 			'\tstorybook: true,',
 			'\tworklets: true,',
 			'});',
@@ -483,9 +495,16 @@ function validateLane(tempProjectDir) {
 	if (
 		hardeningMessages.filter(
 			(message) => message.ruleId === 'no-restricted-syntax',
-		).length < 4
+		).length < 6
 	) {
 		throw new Error('Hardening config did not compose no-restricted-syntax rules.');
+	}
+	if (
+		!hardeningMessages.some(
+			(message) => message.ruleId === 'no-restricted-properties',
+		)
+	) {
+		throw new Error('Hardening config did not compose deprecated-api rules.');
 	}
 
 	const storyMessages = runLint(
