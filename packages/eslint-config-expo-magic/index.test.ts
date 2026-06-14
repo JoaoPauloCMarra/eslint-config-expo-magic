@@ -1499,7 +1499,7 @@ describe('eslint-config-expo-magic', () => {
 	describe('expo-magic plugin rules', () => {
 		RuleTester.describe = describe;
 		RuleTester.it = it;
-		RuleTester.itOnly = (it as { only?: typeof it }).only ?? it;
+		RuleTester.itOnly = it;
 
 		const ruleTester = new RuleTester({
 			languageOptions: {
