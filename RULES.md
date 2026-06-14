@@ -98,7 +98,46 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 - **`react-hooks/set-state-in-render`**: Prevents calling setState during render (causes infinite loops).
 - **`react-hooks/preserve-manual-memoization`**: Ensures manual memoization doesn't conflict with compiler optimizations.
 
-**Rationale**: These rules work with React Compiler to catch performance issues and ensure components can be safely optimized.
+**Rationale**: These rules work with React Compiler to catch performance issues and ensure components can be safely optimized. The default preset spreads `eslint-plugin-react-hooks` v7's recommended set, so these diagnostics ship on by default. The opt-in `reactCompiler` layer promotes `unsupported-syntax`, `incompatible-library`, `immutability`, `purity`, `preserve-manual-memoization`, `set-state-in-render`, and `static-components` to `error`. (This replaces the previous hand-rolled `no-restricted-syntax` heuristics, which falsely flagged any optional chaining or `throw` inside a `try` block.)
+
+## 🛡️ Optional Hardening Layers
+
+These layers are off by default and enabled per project via `createConfig({ ... })` or their subpath exports.
+
+### `reanimated` / `worklets`
+
+- Flags reading a shared value (`.get()` / `.value`) inside a `useSharedValue(...)` initializer (render-time read).
+- Requires `.value` (not `.get()`) inside `useAnimatedStyle` / `useAnimatedReaction` / `useDerivedValue` / `useAnimatedProps` worklet hooks.
+- Flags inline gesture config objects passed to RNGH gesture hooks (default `usePanGesture`; extend with `gestureHooks` / `additionalGestureHooks`).
+- `worklets` flags inline callbacks passed to `scheduleOnRN` instead of a runtime function reference.
+
+**Rationale**: Reanimated runs worklet hooks across the JS/UI thread boundary; render-time shared-value reads and rebuilt gesture closures cause stale frames and dropped gestures.
+
+### `deprecatedApis`
+
+- Bans `MutableRefObject` (removed from React 19 typings; use `RefObject`).
+- Bans `StyleSheet.absoluteFillObject` (use `StyleSheet.absoluteFill`) and `AccessibilityInfo.setAccessibilityFocus` (use `sendAccessibilityEvent`).
+
+**Rationale**: Catches symbols removed or deprecated in React 19 / recent React Native at edit time rather than at upgrade time.
+
+### `componentStructure` (`expo-magic/*` plugin rules)
+
+- **`expo-magic/props-type-order`**: orders `*Props` members as required, optional, then function props, alphabetized within each group.
+- **`expo-magic/default-export-placement`**: requires `export default Component;` immediately after the component declaration.
+- **`expo-magic/no-inline-props`**: requires a named `type ...Props` alias instead of an inline object type on a `props` parameter.
+- **`expo-magic/require-children-usage`**: flags a declared `children` prop (or `PropsWithChildren`) that the component never renders.
+
+**Rationale**: Encodes component-authoring conventions that keep prop contracts and exports predictable across a large app.
+
+### `semanticColors`
+
+- Flags raw color literals (`#rrggbb`, `rgba()`, `hsla()`) and direct access to the raw color token map outside the token file.
+
+**Rationale**: Forces colors through semantic tokens so theming stays centralized. Configure `tokenModule`, `importName`, and `allowFiles` for your project layout.
+
+### `inlineStyles`
+
+- Enables `react-native/no-inline-styles` (default `warn`) for `.tsx` files.
 
 ## 📦 Imports & Organization
 

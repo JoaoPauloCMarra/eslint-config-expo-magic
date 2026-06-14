@@ -1,6 +1,6 @@
 # Config Diff
 
-Package version: `2.6.0`
+Package version: `2.7.0`
 Expo config version: `56.0.4`
 
 ## Rule Counts
@@ -14,12 +14,16 @@ Expo config version: `56.0.4`
 | typed | 586 |
 | strict | 518 |
 | appGuardrails | 4 |
+| componentStructure | 4 |
+| deprecatedApis | 2 |
 | featureBoundaries | 1 |
 | nativeUi | 1 |
-| reactCompiler | 1 |
+| reactCompiler | 7 |
+| reanimated | 1 |
+| semanticColors | 1 |
 | storybook | 1 |
 | worklets | 1 |
-| productionApp | 520 |
+| productionApp | 526 |
 
 ## baseVsExpo
 
@@ -1021,6 +1025,12 @@ Expo config version: `56.0.4`
 ### Added
 
 - `@typescript-eslint/ban-ts-comment`
+- `@typescript-eslint/no-restricted-types`
+- `expo-magic/default-export-placement`
+- `expo-magic/no-inline-props`
+- `expo-magic/props-type-order`
+- `expo-magic/require-children-usage`
+- `no-restricted-properties`
 - `no-restricted-syntax`
 - `no-warning-comments`
 
@@ -1029,6 +1039,9 @@ Expo config version: `56.0.4`
 - `@typescript-eslint/no-non-null-assertion`
 - `no-console`
 - `no-restricted-imports`
+- `react-hooks/incompatible-library`
+- `react-hooks/unsupported-syntax`
+- `react-native/no-inline-styles`
 
 ### Removed
 

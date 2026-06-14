@@ -1,9 +1,7 @@
+const { baseRestrictedImports } = require('./restricted-imports.js');
+
 const defaultRestrictions = [
-	{
-		name: 'react-native',
-		importNames: ['SafeAreaView'],
-		message: "Use 'SafeAreaView' from 'react-native-safe-area-context' instead.",
-	},
+	...baseRestrictedImports,
 	{
 		name: 'react-native',
 		importNames: ['Button'],

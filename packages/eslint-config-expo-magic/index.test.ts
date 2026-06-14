@@ -5,6 +5,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
+const { RuleTester } = require('eslint');
+const tsParser = require('@typescript-eslint/parser');
 const expoFlatConfig = require('eslint-config-expo/flat');
 const { createConfigReport } = require('../../scripts/lib/config-report.js');
 const config = require('./index.js');
@@ -13,12 +15,17 @@ const strictSubpath = require('./strict.js');
 const noPrettierSubpath = require('./no-prettier.js');
 const typedSubpath = require('./typed.js');
 const appGuardrailsSubpath = require('./app-guardrails.js');
+const componentStructureSubpath = require('./component-structure.js');
+const deprecatedApisSubpath = require('./deprecated-apis.js');
 const featureBoundariesSubpath = require('./feature-boundaries.js');
 const nativeUiSubpath = require('./native-ui.js');
 const prGuardrails = require('./pr-guardrails.js');
 const reactCompilerSubpath = require('./react-compiler.js');
+const reanimatedSubpath = require('./reanimated.js');
+const semanticColorsSubpath = require('./semantic-colors.js');
 const storybookSubpath = require('./storybook.js');
 const workletsSubpath = require('./worklets.js');
+const expoMagicPlugin = require('./utils/plugin/index.js');
 
 type FlatConfig = Linter.Config;
 const rootDir = path.resolve(__dirname, '../..');
@@ -809,7 +816,7 @@ describe('eslint-config-expo-magic', () => {
 				expect(
 					messages.filter((message) => message.ruleId === 'no-restricted-syntax')
 						.length,
-				).toBeGreaterThanOrEqual(4);
+				).toBeGreaterThanOrEqual(3);
 				expect(
 					messages.some((message) => message.ruleId === 'no-console'),
 				).toBe(false);
@@ -1486,6 +1493,458 @@ describe('eslint-config-expo-magic', () => {
 					false,
 				);
 			}
+		});
+	});
+
+	describe('expo-magic plugin rules', () => {
+		RuleTester.describe = describe;
+		RuleTester.it = it;
+		RuleTester.itOnly = (it as { only?: typeof it }).only ?? it;
+
+		const ruleTester = new RuleTester({
+			languageOptions: {
+				parser: tsParser,
+				parserOptions: {
+					sourceType: 'module',
+					ecmaFeatures: { jsx: true },
+				},
+			},
+		});
+
+		ruleTester.run(
+			'props-type-order',
+			expoMagicPlugin.rules['props-type-order'],
+			{
+				valid: [
+					'type FooProps = { id: string; title: string; onPress: () => void; };',
+					'type FooProps = { id: string; label?: string; onChange: () => void; };',
+					'type Other = { b: string; a: string; };',
+					'type FooProps = { value: string; };',
+				],
+				invalid: [
+					{
+						code: 'type FooProps = { onPress: () => void; title: string; };',
+						errors: [{ messageId: 'order' }],
+					},
+					{
+						code: 'type BarProps = { b: string; a: string; };',
+						errors: [{ messageId: 'order' }],
+					},
+					{
+						code: 'type FooProps = { label?: string; id: string; };',
+						errors: [{ messageId: 'order' }],
+					},
+				],
+			},
+		);
+
+		ruleTester.run(
+			'default-export-placement',
+			expoMagicPlugin.rules['default-export-placement'],
+			{
+				valid: [
+					'const Foo = () => null;\nexport default Foo;',
+					'function Foo() { return null; }\nexport default Foo;',
+					"import Foo from './foo';\nexport default Foo;",
+					'const foo = 1;\nconst bar = 2;\nexport default foo;',
+				],
+				invalid: [
+					{
+						code: 'const Foo = () => null;\nconst helper = () => null;\nexport default Foo;',
+						errors: [{ messageId: 'placement' }],
+					},
+					{
+						code: 'function Foo() { return null; }\nconst styles = {};\nexport default Foo;',
+						errors: [{ messageId: 'placement' }],
+					},
+				],
+			},
+		);
+
+		ruleTester.run('no-inline-props', expoMagicPlugin.rules['no-inline-props'], {
+			valid: [
+				'type P = { a: string };\nfunction Foo(props: P) { return props; }',
+				'function Foo(value: { a: string }) { return value; }',
+			],
+			invalid: [
+				{
+					code: 'function Foo(props: { a: string }) { return props; }',
+					errors: [{ messageId: 'inline' }],
+				},
+				{
+					code: 'const Foo = (props: { a: string }) => props;',
+					errors: [{ messageId: 'inline' }],
+				},
+			],
+		});
+
+		ruleTester.run(
+			'require-children-usage',
+			expoMagicPlugin.rules['require-children-usage'],
+			{
+				valid: [
+					'type P = { children: unknown };\nconst Foo = (props: P) => props.children;',
+					'function Foo({ children }: { children: unknown }) { return children; }',
+					'type P = { title: string };\nconst Foo = (props: P) => props.title;',
+					'import type { PropsWithChildren } from "react";\nconst Foo = (props: PropsWithChildren) => props.children;',
+				],
+				invalid: [
+					{
+						code: 'type P = { children: unknown };\nconst Foo = (props: P) => null;',
+						errors: [{ messageId: 'unused' }],
+					},
+					{
+						code: 'import type { PropsWithChildren } from "react";\nconst Foo = (props: PropsWithChildren) => null;',
+						errors: [{ messageId: 'unused' }],
+					},
+				],
+			},
+		);
+	});
+
+	describe('reanimated rules', () => {
+		it('flags shared-value reads, hook .get(), and inline gesture config', () => {
+			const messages = runFixtureLint({
+				configSource: createPackageConfigSource(`{
+					prettier: false,
+					testing: false,
+					reanimated: true
+				}`),
+				files: {
+					'anim.ts': [
+						'declare const other: { get(): number; value: number };',
+						'declare function useSharedValue<T>(v: T): { get(): T; value: T };',
+						'declare function useAnimatedStyle(cb: () => object): object;',
+						'declare function usePanGesture(cfg: object): object;',
+						'export function build() {',
+						'\tconst fromGet = useSharedValue(other.get());',
+						'\tconst fromValue = useSharedValue(other.value);',
+						'\tconst style = useAnimatedStyle(() => ({ x: other.get() }));',
+						'\tconst gesture = usePanGesture({ onStart: () => {} });',
+						'\treturn [fromGet, fromValue, style, gesture];',
+						'}',
+						'',
+					].join('\n'),
+				},
+			});
+
+			expect(
+				messages.filter((message) => message.ruleId === 'no-restricted-syntax'),
+			).toHaveLength(4);
+		}, 15_000);
+
+		it('supports custom gesture hook names', () => {
+			const messages = runFixtureLint({
+				configSource: createPackageConfigSource(`{
+					prettier: false,
+					testing: false,
+					reanimated: { additionalGestureHooks: ['useFlingGesture'] }
+				}`),
+				files: {
+					'gesture.ts': [
+						'declare function useFlingGesture(cfg: object): object;',
+						'export function build() {',
+						'\treturn useFlingGesture({ onStart: () => {} });',
+						'}',
+						'',
+					].join('\n'),
+				},
+			});
+
+			expect(
+				messages.some((message) => message.ruleId === 'no-restricted-syntax'),
+			).toBe(true);
+		}, 15_000);
+
+		it('composes reanimated and worklets selectors without clobbering', () => {
+			const messages = runFixtureLint({
+				configSource: createPackageConfigSource(`{
+					prettier: false,
+					testing: false,
+					reanimated: true,
+					worklets: true
+				}`),
+				files: {
+					'compose.ts': [
+						'declare const other: { value: number };',
+						'declare function useSharedValue<T>(v: T): { value: T };',
+						'declare function scheduleOnRN(callback: () => void): void;',
+						'export function build() {',
+						'\tconst shared = useSharedValue(other.value);',
+						'\tscheduleOnRN(() => {});',
+						'\treturn shared;',
+						'}',
+						'',
+					].join('\n'),
+				},
+			});
+
+			expect(
+				messages.filter((message) => message.ruleId === 'no-restricted-syntax'),
+			).toHaveLength(2);
+		}, 15_000);
+	});
+
+	describe('deprecated api rules', () => {
+		it('flags deprecated symbols and types', () => {
+			const messages = runFixtureLint({
+				configSource: createPackageConfigSource(`{
+					prettier: false,
+					testing: false,
+					deprecatedApis: true
+				}`),
+				files: {
+					'legacy.ts': [
+						'declare const StyleSheet: { absoluteFillObject: object };',
+						'declare const AccessibilityInfo: { setAccessibilityFocus: () => void };',
+						'export const fill = StyleSheet.absoluteFillObject;',
+						'export function focus() { AccessibilityInfo.setAccessibilityFocus(); }',
+						'export let nodeRef: MutableRefObject<number>;',
+						'',
+					].join('\n'),
+				},
+			});
+
+			expect(
+				messages.filter((message) => message.ruleId === 'no-restricted-properties'),
+			).toHaveLength(2);
+			expect(
+				messages.some(
+					(message) =>
+						message.ruleId === '@typescript-eslint/no-restricted-types',
+				),
+			).toBe(true);
+		}, 15_000);
+
+		it('accepts additional restricted properties', () => {
+			const deprecated = config.createDeprecatedApiConfig({
+				additionalRestrictedProperties: [
+					{ object: 'Foo', property: 'bar', message: 'No.' },
+				],
+			});
+			const propertiesEntry = deprecated.find(
+				(entry: FlatConfig) => entry.rules?.['no-restricted-properties'],
+			);
+
+			expect(propertiesEntry.rules['no-restricted-properties']).toEqual(
+				expect.arrayContaining([
+					expect.objectContaining({ object: 'Foo', property: 'bar' }),
+					expect.objectContaining({
+						object: 'StyleSheet',
+						property: 'absoluteFillObject',
+					}),
+				]),
+			);
+		});
+	});
+
+	describe('semantic colors rules', () => {
+		it('flags raw colors and direct token access but allows the token file', () => {
+			const messages = runFixtureLint({
+				configSource: createPackageConfigSource(`{
+					prettier: false,
+					testing: false,
+					semanticColors: true
+				}`),
+				files: {
+					'screen.ts': [
+						"import { colors } from '../uikit/tokens/colors';",
+						"export const hex = '#ffffff';",
+						"export const translucent = 'rgba(0,0,0,0.5)';",
+						'export const raw = colors.primary;',
+						'',
+					].join('\n'),
+					'uikit/tokens/colors.ts': [
+						"export const colors = { primary: '#ff0000' };",
+						'',
+					].join('\n'),
+				},
+			});
+
+			const screenMessages = messages.filter(
+				(message) => message.ruleId === 'no-restricted-syntax',
+			);
+
+			expect(screenMessages.length).toBeGreaterThanOrEqual(4);
+		}, 15_000);
+
+		it('supports a custom token module path', () => {
+			const groups = config.createSemanticColorsConfig({
+				tokenModule: 'theme/palette',
+				importName: 'palette',
+			});
+			const restrictionEntry = groups.find(
+				(entry: FlatConfig) => entry.rules?.['no-restricted-syntax'],
+			);
+			const selectors = restrictionEntry.rules['no-restricted-syntax'].slice(1);
+
+			expect(
+				selectors.some((selector: { selector: string }) =>
+					selector.selector.includes('theme\\/palette'),
+				),
+			).toBe(true);
+			expect(
+				selectors.some((selector: { selector: string }) =>
+					selector.selector.includes('object.name="palette"'),
+				),
+			).toBe(true);
+		});
+	});
+
+	describe('component structure rules', () => {
+		it('runs component structure rules end to end', () => {
+			const messages = runFixtureLint({
+				configSource: createPackageConfigSource(`{
+					prettier: false,
+					testing: false,
+					componentStructure: true
+				}`),
+				files: {
+					'Widget.tsx': [
+						'type WidgetProps = {',
+						'\tonPress: () => void;',
+						'\ttitle: string;',
+						'};',
+						'const Widget = (props: WidgetProps) => props.title;',
+						'const helper = () => null;',
+						'export default Widget;',
+						'export const noop = helper;',
+						'',
+					].join('\n'),
+				},
+			});
+
+			expect(
+				messages.some(
+					(message) => message.ruleId === 'expo-magic/props-type-order',
+				),
+			).toBe(true);
+			expect(
+				messages.some(
+					(message) =>
+						message.ruleId === 'expo-magic/default-export-placement',
+				),
+			).toBe(true);
+		}, 15_000);
+
+		it('supports a custom props type pattern', () => {
+			const structure = config.createComponentStructureConfig({
+				propsTypePattern: '^Settings$',
+			});
+			const propTypeEntry = structure.find(
+				(entry: FlatConfig) =>
+					entry.rules?.['expo-magic/props-type-order'] &&
+					entry.files?.includes('**/*.ts'),
+			);
+
+			expect(propTypeEntry.rules['expo-magic/props-type-order']).toEqual([
+				'warn',
+				{ pattern: '^Settings$' },
+			]);
+		});
+	});
+
+	describe('react compiler preset', () => {
+		it('promotes react-hooks compiler diagnostics to error', () => {
+			expect(reactCompilerSubpath.rules['react-hooks/unsupported-syntax']).toBe(
+				'error',
+			);
+			expect(reactCompilerSubpath.rules['react-hooks/incompatible-library']).toBe(
+				'error',
+			);
+		});
+
+		it('no longer ships brittle restricted-syntax selectors', () => {
+			expect(reactCompilerSubpath.restrictedSyntaxGroups).toBeUndefined();
+			const composed = config.createConfig({ reactCompiler: true });
+			const compilerEntry = composed.find(
+				(entry: FlatConfig) =>
+					entry.rules?.['react-hooks/unsupported-syntax'] === 'error',
+			);
+			expect(compilerEntry).toBeDefined();
+		});
+	});
+
+	describe('app guardrails options', () => {
+		it('supports a custom query hook pattern', () => {
+			const groups = config.createAppGuardrailsConfig({
+				queryHookPattern: '^useFetch[A-Z]',
+			});
+			const restrictionEntry = groups.find(
+				(entry: FlatConfig) => entry.rules?.['no-restricted-syntax'],
+			);
+			const selectors = restrictionEntry.rules['no-restricted-syntax'].slice(1);
+
+			expect(
+				selectors.some((selector: { selector: string }) =>
+					selector.selector.includes('^useFetch[A-Z]'),
+				),
+			).toBe(true);
+		});
+	});
+
+	describe('inline styles option', () => {
+		it('enables react-native/no-inline-styles when requested', () => {
+			const customConfig = config.createConfig({ inlineStyles: true });
+			const inlineStylesEntry = customConfig.find(
+				(entry: FlatConfig) =>
+					entry.rules?.['react-native/no-inline-styles'] === 'warn',
+			);
+
+			expect(inlineStylesEntry).toBeDefined();
+			expect(inlineStylesEntry.files).toContain('**/*.tsx');
+		});
+
+		it('keeps inline styles disabled by default', () => {
+			const inlineStylesEntry = config.find(
+				(entry: FlatConfig) =>
+					entry.rules?.['react-native/no-inline-styles'] === 'warn',
+			);
+			expect(inlineStylesEntry).toBeUndefined();
+		});
+	});
+
+	describe('new subpath exports', () => {
+		it('exports component structure, deprecated apis, reanimated, semantic colors', () => {
+			expect(typeof componentStructureSubpath.createComponentStructureConfig).toBe(
+				'function',
+			);
+			expect(typeof deprecatedApisSubpath.createDeprecatedApiConfig).toBe(
+				'function',
+			);
+			expect(typeof reanimatedSubpath.createReanimatedConfig).toBe('function');
+			expect(typeof semanticColorsSubpath.createSemanticColorsConfig).toBe(
+				'function',
+			);
+			expect(Array.isArray(componentStructureSubpath)).toBe(true);
+			expect(Array.isArray(deprecatedApisSubpath)).toBe(true);
+			expect(Array.isArray(reanimatedSubpath)).toBe(true);
+			expect(Array.isArray(semanticColorsSubpath)).toBe(true);
+		});
+
+		it('supports ESM entrypoints for new subpaths', async () => {
+			const componentStructureEsm = await import(
+				pathToFileURL(path.join(__dirname, 'component-structure.mjs')).href
+			);
+			const deprecatedApisEsm = await import(
+				pathToFileURL(path.join(__dirname, 'deprecated-apis.mjs')).href
+			);
+			const reanimatedEsm = await import(
+				pathToFileURL(path.join(__dirname, 'reanimated.mjs')).href
+			);
+			const semanticColorsEsm = await import(
+				pathToFileURL(path.join(__dirname, 'semantic-colors.mjs')).href
+			);
+
+			expect(Array.isArray(componentStructureEsm.default)).toBe(true);
+			expect(typeof componentStructureEsm.createComponentStructureConfig).toBe(
+				'function',
+			);
+			expect(typeof deprecatedApisEsm.createDeprecatedApiConfig).toBe('function');
+			expect(typeof reanimatedEsm.createReanimatedConfig).toBe('function');
+			expect(typeof semanticColorsEsm.createSemanticColorsConfig).toBe(
+				'function',
+			);
 		});
 	});
 });

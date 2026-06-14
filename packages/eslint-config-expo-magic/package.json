@@ -1,6 +1,6 @@
 {
 	"name": "eslint-config-expo-magic",
-	"version": "2.6.0",
+	"version": "2.7.0",
 	"description": "ESLint flat config for Expo, React Native, and TypeScript projects",
 	"keywords": [
 		"eslint",
@@ -69,6 +69,16 @@
 			"require": "./app-guardrails.js",
 			"import": "./app-guardrails.mjs"
 		},
+		"./component-structure": {
+			"types": "./component-structure.d.ts",
+			"require": "./component-structure.js",
+			"import": "./component-structure.mjs"
+		},
+		"./deprecated-apis": {
+			"types": "./deprecated-apis.d.ts",
+			"require": "./deprecated-apis.js",
+			"import": "./deprecated-apis.mjs"
+		},
 		"./feature-boundaries": {
 			"types": "./feature-boundaries.d.ts",
 			"require": "./feature-boundaries.js",
@@ -88,6 +98,16 @@
 			"types": "./react-compiler.d.ts",
 			"require": "./react-compiler.js",
 			"import": "./react-compiler.mjs"
+		},
+		"./reanimated": {
+			"types": "./reanimated.d.ts",
+			"require": "./reanimated.js",
+			"import": "./reanimated.mjs"
+		},
+		"./semantic-colors": {
+			"types": "./semantic-colors.d.ts",
+			"require": "./semantic-colors.js",
+			"import": "./semantic-colors.mjs"
 		},
 		"./storybook": {
 			"types": "./storybook.d.ts",
@@ -118,6 +138,10 @@
 		"typed.mjs",
 		"app-guardrails.js",
 		"app-guardrails.mjs",
+		"component-structure.js",
+		"component-structure.mjs",
+		"deprecated-apis.js",
+		"deprecated-apis.mjs",
 		"feature-boundaries.js",
 		"feature-boundaries.mjs",
 		"native-ui.js",
@@ -126,6 +150,10 @@
 		"pr-guardrails.mjs",
 		"react-compiler.js",
 		"react-compiler.mjs",
+		"reanimated.js",
+		"reanimated.mjs",
+		"semantic-colors.js",
+		"semantic-colors.mjs",
 		"storybook.js",
 		"storybook.mjs",
 		"worklets.js",
@@ -136,19 +164,24 @@
 		"no-prettier.d.ts",
 		"typed.d.ts",
 		"app-guardrails.d.ts",
+		"component-structure.d.ts",
+		"deprecated-apis.d.ts",
 		"feature-boundaries.d.ts",
 		"native-ui.d.ts",
 		"pr-guardrails.d.ts",
 		"react-compiler.d.ts",
+		"reanimated.d.ts",
+		"semantic-colors.d.ts",
 		"storybook.d.ts",
 		"worklets.d.ts",
 		"README.md",
 		"bin/*.js",
-		"utils/*.js",
+		"utils/**/*.js",
 		".prettierrc.js"
 	],
 	"scripts": {
 		"test": "bun test",
+		"typecheck": "tsc -p tsconfig.types.json",
 		"prepublishOnly": "node ../../scripts/release-check.js",
 		"check-pm": "node check-pm.js",
 		"pack:dry-run": "bun pm pack --dry-run",

@@ -17,35 +17,43 @@ const testFiles = [
 	'**/*.spec.tsx',
 ];
 
-const restrictedSyntaxGroups = [
-	{
-		files: typeScriptFiles,
-		selectors: [
-			{
-				selector: 'TSAsExpression > TSAsExpression',
-				message:
-					'Avoid double type assertions. Prefer proper type guards or generic typing.',
-			},
-			{
-				selector:
-					'TSTypeReference[typeName.name="ReturnType"] TSTypeQuery > Identifier[name=/^useGet[A-Z]/]',
-				message:
-					'Avoid `ReturnType<typeof useGet...>` with selector-capable query hooks. Use domain types or shared query-result helpers.',
-			},
-		],
-	},
-	{
-		files: testFiles,
-		selectors: [
-			{
-				selector:
-					'CallExpression[callee.property.name="toMatchSnapshot"], CallExpression[callee.name="toMatchSnapshot"]',
-				message:
-					'Prefer focused assertions over snapshots for production app regressions.',
-			},
-		],
-	},
-];
+const DEFAULT_QUERY_HOOK_PATTERN = '^useGet[A-Z]';
+
+function createRestrictedSyntaxGroups(options = {}) {
+	const queryHookPattern =
+		options.queryHookPattern ?? DEFAULT_QUERY_HOOK_PATTERN;
+
+	return [
+		{
+			files: typeScriptFiles,
+			selectors: [
+				{
+					selector: 'TSAsExpression > TSAsExpression',
+					message:
+						'Avoid double type assertions. Prefer proper type guards or generic typing.',
+				},
+				{
+					selector: `TSTypeReference[typeName.name="ReturnType"] TSTypeQuery > Identifier[name=/${queryHookPattern}/]`,
+					message:
+						'Avoid `ReturnType<typeof useGet...>` with selector-capable query hooks. Use domain types or shared query-result helpers.',
+				},
+			],
+		},
+		{
+			files: testFiles,
+			selectors: [
+				{
+					selector:
+						'CallExpression[callee.property.name="toMatchSnapshot"], CallExpression[callee.name="toMatchSnapshot"]',
+					message:
+						'Prefer focused assertions over snapshots for production app regressions.',
+				},
+			],
+		},
+	];
+}
+
+const restrictedSyntaxGroups = createRestrictedSyntaxGroups();
 
 const base = [
 	{
@@ -77,8 +85,17 @@ const base = [
 	},
 ];
 
-const config = [...base, ...createRestrictedSyntaxConfigs(restrictedSyntaxGroups)];
+function createAppGuardrailsConfig(options = {}) {
+	return [
+		...base,
+		...createRestrictedSyntaxConfigs(createRestrictedSyntaxGroups(options)),
+	];
+}
+
+const config = createAppGuardrailsConfig();
 
 module.exports = config;
 module.exports.base = base;
+module.exports.createAppGuardrailsConfig = createAppGuardrailsConfig;
+module.exports.createRestrictedSyntaxGroups = createRestrictedSyntaxGroups;
 module.exports.restrictedSyntaxGroups = restrictedSyntaxGroups;

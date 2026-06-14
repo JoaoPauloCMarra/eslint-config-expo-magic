@@ -8,6 +8,7 @@
 	"private": true,
 	"scripts": {
 		"test": "bun test packages/eslint-config-expo-magic/index.test.ts",
+		"typecheck": "cd packages/eslint-config-expo-magic && bun run typecheck",
 		"check-pm": "node packages/eslint-config-expo-magic/check-pm.js",
 		"ci": "bun install --frozen-lockfile",
 		"validate": "cd test-project && bun run validate",
