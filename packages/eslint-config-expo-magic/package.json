@@ -176,7 +176,9 @@
 		"worklets.d.ts",
 		"README.md",
 		"bin/*.js",
-		"utils/**/*.js",
+		"utils/*.js",
+		"utils/plugin/*.js",
+		"utils/plugin/rules/*.js",
 		".prettierrc.js"
 	],
 	"scripts": {
