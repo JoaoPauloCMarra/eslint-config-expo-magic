@@ -1,10 +1,12 @@
 # Changes
 
-- Package version: `2.7.0`
-- Expo base version: `56.0.4`
-- Base preset vs Expo: 1 rule added, 0 rules changed, 40 rules removed.
+- Package version: `2.8.0`
+- Expo base version: `57.0.0`
+- Adds `createConfig({ agent: true })` and `eslint-config-expo-magic/agent` for AI-agent-heavy Expo projects.
+- Adds `agent-guardrails`, `agentMobileApp` PR guardrails, `expo-magic-init-agent`, and `docs/AGENTS_RECIPE.md`.
+- Base preset vs Expo: 1 rule added, 0 rules changed, 39 rules removed.
   - Added: `expo/prefer-box-shadow`
-  - Removed: `react-hooks/component-hook-factories`, `react-hooks/config`, `react-hooks/error-boundaries`, `react-hooks/exhaustive-deps`, `react-hooks/gating`, `react-hooks/globals`, `react-hooks/immutability`, `react-hooks/incompatible-library`, and 32 more
+  - Removed: `react-hooks/config`, `react-hooks/error-boundaries`, `react-hooks/exhaustive-deps`, `react-hooks/gating`, `react-hooks/globals`, `react-hooks/immutability`, `react-hooks/incompatible-library`, `react-hooks/preserve-manual-memoization`, and 31 more
 - Default preset vs Expo: 432 rules added, 14 rules changed, 0 rules removed.
   - Added: `@babel/object-curly-spacing`, `@babel/semi`, `@stylistic/array-bracket-newline`, `@stylistic/array-bracket-spacing`, `@stylistic/array-element-newline`, `@stylistic/arrow-parens`, `@stylistic/arrow-spacing`, `@stylistic/block-spacing`, and 424 more
   - Changed: `@typescript-eslint/array-type`, `@typescript-eslint/consistent-type-assertions`, `@typescript-eslint/no-unused-vars`, `import/export`, `import/first`, `import/namespace`, `import/no-duplicates`, `import/no-named-as-default`, and 6 more

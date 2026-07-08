@@ -7,6 +7,7 @@ const expoConfig = require('eslint-config-expo/flat');
 const { createNodeResolver } = require('eslint-plugin-import-x');
 const tseslint = require('typescript-eslint');
 
+const agentGuardrailsConfig = require('./utils/agent-guardrails.js');
 const appConfig = require('./utils/app.js');
 const appGuardrailsConfig = require('./utils/app-guardrails.js');
 const componentStructureConfig = require('./utils/component-structure.js');
@@ -283,6 +284,7 @@ function createConfig(options = {}) {
 		strict = false,
 		tsconfigProjects = defaultTsconfigProjectGlobs,
 		extraIgnores = [],
+		agent = false,
 		appGuardrails = false,
 		componentStructure = false,
 		deprecatedApis = false,
@@ -297,6 +299,26 @@ function createConfig(options = {}) {
 	} = options;
 	const restrictedSyntaxGroups = [];
 	const postCompositionConfig = [];
+	const agentOptions = agent === true ? {} : agent || {};
+	const agentEnabled = Boolean(agent);
+	const effectiveAppGuardrails = agentEnabled
+		? (agentOptions.appGuardrails ?? true)
+		: appGuardrails;
+	const effectiveDeprecatedApis = agentEnabled
+		? (agentOptions.deprecatedApis ?? true)
+		: deprecatedApis;
+	const effectiveReactCompiler = agentEnabled
+		? (agentOptions.reactCompiler ?? true)
+		: reactCompiler;
+	const effectiveReanimated = agentEnabled
+		? (agentOptions.reanimated ?? true)
+		: reanimated;
+	const effectiveSemanticColors = agentEnabled
+		? (agentOptions.semanticColors ?? false)
+		: semanticColors;
+	const effectiveWorklets = agentEnabled
+		? (agentOptions.worklets ?? true)
+		: worklets;
 
 	const presetConfig =
 		preset === 'base'
@@ -305,9 +327,14 @@ function createConfig(options = {}) {
 
 	const finalConfig = [...presetConfig];
 
-	if (appGuardrails) {
+	if (agentEnabled) {
+		finalConfig.push(...agentGuardrailsConfig.base);
+		restrictedSyntaxGroups.push(...agentGuardrailsConfig.restrictedSyntaxGroups);
+	}
+
+	if (effectiveAppGuardrails) {
 		const appGuardrailsOptions =
-			appGuardrails === true ? undefined : appGuardrails;
+			effectiveAppGuardrails === true ? undefined : effectiveAppGuardrails;
 		finalConfig.push(...appGuardrailsConfig.base);
 		restrictedSyntaxGroups.push(
 			...appGuardrailsConfig.createRestrictedSyntaxGroups(appGuardrailsOptions),
@@ -323,10 +350,10 @@ function createConfig(options = {}) {
 		);
 	}
 
-	if (deprecatedApis) {
+	if (effectiveDeprecatedApis) {
 		finalConfig.push(
 			...normalizeOptionConfig(
-				deprecatedApis,
+				effectiveDeprecatedApis,
 				deprecatedApisConfig.createDeprecatedApiConfig,
 			),
 		);
@@ -357,20 +384,21 @@ function createConfig(options = {}) {
 		);
 	}
 
-	if (reactCompiler) {
+	if (effectiveReactCompiler) {
 		finalConfig.push({ rules: { ...reactCompilerConfig.rules } });
 	}
 
-	if (reanimated) {
-		const reanimatedOptions = reanimated === true ? undefined : reanimated;
+	if (effectiveReanimated) {
+		const reanimatedOptions =
+			effectiveReanimated === true ? undefined : effectiveReanimated;
 		restrictedSyntaxGroups.push(
 			...reanimatedConfig.createRestrictedSyntaxGroups(reanimatedOptions),
 		);
 	}
 
-	if (semanticColors) {
+	if (effectiveSemanticColors) {
 		const semanticColorsOptions =
-			semanticColors === true ? undefined : semanticColors;
+			effectiveSemanticColors === true ? undefined : effectiveSemanticColors;
 		restrictedSyntaxGroups.push(
 			...semanticColorsConfig.createRestrictedSyntaxGroups(
 				semanticColorsOptions,
@@ -385,7 +413,7 @@ function createConfig(options = {}) {
 		finalConfig.push(...storybookConfig);
 	}
 
-	if (worklets) {
+	if (effectiveWorklets) {
 		restrictedSyntaxGroups.push(...workletsConfig.restrictedSyntaxGroups);
 	}
 
@@ -439,10 +467,15 @@ const strictNoPrettier = createConfig({
 	strict: true,
 	prettier: false,
 });
+const agent = createConfig({ agent: true, prettier: false });
 
 module.exports = config;
+module.exports.agent = agent;
+module.exports.agentGuardrails = agentGuardrailsConfig;
 module.exports.base = base;
 module.exports.createConfig = createConfig;
+module.exports.createAgentGuardrailsConfig =
+	agentGuardrailsConfig.createAgentGuardrailsConfig;
 module.exports.strict = strict;
 module.exports.typed = typed;
 module.exports.noPrettier = noPrettier;

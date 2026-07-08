@@ -24,21 +24,22 @@ Production-focused ESLint flat config for Expo and React Native projects, with T
 - Node.js: `>=18.0.0`
 - Bun: `>=1.0.0` (recommended for development and publishing)
 - ESLint: `10.x` flat config
-- Expo: `^54.0.33 || ^55.0.0 || ^56.0.0` (peer dependency)
+- Expo: `^54.0.33 || ^55.0.0 || ^56.0.0 || ^57.0.0` (peer dependency)
 - React: `^19.1.0 || ^19.2.0` (peer dependency)
 - React Test Renderer: `^19.1.0 || ^19.2.0` (peer dependency)
-- TypeScript: `>=5.9.3 <7.0.0` (peer dependency)
+- TypeScript: `>=5.9.3 <6.1.0` (peer dependency)
 
 Validated lanes:
 
-- Full fixture validation: Expo SDK 56.0.9, React Native 0.85.3, React 19.2.3
-- Packed-consumer smoke validation: Expo SDK 54.0.33, 55.0.9, and 56.0.9
+- Full fixture validation: Expo SDK 57.0.4, React Native 0.86.0, React 19.2.3
+- Packed-consumer smoke validation: Expo SDK 54.0.33, 55.0.9, 56.0.9, and 57.0.4
+- Clean SDK 57 consumer smoke validation with Expo Doctor and ESLint outside this workspace
 
 Support policy:
 
 - Stable support tracks the latest stable Expo SDK.
-- Standalone React Native releases newer than Expo stable are treated as preview coverage until the matching Expo SDK ships.
-- Preview smoke coverage is available for Expo canary via `bun run smoke:preview`.
+- Standalone React Native releases newer than Expo stable stay out of stable support claims until a matching Expo SDK ships.
+- Preview smoke coverage can be added for Expo canary when a canary lane is active.
 
 ## Installation
 
@@ -104,13 +105,26 @@ module.exports = [...typed];
 
 This adds opt-in type-aware rules from `typescript-eslint`'s maintained type-checked configs on top of the base preset.
 
+### 6) Agent preset
+
+```js
+const agent = require('eslint-config-expo-magic/agent');
+
+module.exports = [...agent];
+```
+
+Use this for AI-agent-heavy mobile repos. Full setup: [`docs/AGENTS_RECIPE.md`](./docs/AGENTS_RECIPE.md).
+
 ## API Reference
 
 ### Package Exports
 
 This package exposes:
 
-- `eslint-config-expo-magic` -> base config array
+- `eslint-config-expo-magic` -> default config array
+- `eslint-config-expo-magic/base` -> low-opinion base config close to Expo defaults
+- `eslint-config-expo-magic/agent` -> agent-safe config with app guardrails, React Compiler, Reanimated, Worklets, deprecated API checks, and agent-specific risky syntax checks
+- `eslint-config-expo-magic/agent-guardrails` -> focused agent-damage guardrails for unsafe suppressions, type weakening, skipped tests, snapshot churn, attribution strings, empty catches, and unhandled promises
 - `eslint-config-expo-magic/strict` -> strict config array
 - `eslint-config-expo-magic/no-prettier` -> base config array without Prettier plugin/rules
 - `eslint-config-expo-magic/typed` -> base config array plus type-aware TypeScript rules
@@ -414,4 +428,5 @@ bun run test
 bun run typecheck
 bun run validate
 bun run smoke:pack
+bun run smoke:clean-sdk57
 ```

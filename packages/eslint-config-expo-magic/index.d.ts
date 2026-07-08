@@ -78,6 +78,15 @@ type SemanticColorsOptions = {
 	allowFiles?: string[];
 };
 
+type AgentOptions = {
+	appGuardrails?: boolean | AppGuardrailsOptions;
+	deprecatedApis?: boolean | DeprecatedApiOptions;
+	reactCompiler?: boolean;
+	reanimated?: boolean | ReanimatedOptions;
+	semanticColors?: boolean | SemanticColorsOptions;
+	worklets?: boolean;
+};
+
 type CreateConfigOptions = {
 	preset?: 'base' | 'default';
 	prettier?: boolean;
@@ -86,6 +95,7 @@ type CreateConfigOptions = {
 	strict?: boolean;
 	tsconfigProjects?: string[];
 	extraIgnores?: string[];
+	agent?: boolean | AgentOptions;
 	appGuardrails?: boolean | AppGuardrailsOptions;
 	componentStructure?: boolean | ComponentStructureOptions;
 	deprecatedApis?: boolean | DeprecatedApiOptions;
@@ -104,8 +114,11 @@ type ReactCompilerConfig = FlatConfig[] & {
 };
 
 declare const config: FlatConfig[] & {
+	agent: FlatConfig[];
+	agentGuardrails: RestrictedSyntaxConfig;
 	base: FlatConfig[];
 	createConfig(options?: CreateConfigOptions): FlatConfig[];
+	createAgentGuardrailsConfig(): FlatConfig[];
 	strict: FlatConfig[];
 	typed: FlatConfig[];
 	noPrettier: FlatConfig[];
@@ -134,6 +147,7 @@ declare const config: FlatConfig[] & {
 
 declare namespace config {
 	export {
+		AgentOptions,
 		AppGuardrailsConfig,
 		AppGuardrailsOptions,
 		ComponentStructureOptions,

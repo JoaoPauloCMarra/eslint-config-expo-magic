@@ -10,6 +10,8 @@ const tsParser = require('@typescript-eslint/parser');
 const expoFlatConfig = require('eslint-config-expo/flat');
 const { createConfigReport } = require('../../scripts/lib/config-report.js');
 const config = require('./index.js');
+const agentSubpath = require('./agent.js');
+const agentGuardrailsSubpath = require('./agent-guardrails.js');
 const baseSubpath = require('./base.js');
 const strictSubpath = require('./strict.js');
 const noPrettierSubpath = require('./no-prettier.js');
@@ -157,6 +159,23 @@ describe('eslint-config-expo-magic', () => {
 			expect(config.base.length).toBeLessThan(config.length);
 		});
 
+		it('has an agent preset', () => {
+			expect(Array.isArray(config.agent)).toBe(true);
+			expect(config.agent.length).toBeGreaterThan(config.noPrettier.length);
+		});
+
+		it('exports agent subpath', () => {
+			expect(Array.isArray(agentSubpath)).toBe(true);
+			expect(agentSubpath).toBe(config.agent);
+		});
+
+		it('exports agent guardrails subpath', () => {
+			expect(Array.isArray(agentGuardrailsSubpath)).toBe(true);
+			expect(typeof agentGuardrailsSubpath.createAgentGuardrailsConfig).toBe(
+				'function',
+			);
+		});
+
 		it('exports base subpath', () => {
 			expect(Array.isArray(baseSubpath)).toBe(true);
 			expect(baseSubpath).toBe(config.base);
@@ -187,6 +206,7 @@ describe('eslint-config-expo-magic', () => {
 			);
 			expect(typeof nativeUiSubpath.createNativeUiConfig).toBe('function');
 			expect(typeof prGuardrails.validateGuardrails).toBe('function');
+			expect(Array.isArray(agentGuardrailsSubpath)).toBe(true);
 			expect(Array.isArray(reactCompilerSubpath)).toBe(true);
 			expect(Array.isArray(storybookSubpath)).toBe(true);
 			expect(Array.isArray(workletsSubpath)).toBe(true);
@@ -1124,9 +1144,35 @@ describe('eslint-config-expo-magic', () => {
 			).toBe(true);
 		}, 15_000);
 
+		it('runs agent preset end to end', () => {
+			const results = runPresetLint(path.join(__dirname, 'agent.js'), [
+				'test-project/preset-fixtures/agent-only.test.ts',
+			]);
+			const messages = getRuleMessages(results);
+
+			expect(
+				messages.some(
+					(message) =>
+						message.ruleId === '@typescript-eslint/ban-ts-comment',
+				),
+			).toBe(true);
+			expect(
+				messages.some((message) => message.ruleId === 'no-restricted-syntax'),
+			).toBe(true);
+			expect(messages.some((message) => message.ruleId === 'prettier/prettier')).toBe(
+				false,
+			);
+		}, 15_000);
+
 		it('supports ESM entrypoints', async () => {
 			const indexEsm = await import(
 				pathToFileURL(path.join(__dirname, 'index.mjs')).href
+			);
+			const agentEsm = await import(
+				pathToFileURL(path.join(__dirname, 'agent.mjs')).href
+			);
+			const agentGuardrailsEsm = await import(
+				pathToFileURL(path.join(__dirname, 'agent-guardrails.mjs')).href
 			);
 			const baseEsm = await import(
 				pathToFileURL(path.join(__dirname, 'base.mjs')).href
@@ -1163,6 +1209,10 @@ describe('eslint-config-expo-magic', () => {
 			);
 
 			expect(Array.isArray(indexEsm.default)).toBe(true);
+			expect(Array.isArray(indexEsm.agent)).toBe(true);
+			expect(Array.isArray(indexEsm.agentGuardrails)).toBe(true);
+			expect(Array.isArray(agentEsm.default)).toBe(true);
+			expect(Array.isArray(agentGuardrailsEsm.default)).toBe(true);
 			expect(Array.isArray(indexEsm.base)).toBe(true);
 			expect(Array.isArray(indexEsm.strict)).toBe(true);
 			expect(Array.isArray(indexEsm.typed)).toBe(true);
@@ -1294,6 +1344,42 @@ describe('eslint-config-expo-magic', () => {
 			expect(
 				options.riskyPatterns.map((pattern: { name: string }) => pattern.name),
 			).toContain('debugger');
+		});
+
+		it('validates agent mobile app PR guardrails', () => {
+			const result = prGuardrails.validateGuardrails(
+				{
+					eventName: 'pull_request',
+					prBody: [
+						'- [x] Lint passed',
+						'- [x] Typecheck passed',
+						'- [x] Tests passed',
+						'- [x] Runtime target named',
+						'- [x] No unrelated lockfile changes',
+						'- [x] No skipped tests',
+						'- [x] No broad ignores',
+						'- [x] `bun run lint:ci`',
+						'- [x] `bun run typecheck`',
+						'- [x] `bun run test:unit`',
+						'- [x] `bun run validate:pr-guardrails`',
+						'- [x] Watched GitHub CI after the latest push until `Validate Code` passed or a blocker was documented',
+						'- [x] No skipped tests, loosened types, broad ignores, fake mocks, or unrelated rewrites to make CI pass',
+						'- [x] No unrelated `package.json` or `bun.lock` changes',
+						'- [x] Confirmed this machine can build and run the app in iOS Simulator or Android Emulator',
+						'- [x] Simulator/emulator target used for validation is named in the PR body',
+						'Validated on iPhone 16 Simulator.',
+					].join('\n'),
+					labels: [],
+					changedFiles: [
+						'features/home/screens/home-screen.tsx',
+						'features/home/screens/home-screen.test.tsx',
+					],
+					changedPatch: '+const value = 1;\n',
+				},
+				{ preset: 'agentMobileApp' },
+			);
+
+			expect(result.passed).toBe(true);
 		});
 
 		it('rejects unknown PR guardrail presets', () => {

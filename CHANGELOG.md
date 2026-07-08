@@ -2,6 +2,30 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
+## 2.8.0
+
+Adds Expo SDK 57 validation and refreshes the bundled lint stack.
+
+### Added
+
+- Adds an `agent` preset (`createConfig({ agent: true })` / `eslint-config-expo-magic/agent`) for AI-agent-heavy Expo projects.
+- Adds an `agent-guardrails` subpath with focused checks for unsafe suppressions, type weakening, skipped tests, snapshot churn, generated attribution strings, empty catches, and unhandled promises.
+- Adds the `agentMobileApp` PR guardrails preset and `expo-magic-init-agent` setup command.
+- Adds `docs/AGENTS_RECIPE.md` with copy-paste agent setup, recommended scripts, and PR guardrails config.
+
+### Changed
+
+- Updates the Expo baseline to `eslint-config-expo@57.0.0`.
+- Validates the full fixture app on Expo SDK 57.0.4, React Native 0.86.0, and React 19.2.3.
+- Keeps packed-consumer smoke coverage for Expo SDK 54.0.33, 55.0.9, 56.0.9, and 57.0.4.
+- Adds a clean SDK 57 consumer smoke gate that runs Expo Doctor and ESLint outside the monorepo.
+- Updates ESLint, TypeScript ESLint, React Hooks, React 19 upgrade, import, Jest, Prettier, and boundary-rule dependencies to current compatible releases.
+- Removes the stale nested `test-project/bun.lock`; the fixture now relies on the root workspace lockfile.
+
+### Compatibility
+
+- Expo SDK 54 / 55 / 56 / 57, React Native 0.86 for the full fixture lane, React 19.1-19.2, ESLint 10, TypeScript `>=5.9.3 <6.1`.
+
 ## 2.7.0
 
 Adds opt-in hardening layers distilled from production Expo/React Native usage. The `default`, `strict`, `typed`, and `no-prettier` presets are unchanged, so upgrading is backward compatible unless you opt into the new layers.

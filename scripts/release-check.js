@@ -21,3 +21,4 @@ run('bun', ['run', 'report:config']);
 run('bun', ['run', 'test']);
 run('bun', ['run', 'validate']);
 run('bun', ['run', 'smoke:release']);
+run('bun', ['run', 'smoke:clean-sdk57']);
