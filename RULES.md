@@ -139,6 +139,21 @@ These layers are off by default and enabled per project via `createConfig({ ... 
 
 - Enables `react-native/no-inline-styles` (default `warn`) for `.tsx` files.
 
+### `agent`
+
+- Bundles `appGuardrails`, `reactCompiler`, `worklets`, `reanimated`, `deprecatedApis`, and agent-specific risky syntax checks.
+- Keeps `semanticColors` opt-in because token module names and allowed files are project-specific.
+
+**Rationale**: AI agents commonly hide failures with broad suppressions, weakened types, skipped tests, fake snapshots, and generated attribution strings. The agent preset makes those failure modes visible before PR review.
+
+### `agent-guardrails`
+
+- Bans unsafe TypeScript suppressions (`@ts-ignore`, `@ts-nocheck`) and requires described `@ts-expect-error`.
+- Errors on `any`, `as any`, double assertions, non-null assertions, floating promises, misused promises, and empty catch blocks.
+- Flags focused or skipped tests, broad snapshot assertions, generated attribution strings, and TODO/FIXME/HACK dumps.
+
+**Rationale**: These checks target common agent edits that make code pass locally while reducing type safety, test coverage, or review signal.
+
 ## 📦 Imports & Organization
 
 ### `unused-imports/no-unused-imports`

@@ -1,18 +1,20 @@
 # Config Diff
 
-Package version: `2.7.0`
-Expo config version: `56.0.4`
+Package version: `2.8.0`
+Expo config version: `57.0.0`
 
 ## Rule Counts
 
 | Preset | Rule count |
 | --- | ---: |
-| expo | 85 |
+| expo | 84 |
+| agent | 164 |
+| agentGuardrails | 7 |
 | base | 46 |
-| default | 517 |
-| noPrettier | 158 |
-| typed | 586 |
-| strict | 518 |
+| default | 516 |
+| noPrettier | 157 |
+| typed | 585 |
+| strict | 517 |
 | appGuardrails | 4 |
 | componentStructure | 4 |
 | deprecatedApis | 2 |
@@ -23,7 +25,7 @@ Expo config version: `56.0.4`
 | semanticColors | 1 |
 | storybook | 1 |
 | worklets | 1 |
-| productionApp | 526 |
+| productionApp | 525 |
 
 ## baseVsExpo
 
@@ -37,7 +39,6 @@ Expo config version: `56.0.4`
 
 ### Removed
 
-- `react-hooks/component-hook-factories`
 - `react-hooks/config`
 - `react-hooks/error-boundaries`
 - `react-hooks/exhaustive-deps`

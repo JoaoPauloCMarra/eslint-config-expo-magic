@@ -81,6 +81,11 @@ function createPresetSummary(name, configEntries) {
 function createConfigReport() {
 	const presets = {
 		expo: createPresetSummary('expo', expoFlatConfig),
+		agent: createPresetSummary('agent', magicConfig.agent),
+		agentGuardrails: createPresetSummary(
+			'agentGuardrails',
+			magicConfig.agentGuardrails,
+		),
 		base: createPresetSummary('base', magicConfig.base),
 		default: createPresetSummary('default', magicConfig),
 		noPrettier: createPresetSummary('noPrettier', magicConfig.noPrettier),

@@ -192,6 +192,12 @@ Enable one layer at a time:
 
 Version 2.5 and later validate Expo SDK 56 as a stable packed-consumer lane. Projects on Expo SDK 56 should update the package and rerun lint before removing any local compatibility overrides.
 
+## From SDK 56 support to SDK 57 support
+
+Version 2.8 and later validate Expo SDK 57 as the full fixture lane and keep SDK 56 as packed-consumer compatibility coverage. SDK 57 moves Expo's React Native baseline to 0.86 while keeping React on 19.2, so rerun lint after upgrading and review any new React Hooks or Expo baseline diagnostics before removing local overrides.
+
+The repo no longer keeps a separate `test-project/bun.lock`. The fixture is part of the root Bun workspace, and the old nested lock could drift from `test-project/package.json` and pin outdated Expo/RN dependencies. Use the root `bun.lock` plus packed-consumer smoke tests for reproducibility.
+
 ## Upgrade checklist for new package versions
 
 1. Read the generated config diff in `docs/CONFIG_DIFF.md`.

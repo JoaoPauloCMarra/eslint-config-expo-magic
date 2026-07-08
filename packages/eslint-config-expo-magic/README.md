@@ -12,26 +12,27 @@ ESLint and Prettier are bundled with the config package. Consumer projects still
 - Stronger TypeScript defaults than `eslint-config-expo`
 - Import ordering, unused import cleanup, and path alias support
 - React, React Native, Jest, and Testing Library rules in one package
-- Optional `base`, `typed`, `strict`, and `no-prettier` presets
+- Optional `base`, `typed`, `strict`, `agent`, and `no-prettier` presets
 - Optional production app hardening layers for React Compiler, Worklets, native UI wrappers, feature boundaries, Storybook, and PR guardrails
 - Monorepo-friendly config factory for custom `tsconfig` layouts
 - Validated against packed consumer apps, not only local fixtures
 
 ## Validation coverage
 
-- Full fixture-app validation on Expo SDK 56.0.9 / React Native 0.85.3 / React 19.2.3
-- Packed-consumer smoke validation on Expo SDK 54.0.33, 55.0.9, and 56.0.9
+- Full fixture-app validation on Expo SDK 57.0.4 / React Native 0.86.0 / React 19.2.3
+- Packed-consumer smoke validation on Expo SDK 54.0.33, 55.0.9, 56.0.9, and 57.0.4
+- Clean SDK 57 consumer smoke validation with Expo Doctor and ESLint outside this workspace
 
 ## Compatibility
 
 - Node.js `>=18`
-- Expo `54.x`, `55.x`, and `56.x`
+- Expo `54.x`, `55.x`, `56.x`, and `57.x`
 - React `19.1.x || 19.2.x`
 - React Test Renderer `19.1.x || 19.2.x`
-- TypeScript `>=5.9.3 <7`
+- TypeScript `>=5.9.3 <6.1`
 
 React Native support follows stable Expo SDK releases. Newer standalone RN versions should be treated as preview-only until the corresponding Expo SDK is stable.
-Preview smoke coverage is available for Expo canary via `bun run smoke:preview`.
+Preview smoke coverage can be added for Expo canary when a canary lane is active.
 
 ## Install
 
@@ -129,6 +130,41 @@ const noPrettier = require('eslint-config-expo-magic/no-prettier');
 module.exports = [...noPrettier];
 ```
 
+### Agent preset
+
+For AI-agent-heavy Expo projects, use the agent preset:
+
+```js
+const agent = require('eslint-config-expo-magic/agent');
+
+module.exports = [...agent];
+```
+
+Or enable it through the config factory:
+
+```js
+const { createConfig } = require('eslint-config-expo-magic');
+
+module.exports = createConfig({
+	prettier: false,
+	agent: true,
+});
+```
+
+`agent: true` enables app guardrails, React Compiler diagnostics, Reanimated/Worklets hardening, deprecated API checks, and the agent-specific guardrails for suppressions, unsafe types, skipped tests, snapshot churn, generated attribution strings, empty catches, and unhandled promises. Semantic color enforcement stays opt-in because token paths vary by app:
+
+```js
+module.exports = createConfig({
+	agent: {
+		semanticColors: {
+			tokenModule: '@/theme/colors',
+			importName: 'colors',
+			allowFiles: ['**/theme/colors.ts'],
+		},
+	},
+});
+```
+
 ## Config factory for monorepos and custom TypeScript layouts
 
 For monorepos or non-standard layouts, use the main export's factory instead of forking the package:
@@ -157,6 +193,7 @@ Supported options:
 - `testing`: include or omit Jest and Testing Library rules
 - `typeChecked`: opt into the broader maintained `typescript-eslint` type-aware presets; the default config already enables project service for the package's selected TypeScript rules
 - `strict`: apply the package's strict console and TypeScript overrides
+- `agent`: enable the agent-safe bundle; accepts `true` or options for bundled guardrails
 - `extraIgnores`: append generated/native/review-surface ignore globs
 - `appGuardrails`: enforce suppression, assertion, query-hook, non-null, and snapshot hygiene
 - `reactCompiler`: block React Compiler syntax hazards in component and hook render scope
@@ -200,11 +237,21 @@ The hardening layers are also available as subpaths when manual composition is c
 
 ```js
 const expoMagic = require('eslint-config-expo-magic');
+const agentGuardrails = require('eslint-config-expo-magic/agent-guardrails');
 const reactCompiler = require('eslint-config-expo-magic/react-compiler');
 const worklets = require('eslint-config-expo-magic/worklets');
 
-module.exports = [...expoMagic, ...reactCompiler, ...worklets];
+module.exports = [...expoMagic, ...agentGuardrails, ...reactCompiler, ...worklets];
 ```
+
+## Agent failure modes covered
+
+- Type weakening: `any`, `as any`, `as unknown as`, non-null assertions, and unsafe `@ts-ignore` / `@ts-nocheck`.
+- Hidden async bugs: floating promises, misused promises, and empty catch blocks.
+- Test weakening: `it.only`, `test.skip`, `describe.skip`, and broad snapshot assertions.
+- Generated-noise commits: AI attribution strings and large TODO/FIXME/HACK dumps.
+- Runtime hazards: React Compiler render-scope issues, Reanimated/Worklets misuse, deprecated React/RN APIs, direct RN primitives when `nativeUi` is enabled, and boundary violations when `featureBoundaries` is enabled.
+- PR-level damage: broad `eslint-disable`, skipped tests, fake mocks, unrelated lockfile churn, and missing runtime target notes via `expo-magic-pr-guardrails`.
 
 ## Rule diff and config comparison
 
@@ -217,6 +264,7 @@ bun run report:config
 ## Migration guide and override recipes
 
 - Upgrade paths and adoption order: [`docs/MIGRATING.md`](../../docs/MIGRATING.md)
+- Agent setup recipe: [`docs/AGENTS_RECIPE.md`](../../docs/AGENTS_RECIPE.md)
 - Common override snippets: [`docs/RECIPES.md`](../../docs/RECIPES.md)
 - Release automation: [`docs/RELEASING.md`](../../docs/RELEASING.md)
 - Draft release notes generated from the current config diff: [`docs/RELEASE_NOTES.next.md`](../../docs/RELEASE_NOTES.next.md)

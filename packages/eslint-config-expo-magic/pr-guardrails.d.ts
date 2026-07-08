@@ -33,7 +33,13 @@ export type ResolvedGuardrailOptions = {
 };
 
 export type GuardrailOptions = {
-	preset?: 'default' | 'mobileApp' | 'mobile-app' | ResolvedGuardrailOptions;
+	preset?:
+		| 'default'
+		| 'agentMobileApp'
+		| 'agent-mobile-app'
+		| 'mobileApp'
+		| 'mobile-app'
+		| ResolvedGuardrailOptions;
 	requiredCheckboxes?: string[];
 	additionalRequiredCheckboxes?: string[];
 	runtimeCheckbox?: string;
@@ -55,9 +61,12 @@ export type GuardrailOptions = {
 };
 
 export declare const defaultOptions: ResolvedGuardrailOptions;
+export declare const agentMobileAppOptions: ResolvedGuardrailOptions;
 export declare const mobileAppOptions: ResolvedGuardrailOptions;
 export declare const presets: {
 	default: ResolvedGuardrailOptions;
+	agentMobileApp: ResolvedGuardrailOptions;
+	'agent-mobile-app': ResolvedGuardrailOptions;
 	mobileApp: ResolvedGuardrailOptions;
 	'mobile-app': ResolvedGuardrailOptions;
 };

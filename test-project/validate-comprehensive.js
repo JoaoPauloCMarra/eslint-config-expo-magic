@@ -167,7 +167,6 @@ Object.assign(expectedRules, {
 	'react-19-upgrade/no-prop-types': ['App.tsx'],
 	'react-hooks/error-boundaries': ['ReactCompilerTests.tsx'],
 	'react-hooks/immutability': ['compiler-rules-test.tsx'],
-	'react-hooks/preserve-manual-memoization': ['ReactCompilerTests.tsx'],
 	'react-hooks/purity': ['ReactCompilerTests.tsx'],
 	'react-hooks/refs': ['ReactCompilerTests.tsx'],
 	'react-hooks/rules-of-hooks': ['App.tsx', 'ReactCompilerTests.tsx'],
@@ -195,10 +194,6 @@ const configOnlyRules = new Map([
 		'Enabled from eslint-plugin-import-x recommended config; current resolver stack does not produce a stable local fixture diagnostic.',
 	],
 	[
-		'react-hooks/component-hook-factories',
-		'Enabled from eslint-plugin-react-hooks recommended config; current plugin has no stable minimal fixture in this suite.',
-	],
-	[
 		'react-hooks/config',
 		'Enabled from eslint-plugin-react-hooks recommended config and exercised through config presence.',
 	],
@@ -213,6 +208,10 @@ const configOnlyRules = new Map([
 	[
 		'react-hooks/incompatible-library',
 		'Enabled from eslint-plugin-react-hooks recommended config and exercised through config presence.',
+	],
+	[
+		'react-hooks/preserve-manual-memoization',
+		'Enabled from eslint-plugin-react-hooks recommended config; current plugin has no stable local fixture diagnostic.',
 	],
 	[
 		'react/jsx-uses-react',

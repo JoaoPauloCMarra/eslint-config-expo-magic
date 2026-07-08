@@ -49,17 +49,28 @@ function combineDeltaRules(delta) {
 }
 
 function createReleaseNotes(report = createConfigReport()) {
+	const hasAgentPreset = Boolean(packageJson.exports?.['./agent']);
 	const sections = [
 		'# Changes',
 		'',
 		`- Package version: \`${report.packageVersion}\``,
 		`- Expo base version: \`${report.expoConfigVersion}\``,
+	];
+
+	if (hasAgentPreset) {
+		sections.push(
+			'- Adds `createConfig({ agent: true })` and `eslint-config-expo-magic/agent` for AI-agent-heavy Expo projects.',
+			'- Adds `agent-guardrails`, `agentMobileApp` PR guardrails, `expo-magic-init-agent`, and `docs/AGENTS_RECIPE.md`.',
+		);
+	}
+
+	sections.push(
 		...formatDelta('Base preset vs Expo', report.deltas.baseVsExpo),
 		...formatDelta('Default preset vs Expo', report.deltas.defaultVsExpo),
 		`- no-prettier preset delta: ${formatRuleList(combineDeltaRules(report.deltas.noPrettierVsDefault))}`,
 		`- typed preset delta: ${formatRuleList(combineDeltaRules(report.deltas.typedVsDefault))}`,
 		`- strict preset delta: ${formatRuleList(combineDeltaRules(report.deltas.strictVsDefault))}`,
-	];
+	);
 
 	if (report.deltas.productionAppVsDefault) {
 		sections.push(
