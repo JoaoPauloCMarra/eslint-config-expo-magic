@@ -5,6 +5,10 @@ const os = require('os');
 const { spawnSync } = require('child_process');
 const path = require('path');
 const { ESLint } = require('eslint');
+const {
+	collectLintRuleResults,
+	findMissingRuleFileCoverage,
+} = require('./validation-results.js');
 
 console.log('🚀 ESLint Config Expo Magic - Comprehensive Validation Suite');
 console.log('===========================================================\n');
@@ -21,15 +25,17 @@ const expectedRules = {
 	'@typescript-eslint/no-floating-promises': ['App.tsx'],
 	'@typescript-eslint/no-non-null-assertion': ['App.tsx'],
 	'@typescript-eslint/no-redeclare': ['App.tsx'],
-	'@typescript-eslint/no-require-imports': ['TypeScriptAdvanced.tsx'],
-	'@typescript-eslint/no-unused-vars': ['App.test.tsx', 'App.tsx'],
+	'@typescript-eslint/no-require-imports': [
+		'components/TypeScriptAdvanced.tsx',
+	],
+	'@typescript-eslint/no-unused-vars': ['__tests__/App.test.tsx', 'App.tsx'],
 	'@typescript-eslint/no-useless-constructor': ['App.tsx'],
 
 	// React rules
 	'react-19-upgrade/no-factories': ['App.tsx'],
 	'react-19-upgrade/no-string-refs': ['App.tsx'],
 	'react-hooks/exhaustive-deps': ['App.tsx'],
-	'react-native/no-unused-styles': ['ReactAdvanced.tsx'],
+	'react-native/no-unused-styles': ['components/ReactAdvanced.tsx'],
 	'react/display-name': ['BadImports.tsx'],
 	'react/jsx-key': ['App.tsx'],
 	'react/jsx-no-comment-textnodes': ['App.tsx'],
@@ -38,55 +44,58 @@ const expectedRules = {
 	'react/no-children-prop': ['App.tsx'],
 	'react/no-danger-with-children': ['App.tsx'],
 	'react/no-string-refs': ['App.tsx'],
-	'react/no-unknown-property': ['BadImports.tsx'],
+	'react/no-unknown-property': ['components/BadImports.tsx'],
 	'react/self-closing-comp': ['App.tsx'],
 
 	// Jest rules
-	'jest/expect-expect': ['App.test.tsx'],
-	'jest/no-commented-out-tests': ['App.test.tsx'],
-	'jest/no-conditional-expect': ['App.test.tsx'],
-	'jest/no-deprecated-functions': ['App.test.tsx'],
-	'jest/no-disabled-tests': ['App.test.tsx'],
-	'jest/no-done-callback': ['App.test.tsx'],
-	'jest/no-export': ['App.test.tsx'],
-	'jest/no-focused-tests': ['App.test.tsx'],
-	'jest/no-identical-title': ['App.test.tsx'],
-	'jest/no-interpolation-in-snapshots': ['App.test.tsx'],
-	'jest/no-jasmine-globals': ['JestAdvanced.test.tsx'],
-	'jest/no-alias-methods': ['App.test.tsx'],
-	'jest/no-mocks-import': ['App.test.tsx'],
-	'jest/no-standalone-expect': ['standalone.test.ts'],
-	'jest/no-test-prefixes': ['App.test.tsx'],
-	'jest/prefer-hooks-on-top': ['App.test.tsx'],
-	'jest/prefer-to-be': ['App.test.tsx'],
-	'jest/valid-describe-callback': ['App.test.tsx'],
-	'jest/valid-expect': ['App.test.tsx'],
-	'jest/valid-expect-in-promise': ['App.test.tsx'],
-	'jest/valid-title': ['App.test.tsx'],
+	'jest/expect-expect': ['__tests__/App.test.tsx'],
+	'jest/no-commented-out-tests': ['__tests__/App.test.tsx'],
+	'jest/no-conditional-expect': ['__tests__/App.test.tsx'],
+	'jest/no-deprecated-functions': ['__tests__/App.test.tsx'],
+	'jest/no-disabled-tests': ['__tests__/App.test.tsx'],
+	'jest/no-done-callback': ['__tests__/App.test.tsx'],
+	'jest/no-export': ['__tests__/App.test.tsx'],
+	'jest/no-focused-tests': ['__tests__/App.test.tsx'],
+	'jest/no-identical-title': ['__tests__/App.test.tsx'],
+	'jest/no-interpolation-in-snapshots': ['__tests__/App.test.tsx'],
+	'jest/no-jasmine-globals': ['__tests__/JestAdvanced.test.tsx'],
+	'jest/no-alias-methods': ['__tests__/App.test.tsx'],
+	'jest/no-mocks-import': ['__tests__/App.test.tsx'],
+	'jest/no-standalone-expect': ['__tests__/standalone.test.ts'],
+	'jest/no-test-prefixes': ['__tests__/App.test.tsx'],
+	'jest/prefer-hooks-on-top': ['__tests__/App.test.tsx'],
+	'jest/prefer-to-be': ['__tests__/App.test.tsx'],
+	'jest/valid-describe-callback': ['__tests__/App.test.tsx'],
+	'jest/valid-expect': ['__tests__/App.test.tsx'],
+	'jest/valid-expect-in-promise': ['__tests__/App.test.tsx'],
+	'jest/valid-title': ['__tests__/App.test.tsx'],
 
 	// Testing Library rules
-	'testing-library/await-async-queries': ['App.test.tsx'],
-	'testing-library/no-await-sync-queries': ['App.test.tsx'],
-	'testing-library/no-debugging-utils': ['App.test.tsx'],
-	'testing-library/no-dom-import': ['App.test.tsx'],
+	'testing-library/await-async-queries': ['__tests__/App.test.tsx'],
+	'testing-library/no-await-sync-queries': ['__tests__/App.test.tsx'],
+	'testing-library/no-debugging-utils': ['__tests__/App.test.tsx'],
+	'testing-library/no-dom-import': ['__tests__/App.test.tsx'],
 
 	// Import rules
 	'import-x/export': ['duplicate-exports.ts'],
 	'import-x/first': ['App.tsx'],
-	'import-x/no-amd': ['ImportsAdvanced.tsx'],
+	'import-x/no-amd': ['components/ImportsAdvanced.tsx'],
 	'import-x/no-anonymous-default-export': ['BadImports.tsx'],
 	'import-x/no-cycle': ['cycleA.ts', 'cycleB.ts'],
 	'import-x/no-duplicates': ['App.tsx'],
 	'import-x/no-named-as-default': ['App.tsx'],
 	'import-x/no-named-as-default-member': ['App.tsx'],
 	'import-x/namespace': ['import-violations.ts'],
-	'import-x/no-unresolved': ['ImportsAdvanced.tsx', 'alias-unresolved.ts'],
-	'import-x/no-webpack-loader-syntax': ['ImportsAdvanced.tsx'],
+	'import-x/no-unresolved': [
+		'components/ImportsAdvanced.tsx',
+		'alias-unresolved.ts',
+	],
+	'import-x/no-webpack-loader-syntax': ['components/ImportsAdvanced.tsx'],
 	'import-x/order': ['App.tsx', 'import-violations.ts'],
 
 	// General rules
 	eqeqeq: ['App.tsx'],
-	'expo/prefer-box-shadow': ['GeneralAdvanced.tsx'],
+	'expo/prefer-box-shadow': ['components/GeneralAdvanced.tsx'],
 	'expo/no-dynamic-env-var': ['App.tsx'],
 	'expo/no-env-var-destructuring': ['App.tsx'],
 	'expo/use-dom-exports': ['test.web.tsx'],
@@ -99,28 +108,24 @@ const expectedRules = {
 		'metro.config.js',
 		'validate-comprehensive.js',
 	],
-	'no-dupe-args': ['GeneralAdvanced.tsx'],
+	'no-dupe-args': ['components/GeneralAdvanced.tsx'],
 	'no-dupe-class-members': ['Legacy.js'],
 	'no-dupe-keys': ['App.tsx'],
 	'no-duplicate-case': ['App.tsx'],
 	'no-empty-character-class': ['App.tsx'],
 	'no-empty-pattern': ['App.tsx'],
-	'no-extend-native': ['GeneralAdvanced.tsx'],
+	'no-extend-native': ['components/GeneralAdvanced.tsx'],
 	'no-extra-bind': ['App.tsx'],
 	'no-redeclare': ['Legacy.js'],
 	'no-restricted-imports': ['App.tsx'],
 	'no-undef': ['validate-comprehensive.js'],
 	'no-unreachable': ['App.tsx'],
 	'no-unsafe-negation': ['App.tsx'],
-	'no-unused-expressions': ['App.tsx', 'GeneralAdvanced.tsx'],
+	'no-unused-expressions': ['App.tsx', 'components/GeneralAdvanced.tsx'],
 	'no-unused-labels': ['App.tsx'],
-	'no-unused-vars': [
-		'App.test.tsx',
-		'App.tsx',
-		'metro.config.js',
-	],
+	'no-unused-vars': ['metro.config.js'],
 	'no-var': ['App.tsx'],
-	'no-with': ['GeneralAdvanced.tsx'],
+	'no-with': ['components/GeneralAdvanced.tsx'],
 	'unicode-bom': ['bom.js'],
 	'unused-imports/no-unused-imports': ['App.tsx'],
 	'use-isnan': ['App.tsx'],
@@ -129,14 +134,14 @@ const expectedRules = {
 	// Prettier rules
 	'prettier/prettier': [
 		'.eslintrc.js',
-		'BadImports.tsx',
-		'ImportsAdvanced.tsx',
-		'SimpleList.tsx',
-		'TestRefAccess.tsx',
-		'UnusedComponent.tsx',
+		'components/BadImports.tsx',
+		'components/ImportsAdvanced.tsx',
+		'components/SimpleList.tsx',
+		'components/TestRefAccess.tsx',
+		'components/UnusedComponent.tsx',
 		'babel.config.js',
 		'bom.js',
-		'helpers.ts',
+		'utils/helpers.ts',
 		'index.js',
 		'jest.config.js',
 		'metro.config.js',
@@ -165,15 +170,18 @@ Object.assign(expectedRules, {
 	'react-19-upgrade/no-default-props': ['App.tsx'],
 	'react-19-upgrade/no-legacy-context': ['App.tsx'],
 	'react-19-upgrade/no-prop-types': ['App.tsx'],
-	'react-hooks/error-boundaries': ['ReactCompilerTests.tsx'],
+	'react-hooks/error-boundaries': ['components/ReactCompilerTests.tsx'],
 	'react-hooks/immutability': ['compiler-rules-test.tsx'],
-	'react-hooks/purity': ['ReactCompilerTests.tsx'],
-	'react-hooks/refs': ['ReactCompilerTests.tsx'],
-	'react-hooks/rules-of-hooks': ['App.tsx', 'ReactCompilerTests.tsx'],
-	'react-hooks/set-state-in-render': ['ReactCompilerTests.tsx'],
-	'react-hooks/static-components': ['ReactCompilerTests.tsx'],
-	'react-hooks/unsupported-syntax': ['ReactCompilerTests.tsx'],
-	'react-hooks/use-memo': ['ReactCompilerTests.tsx'],
+	'react-hooks/purity': ['components/ReactCompilerTests.tsx'],
+	'react-hooks/refs': ['components/ReactCompilerTests.tsx'],
+	'react-hooks/rules-of-hooks': [
+		'App.tsx',
+		'components/ReactCompilerTests.tsx',
+	],
+	'react-hooks/set-state-in-render': ['components/ReactCompilerTests.tsx'],
+	'react-hooks/static-components': ['components/ReactCompilerTests.tsx'],
+	'react-hooks/unsupported-syntax': ['components/ReactCompilerTests.tsx'],
+	'react-hooks/use-memo': ['components/ReactCompilerTests.tsx'],
 	'react-native/no-single-element-style-arrays': ['App.tsx'],
 	'react-native/split-platform-components': ['App.tsx'],
 	'react/jsx-no-leaked-render': ['App.tsx'],
@@ -187,6 +195,13 @@ Object.assign(expectedRules, {
 	'react/no-unescaped-entities': ['App.tsx'],
 	'react/require-render-return': ['App.tsx'],
 });
+
+const expectedRuleFiles = Object.fromEntries(
+	Object.entries(expectedRules).map(([ruleId, files]) => [
+		ruleId,
+		files.map((file) => path.posix.join('test-project', file)),
+	]),
+);
 
 const configOnlyRules = new Map([
 	[
@@ -223,19 +238,18 @@ const configOnlyRules = new Map([
 	],
 ]);
 
+const repoRoot = path.resolve(__dirname, '..');
 const packageDir = path.resolve(
-	__dirname,
-	'..',
+	repoRoot,
 	'packages',
 	'eslint-config-expo-magic',
 );
 
-function runCommand(command, args, options = {}) {
+function runCommand(command, args, cwd = process.cwd()) {
 	const result = spawnSync(command, args, {
-		cwd: process.cwd(),
+		cwd,
 		encoding: 'utf8',
 		stdio: ['pipe', 'pipe', 'pipe'],
-		...options,
 	});
 
 	if (result.error) {
@@ -270,7 +284,7 @@ function resolvePresetModulePath(presetModule) {
 	return presetModule;
 }
 
-function runPresetLint({ presetModule, targets }) {
+function runPresetLint(presetModule, targets) {
 	const tempDir = fs.mkdtempSync(
 		path.join(os.tmpdir(), 'eslint-config-expo-magic-preset-'),
 	);
@@ -293,7 +307,7 @@ function runPresetLint({ presetModule, targets }) {
 				configPath,
 				'--format=json',
 			],
-			{ cwd: process.cwd() },
+			process.cwd(),
 		);
 
 		return parseLintResults(result);
@@ -302,17 +316,17 @@ function runPresetLint({ presetModule, targets }) {
 	}
 }
 
-function validatePreset({
+function validatePreset(
 	label,
 	presetModule,
 	targets,
 	requiredRules,
 	forbiddenRules = [],
-}) {
+) {
 	console.log(`\n🧪 Preset Check: ${label}`);
 	console.log('==============================');
 
-	const lintResults = runPresetLint({ presetModule, targets });
+	const lintResults = runPresetLint(presetModule, targets);
 	const messages = lintResults.flatMap((result) => result.messages ?? []);
 
 	let passed = true;
@@ -390,35 +404,8 @@ async function runValidation() {
 	const result = runCommand('bunx', ['eslint', '.', '--format=json']);
 	const eslintOutput = result.stdout.trim();
 	const results = JSON.parse(eslintOutput);
-
-	const ruleCounts = {};
-	const ruleFiles = {};
-	let totalErrors = 0;
-	let totalWarnings = 0;
-
-	results.forEach((lintResult) => {
-		if (!lintResult.filePath) {
-			return;
-		}
-
-		const fileName = path.basename(lintResult.filePath);
-
-		lintResult.messages.forEach((message) => {
-			if (!message.ruleId) {
-				return;
-			}
-
-			ruleCounts[message.ruleId] = (ruleCounts[message.ruleId] || 0) + 1;
-			ruleFiles[message.ruleId] = ruleFiles[message.ruleId] || new Set();
-			ruleFiles[message.ruleId].add(fileName);
-
-			if (message.severity === 2) {
-				totalErrors++;
-			} else if (message.severity === 1) {
-				totalWarnings++;
-			}
-		});
-	});
+	const { ruleCounts, ruleFiles, totalErrors, totalWarnings } =
+		collectLintRuleResults(results, repoRoot);
 
 	console.log('\n📊 Analysis Results:');
 	console.log('===================');
@@ -430,7 +417,10 @@ async function runValidation() {
 	console.log('===========================');
 
 	const missingRules = [];
-	const missingRuleFileCoverage = [];
+	const missingRuleFileCoverage = findMissingRuleFileCoverage(
+		expectedRuleFiles,
+		ruleFiles,
+	);
 	const extraRules = [];
 	const effectiveRuleIds = await collectEffectiveRuleIds();
 	const reportedRuleIds = new Set(Object.keys(ruleCounts));
@@ -441,22 +431,11 @@ async function runValidation() {
 		(ruleId) => !effectiveRuleIds.has(ruleId),
 	);
 
-	for (const [ruleId, expectedFiles] of Object.entries(expectedRules)) {
+	for (const ruleId of Object.keys(expectedRules)) {
 		const count = ruleCounts[ruleId];
 		if (!count) {
 			missingRules.push(ruleId);
 			continue;
-		}
-
-		const triggeredFiles = ruleFiles[ruleId] || new Set();
-		const uncoveredFiles = expectedFiles.filter(
-			(file) => !triggeredFiles.has(file),
-		);
-		if (uncoveredFiles.length > 0) {
-			missingRuleFileCoverage.push({
-				ruleId,
-				files: uncoveredFiles,
-			});
 		}
 
 		console.log(`✅ ${ruleId}: ${count} occurrences`);
@@ -502,55 +481,53 @@ async function runValidation() {
 		}
 	}
 
-	const strictPresetPassed = validatePreset({
-		label: 'strict',
-		presetModule: 'eslint-config-expo-magic/strict',
-		targets: ['preset-fixtures/strict-only.ts'],
-		requiredRules: [
+	const strictPresetPassed = validatePreset(
+		'strict',
+		'eslint-config-expo-magic/strict',
+		['preset-fixtures/strict-only.ts'],
+		[
 			{ ruleId: 'no-console', severity: 2 },
 			{ ruleId: '@typescript-eslint/no-non-null-assertion', severity: 2 },
 			{ ruleId: '@typescript-eslint/no-misused-promises', severity: 2 },
 		],
-	});
+	);
 
-	const basePresetPassed = validatePreset({
-		label: 'base',
-		presetModule: 'eslint-config-expo-magic/base',
-		targets: ['preset-fixtures/base-only.ts'],
-		requiredRules: [
+	const basePresetPassed = validatePreset(
+		'base',
+		'eslint-config-expo-magic/base',
+		['preset-fixtures/base-only.ts'],
+		[
 			{ ruleId: 'expo/no-dynamic-env-var', severity: 2 },
 			{ ruleId: 'expo/no-env-var-destructuring', severity: 2 },
 		],
-		forbiddenRules: ['no-console', 'prettier/prettier'],
-	});
+		['no-console', 'prettier/prettier'],
+	);
 
-	const defaultPresetPassed = validatePreset({
-		label: 'default',
-		presetModule: 'eslint-config-expo-magic',
-		targets: ['preset-fixtures/default-only.ts'],
-		requiredRules: [
+	const defaultPresetPassed = validatePreset(
+		'default',
+		'eslint-config-expo-magic',
+		['preset-fixtures/default-only.ts'],
+		[
 			{ ruleId: 'no-console', severity: 1 },
 			{ ruleId: 'import-x/order', severity: 2 },
 			{ ruleId: 'prettier/prettier', severity: 2 },
 		],
-	});
+	);
 
-	const noPrettierPresetPassed = validatePreset({
-		label: 'no-prettier',
-		presetModule: 'eslint-config-expo-magic/no-prettier',
-		targets: ['preset-fixtures/no-prettier.ts'],
-		requiredRules: [{ ruleId: 'import-x/order', severity: 2 }],
-		forbiddenRules: ['prettier/prettier'],
-	});
+	const noPrettierPresetPassed = validatePreset(
+		'no-prettier',
+		'eslint-config-expo-magic/no-prettier',
+		['preset-fixtures/no-prettier.ts'],
+		[{ ruleId: 'import-x/order', severity: 2 }],
+		['prettier/prettier'],
+	);
 
-	const typedPresetPassed = validatePreset({
-		label: 'typed',
-		presetModule: 'eslint-config-expo-magic/typed',
-		targets: ['preset-fixtures/typed-only.ts'],
-		requiredRules: [
-			{ ruleId: '@typescript-eslint/no-base-to-string', severity: 2 },
-		],
-	});
+	const typedPresetPassed = validatePreset(
+		'typed',
+		'eslint-config-expo-magic/typed',
+		['preset-fixtures/typed-only.ts'],
+		[{ ruleId: '@typescript-eslint/no-base-to-string', severity: 2 }],
+	);
 
 	console.log('\n🎯 Final Validation:');
 	console.log('===================');

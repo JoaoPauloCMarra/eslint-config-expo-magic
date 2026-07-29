@@ -1,5 +1,18 @@
 const { baseRestrictedImports } = require('./restricted-imports.js');
 
+function createRestrictedImportsRule(restrictions) {
+	if (restrictions.length === 0) {
+		return 'off';
+	}
+
+	return [
+		'error',
+		{
+			paths: restrictions,
+		},
+	];
+}
+
 const defaultRestrictions = [
 	...baseRestrictedImports,
 	{
@@ -63,12 +76,7 @@ function createNativeUiConfig(options = {}) {
 	const config = [
 		{
 			rules: {
-				'no-restricted-imports': [
-					'error',
-					{
-						paths: restrictions,
-					},
-				],
+				'no-restricted-imports': createRestrictedImportsRule(restrictions),
 			},
 		},
 	];
@@ -77,7 +85,7 @@ function createNativeUiConfig(options = {}) {
 		config.push({
 			files: allowFiles,
 			rules: {
-				'no-restricted-imports': 'off',
+				'no-restricted-imports': createRestrictedImportsRule(baseRestrictedImports),
 			},
 		});
 	}

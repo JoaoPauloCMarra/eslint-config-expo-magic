@@ -4,6 +4,7 @@ const require = createRequire(import.meta.url);
 const guardrails = require('./pr-guardrails.js');
 
 export default guardrails;
+export const agentMobileAppOptions = guardrails.agentMobileAppOptions;
 export const countChangedLines = guardrails.countChangedLines;
 export const createPrGuardrailOptions = guardrails.createPrGuardrailOptions;
 export const defaultOptions = guardrails.defaultOptions;
@@ -15,6 +16,7 @@ export const hasRelatedTestOrStory = guardrails.hasRelatedTestOrStory;
 export const mentionsRuntimeTarget = guardrails.mentionsRuntimeTarget;
 export const readCliOptionsFromEnv = guardrails.readCliOptionsFromEnv;
 export const readPrGuardrailConfig = guardrails.readPrGuardrailConfig;
-export const readPullRequestInputFromEnv = guardrails.readPullRequestInputFromEnv;
+export const readPullRequestInputFromEnv =
+	guardrails.readPullRequestInputFromEnv;
 export const runCli = guardrails.runCli;
 export const validateGuardrails = guardrails.validateGuardrails;

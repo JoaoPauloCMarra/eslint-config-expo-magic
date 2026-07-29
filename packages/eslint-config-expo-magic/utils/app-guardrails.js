@@ -1,4 +1,6 @@
-const { createRestrictedSyntaxConfigs } = require('./restricted-syntax.js');
+const {
+	createComposedRestrictedSyntaxConfigs,
+} = require('./restricted-syntax.js');
 
 const typeScriptFiles = [
 	'**/*.ts',
@@ -15,13 +17,17 @@ const testFiles = [
 	'**/*.test.tsx',
 	'**/*.spec.ts',
 	'**/*.spec.tsx',
+	'**/*.test.mts',
+	'**/*.spec.mts',
+	'**/*.test.cts',
+	'**/*.spec.cts',
 ];
 
 const DEFAULT_QUERY_HOOK_PATTERN = '^useGet[A-Z]';
 
-function createRestrictedSyntaxGroups(options = {}) {
-	const queryHookPattern =
-		options.queryHookPattern ?? DEFAULT_QUERY_HOOK_PATTERN;
+function createRestrictedSyntaxGroups({
+	queryHookPattern = DEFAULT_QUERY_HOOK_PATTERN,
+} = {}) {
 
 	return [
 		{
@@ -88,7 +94,7 @@ const base = [
 function createAppGuardrailsConfig(options = {}) {
 	return [
 		...base,
-		...createRestrictedSyntaxConfigs(createRestrictedSyntaxGroups(options)),
+		...createComposedRestrictedSyntaxConfigs(createRestrictedSyntaxGroups(options)),
 	];
 }
 

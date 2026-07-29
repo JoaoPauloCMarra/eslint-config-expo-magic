@@ -254,6 +254,7 @@ function createDefaultPreset(
 		...reactConfig,
 		...importsConfig,
 		...appConfig,
+		...(testing ? jestConfig : []),
 		{
 			files: ['apps/**'],
 			rules: {
@@ -267,10 +268,6 @@ function createDefaultPreset(
 			},
 		},
 	];
-
-	if (testing) {
-		defaultPreset.push(...jestConfig);
-	}
 
 	return defaultPreset;
 }
@@ -298,27 +295,54 @@ function createConfig(options = {}) {
 		worklets = false,
 	} = options;
 	const restrictedSyntaxGroups = [];
-	const postCompositionConfig = [];
 	const agentOptions = agent === true ? {} : agent || {};
 	const agentEnabled = Boolean(agent);
-	const effectiveAppGuardrails = agentEnabled
-		? (agentOptions.appGuardrails ?? true)
-		: appGuardrails;
-	const effectiveDeprecatedApis = agentEnabled
-		? (agentOptions.deprecatedApis ?? true)
-		: deprecatedApis;
-	const effectiveReactCompiler = agentEnabled
-		? (agentOptions.reactCompiler ?? true)
-		: reactCompiler;
-	const effectiveReanimated = agentEnabled
-		? (agentOptions.reanimated ?? true)
-		: reanimated;
-	const effectiveSemanticColors = agentEnabled
-		? (agentOptions.semanticColors ?? false)
-		: semanticColors;
-	const effectiveWorklets = agentEnabled
-		? (agentOptions.worklets ?? true)
-		: worklets;
+	const hasTopLevelOption = (optionName) =>
+		Object.prototype.hasOwnProperty.call(options, optionName);
+	const resolveAgentAwareOption = (optionValue, optionName, defaultValue) => {
+		if (!agentEnabled) {
+			return optionValue;
+		}
+
+		if (
+			agent !== true &&
+			Object.prototype.hasOwnProperty.call(agentOptions, optionName)
+		) {
+			return agentOptions[optionName];
+		}
+
+		if (hasTopLevelOption(optionName)) {
+			return optionValue;
+		}
+
+		return defaultValue;
+	};
+	const effectiveAppGuardrails = resolveAgentAwareOption(
+		appGuardrails,
+		'appGuardrails',
+		true,
+	);
+	const effectiveDeprecatedApis = resolveAgentAwareOption(
+		deprecatedApis,
+		'deprecatedApis',
+		true,
+	);
+	const effectiveReactCompiler = resolveAgentAwareOption(
+		reactCompiler,
+		'reactCompiler',
+		true,
+	);
+	const effectiveReanimated = resolveAgentAwareOption(
+		reanimated,
+		'reanimated',
+		true,
+	);
+	const effectiveSemanticColors = resolveAgentAwareOption(
+		semanticColors,
+		'semanticColors',
+		false,
+	);
+	const effectiveWorklets = resolveAgentAwareOption(worklets, 'worklets', true);
 
 	const presetConfig =
 		preset === 'base'
@@ -327,11 +351,6 @@ function createConfig(options = {}) {
 
 	const finalConfig = [...presetConfig];
 
-	if (agentEnabled) {
-		finalConfig.push(...agentGuardrailsConfig.base);
-		restrictedSyntaxGroups.push(...agentGuardrailsConfig.restrictedSyntaxGroups);
-	}
-
 	if (effectiveAppGuardrails) {
 		const appGuardrailsOptions =
 			effectiveAppGuardrails === true ? undefined : effectiveAppGuardrails;
@@ -339,6 +358,11 @@ function createConfig(options = {}) {
 		restrictedSyntaxGroups.push(
 			...appGuardrailsConfig.createRestrictedSyntaxGroups(appGuardrailsOptions),
 		);
+	}
+
+	if (agentEnabled) {
+		finalConfig.push(...agentGuardrailsConfig.base);
+		restrictedSyntaxGroups.push(...agentGuardrailsConfig.restrictedSyntaxGroups);
 	}
 
 	if (componentStructure) {
@@ -391,6 +415,7 @@ function createConfig(options = {}) {
 	if (effectiveReanimated) {
 		const reanimatedOptions =
 			effectiveReanimated === true ? undefined : effectiveReanimated;
+		finalConfig.push(...reanimatedConfig.createSharedValueUsageConfig());
 		restrictedSyntaxGroups.push(
 			...reanimatedConfig.createRestrictedSyntaxGroups(reanimatedOptions),
 		);
@@ -403,9 +428,6 @@ function createConfig(options = {}) {
 			...semanticColorsConfig.createRestrictedSyntaxGroups(
 				semanticColorsOptions,
 			),
-		);
-		postCompositionConfig.push(
-			...semanticColorsConfig.createAllowConfig(semanticColorsOptions),
 		);
 	}
 
@@ -421,10 +443,6 @@ function createConfig(options = {}) {
 		finalConfig.push(
 			...createComposedRestrictedSyntaxConfigs(restrictedSyntaxGroups),
 		);
-	}
-
-	if (postCompositionConfig.length > 0) {
-		finalConfig.push(...postCompositionConfig);
 	}
 
 	if (typeChecked) {

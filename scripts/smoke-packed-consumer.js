@@ -1,12 +1,17 @@
 #!/usr/bin/env bun
 
 const fs = require('fs');
-const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
-
-const rootDir = path.resolve(__dirname, '..');
-const packageDir = path.join(rootDir, 'packages', 'eslint-config-expo-magic');
+const { createRequire } = require('node:module');
+const {
+	run,
+	withPackedTarball,
+	withTempConsumer,
+	writeJson,
+} = require('./lib/packed-consumer.js');
+const NO_RESTRICTED_SYNTAX_RULE_ID = 'no-restricted-syntax';
+const REANIMATED_SHARED_VALUE_RULE_ID = 'expo-magic-reanimated/no-shared-value-misuse';
 
 const smokeLanes = [
 	{
@@ -34,33 +39,13 @@ const smokeLanes = [
 	},
 	{
 		name: 'sdk-57',
-		expo: '57.0.4',
+		expo: '57.0.8',
 		react: '19.2.3',
 		reactNative: '0.86.0',
 		reactTestRenderer: '19.2.3',
 		typescript: '^6.0.3',
 	},
 ];
-
-const previewSmokeLanes = [];
-
-function run(command, args, options = {}) {
-	const result = spawnSync(command, args, {
-		encoding: 'utf8',
-		stdio: 'pipe',
-		...options,
-	});
-
-	if (result.error) {
-		throw result.error;
-	}
-
-	if (result.status !== 0) {
-		throw new Error(result.stderr || result.stdout || `${command} failed`);
-	}
-
-	return result;
-}
 
 function runLint(tempProjectDir, configFile, targetFile) {
 	const result = spawnSync(
@@ -98,24 +83,27 @@ function runLint(tempProjectDir, configFile, targetFile) {
 	return messages;
 }
 
-function listTarballs() {
-	return fs
-		.readdirSync(packageDir)
-		.filter((file) => file.endsWith('.tgz'))
-		.sort((leftFile, rightFile) => {
-			const leftPath = path.join(packageDir, leftFile);
-			const rightPath = path.join(packageDir, rightFile);
-			return fs.statSync(rightPath).mtimeMs - fs.statSync(leftPath).mtimeMs;
-		});
+function assertHasRule(messages, ruleId, message) {
+	if (!messages.some((entry) => entry.ruleId === ruleId)) {
+		throw new Error(message);
+	}
 }
 
-function snapshotTarballs() {
-	return new Map(
-		listTarballs().map((file) => [
-			file,
-			fs.statSync(path.join(packageDir, file)).mtimeMs,
-		]),
+function assertLacksRule(messages, ruleId, message) {
+	if (messages.some((entry) => entry.ruleId === ruleId)) {
+		throw new Error(message);
+	}
+}
+
+function assertMessageForRule(messages, ruleId, messageText, errorMessage) {
+	const hasMatch = messages.some(
+		(message) =>
+			message.ruleId === ruleId &&
+			message.message.includes(messageText),
 	);
+	if (!hasMatch) {
+		throw new Error(errorMessage);
+	}
 }
 
 function createFixturePackageJson(tarballPath, lane) {
@@ -134,6 +122,252 @@ function createFixturePackageJson(tarballPath, lane) {
 			jest: '^30.4.2',
 		},
 	};
+}
+
+function createNpmFixturePackageJson(tarballPath) {
+	return {
+		name: 'eslint-config-expo-magic-npm-consumer',
+		private: true,
+		type: 'module',
+		dependencies: {
+			expo: '57.0.8',
+			react: '19.2.3',
+			'react-test-renderer': '19.2.3',
+			typescript: '6.0.3',
+			'eslint-config-expo-magic': `file:${tarballPath}`,
+		},
+	};
+}
+
+function isRuntimeNamedExport(name) {
+	return /^[$A-Z_a-z][$\w]*$/.test(name) && !/^(?:0|[1-9]\d*)$/.test(name);
+}
+
+function packageSpecifier(packageName, subpath) {
+	return subpath === '.' ? packageName : `${packageName}${subpath.slice(1)}`;
+}
+
+function collectTypeOnlyExportNames(typeScript, sourceFile) {
+	const names = new Set();
+
+	function hasExportModifier(node) {
+		return node.modifiers?.some(
+			(modifier) => modifier.kind === typeScript.SyntaxKind.ExportKeyword,
+		);
+	}
+
+	function visitStatements(statements, namespaceBody = false) {
+		for (const statement of statements) {
+			if (
+				(typeScript.isTypeAliasDeclaration(statement) ||
+					typeScript.isInterfaceDeclaration(statement)) &&
+				(namespaceBody || hasExportModifier(statement))
+			) {
+				names.add(statement.name.text);
+			}
+
+			if (typeScript.isExportDeclaration(statement)) {
+				const exportClause = statement.exportClause;
+				if (
+					exportClause &&
+					typeScript.isNamedExports(exportClause) &&
+					(namespaceBody || statement.isTypeOnly)
+				) {
+					for (const element of exportClause.elements) {
+						names.add(element.name.text);
+					}
+				}
+			}
+
+			if (
+				typeScript.isModuleDeclaration(statement) &&
+				statement.body &&
+				typeScript.isModuleBlock(statement.body)
+			) {
+				visitStatements(statement.body.statements, true);
+			}
+		}
+	}
+
+	visitStatements(sourceFile.statements);
+	return [...names].sort();
+}
+
+function writeRuntimeContract(tempProjectDir) {
+	fs.writeFileSync(
+		path.join(tempProjectDir, 'package-runtime-contract.mjs'),
+		[
+			"import assert from 'node:assert/strict';",
+			"import { createRequire } from 'node:module';",
+			'',
+			'const require = createRequire(import.meta.url);',
+			"const manifest = require('eslint-config-expo-magic/package.json');",
+			'',
+			'function packageSpecifier(subpath) {',
+			"\treturn subpath === '.' ? manifest.name : `${manifest.name}${subpath.slice(1)}`;",
+			'}',
+			'',
+			'function isRuntimeNamedExport(name) {',
+			'\treturn /^[$A-Z_a-z][$\\w]*$/.test(name) && !/^(?:0|[1-9]\\d*)$/.test(name);',
+			'}',
+			'',
+			'for (const [subpath, exportValue] of Object.entries(manifest.exports)) {',
+			'\tconst specifier = packageSpecifier(subpath);',
+			'',
+			"\tif (typeof exportValue === 'string') {",
+			'\t\tconst exportedValue = require(specifier);',
+			'\t\tassert.equal(exportedValue.name, manifest.name);',
+			'\t\tassert.equal(exportedValue.version, manifest.version);',
+			'\t\tcontinue;',
+			'\t}',
+			'',
+			'\tassert.equal(typeof exportValue.types, "string");',
+			'\tassert.equal(typeof exportValue.require, "string");',
+			'\tassert.equal(typeof exportValue.import, "string");',
+			'\tconst commonJsModule = require(specifier);',
+			'\tconst esmModule = await import(specifier);',
+			'\tconst commonJsNamedExports = Object.keys(commonJsModule)',
+			'\t\t.filter(isRuntimeNamedExport)',
+			'\t\t.sort();',
+			'\tconst esmNamedExports = Object.keys(esmModule)',
+			"\t\t.filter((name) => name !== 'default')",
+			'\t\t.sort();',
+			'',
+			'\tassert.equal(esmModule.default, commonJsModule, `${subpath} default export`);',
+			'\tassert.deepEqual(esmNamedExports, commonJsNamedExports, `${subpath} named exports`);',
+			'}',
+			'',
+		].join('\n'),
+	);
+}
+
+function writeTypeContract(tempProjectDir) {
+	const consumerRequire = createRequire(
+		path.join(tempProjectDir, 'package.json'),
+	);
+	const manifestPath = consumerRequire.resolve(
+		'eslint-config-expo-magic/package.json',
+	);
+	const packageRoot = path.dirname(manifestPath);
+	const manifest = consumerRequire('eslint-config-expo-magic/package.json');
+	const typeScript = consumerRequire('typescript');
+	const sourceLines = [];
+	let exportIndex = 0;
+
+	for (const [subpath, exportValue] of Object.entries(manifest.exports)) {
+		if (typeof exportValue === 'string') {
+			continue;
+		}
+
+		const specifier = packageSpecifier(manifest.name, subpath);
+		const commonJsModule = consumerRequire(specifier);
+		const runtimeNames = Object.keys(commonJsModule)
+			.filter(isRuntimeNamedExport)
+			.sort();
+		const declarationPath = path.join(packageRoot, exportValue.types);
+		const declarationSource = fs.readFileSync(declarationPath, 'utf8');
+		const sourceFile = typeScript.createSourceFile(
+			declarationPath,
+			declarationSource,
+			typeScript.ScriptTarget.Latest,
+			true,
+			typeScript.ScriptKind.TS,
+		);
+		const typeNames = collectTypeOnlyExportNames(typeScript, sourceFile).filter(
+			(name) => !runtimeNames.includes(name),
+		);
+		const prefix = `export${exportIndex}`;
+
+		sourceLines.push(
+			`import ${prefix}Default from ${JSON.stringify(specifier)};`,
+		);
+		if (runtimeNames.length > 0) {
+			sourceLines.push(
+				`import { ${runtimeNames
+					.map((name) => `${name} as ${prefix}_${name}`)
+					.join(', ')} } from ${JSON.stringify(specifier)};`,
+			);
+		}
+		if (typeNames.length > 0) {
+			sourceLines.push(
+				`import type { ${typeNames
+					.map((name) => `${name} as ${prefix}_${name}`)
+					.join(', ')} } from ${JSON.stringify(specifier)};`,
+			);
+		}
+		sourceLines.push(`void ${prefix}Default;`);
+		if (runtimeNames.length > 0) {
+			sourceLines.push(
+				`void [${runtimeNames.map((name) => `${prefix}_${name}`).join(', ')}];`,
+			);
+		}
+		if (typeNames.length > 0) {
+			sourceLines.push(
+				`type ${prefix}Types = [${typeNames
+					.map((name) => `${prefix}_${name}`)
+					.join(', ')}];`,
+			);
+		}
+		sourceLines.push('');
+		exportIndex += 1;
+	}
+
+	fs.writeFileSync(
+		path.join(tempProjectDir, 'package-type-contract.mts'),
+		`${sourceLines.join('\n')}\n`,
+	);
+	writeJson(path.join(tempProjectDir, 'tsconfig.package-contract.json'), {
+		compilerOptions: {
+			allowSyntheticDefaultImports: true,
+			esModuleInterop: true,
+			module: 'NodeNext',
+			moduleResolution: 'NodeNext',
+			noEmit: true,
+			skipLibCheck: false,
+			strict: true,
+			target: 'ES2022',
+			types: [],
+			verbatimModuleSyntax: true,
+		},
+		files: ['package-type-contract.mts'],
+	});
+}
+
+function validatePackageContract(tempProjectDir) {
+	writeRuntimeContract(tempProjectDir);
+	writeTypeContract(tempProjectDir);
+	run('node', ['package-runtime-contract.mjs'], { cwd: tempProjectDir });
+	run('bunx', ['tsc', '--project', 'tsconfig.package-contract.json'], {
+		cwd: tempProjectDir,
+	});
+}
+
+function validateNpmConsumer(tarballPath) {
+	withTempConsumer('npm-consumer', (tempProjectDir) => {
+		writeJson(
+			path.join(tempProjectDir, 'package.json'),
+			createNpmFixturePackageJson(tarballPath),
+		);
+		run(
+			'npm',
+			[
+				'install',
+				'--dry-run=false',
+				'--ignore-scripts',
+				'--no-audit',
+				'--no-fund',
+			],
+			{
+				cwd: tempProjectDir,
+				env: {
+					...process.env,
+					npm_config_package_lock: 'false',
+				},
+			},
+		);
+		writeRuntimeContract(tempProjectDir);
+		run('node', ['package-runtime-contract.mjs'], { cwd: tempProjectDir });
+	});
 }
 
 function writeFixtureFiles(tempProjectDir) {
@@ -229,7 +463,7 @@ function writeFixtureFiles(tempProjectDir) {
 			'export const noPrettierValue = [localValue, path.sep];',
 			'',
 		].join('\n'),
-		);
+	);
 
 	fs.writeFileSync(
 		path.join(tempProjectDir, 'agent-smoke.test.ts'),
@@ -260,11 +494,18 @@ function writeFixtureFiles(tempProjectDir) {
 		path.join(tempProjectDir, 'hardening-smoke.tsx'),
 		[
 			"import { Button, StyleSheet } from 'react-native';",
+			'// eslint-disable-next-line import-x/no-unresolved',
+			"import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';",
+			'',
+			"declare module 'react-native-reanimated' {",
+			'\texport type SharedValue<T> = { value: T; get: () => T };',
+			'\texport function useAnimatedStyle<T>(callback: () => T): { value: T };',
+			'\texport function useSharedValue<T>(value: T): SharedValue<T>;',
+			'}',
 			'',
 			'declare const value: unknown;',
 			'declare const shared: { value: number };',
 			'declare function useGetPeople(): { data: string[] };',
-			'declare function useSharedValue<T>(v: T): { value: T };',
 			'declare function usePanGesture(cfg: object): object;',
 			'declare function scheduleOnRN(callback: () => void): void;',
 			'',
@@ -272,16 +513,17 @@ function writeFixtureFiles(tempProjectDir) {
 			'const unsafeValue = value as unknown as string;',
 			'const queryResult = {} as QueryResult;',
 			'const fill = StyleSheet.absoluteFillObject;',
-			"const brand = '#ff0000';",
+			"const semanticColor = '#ff0000';",
 			'',
 			'export function HardeningSmoke() {',
 			'\tconst animated = useSharedValue(shared.value);',
+			'\tconst style = useAnimatedStyle(() => ({ opacity: animated.get() }));',
 			'\tconst gesture = usePanGesture({ onStart: () => {} });',
 			'\tscheduleOnRN(() => {});',
 			'',
 			'\treturn (',
 			'\t\t<Button',
-			'\t\t\ttitle={`${unsafeValue}:${queryResult.data.length}:${animated.value}:${brand}:${String(fill)}:${String(gesture)}`}',
+			'\t\t\ttitle={`${unsafeValue}:${queryResult.data.length}:${animated.value}:${semanticColor}:${String(fill)}:${String(gesture)}:${String(style.opacity)}`}',
 			'\t\t/>',
 			'\t);',
 			'}',
@@ -306,12 +548,7 @@ function writeFixtureFiles(tempProjectDir) {
 	fs.mkdirSync(path.join(tempProjectDir, 'services'), { recursive: true });
 	fs.writeFileSync(
 		path.join(tempProjectDir, 'features/people/screens/ListScreen.tsx'),
-		[
-			'export function ListScreen() {',
-			'\treturn null;',
-			'}',
-			'',
-		].join('\n'),
+		['export function ListScreen() {', '\treturn null;', '}', ''].join('\n'),
 	);
 	fs.writeFileSync(
 		path.join(tempProjectDir, 'services/people-service.ts'),
@@ -397,266 +634,265 @@ function validateLane(tempProjectDir) {
 		'eslint.base.config.js',
 		'base-smoke.ts',
 	);
-	if (
-		!baseMessages.some(
-			(message) => message.ruleId === 'expo/no-dynamic-env-var',
-		)
-	) {
-		throw new Error('Base preset did not report expo/no-dynamic-env-var.');
-	}
-	if (
-		!baseMessages.some(
-			(message) => message.ruleId === 'expo/no-env-var-destructuring',
-		)
-	) {
-		throw new Error(
-			'Base preset did not report expo/no-env-var-destructuring.',
-		);
-	}
-	if (baseMessages.some((message) => message.ruleId === 'no-console')) {
-		throw new Error('Base preset should not report no-console.');
-	}
+	assertHasRule(
+		baseMessages,
+		'expo/no-dynamic-env-var',
+		'Base preset did not report expo/no-dynamic-env-var.',
+	);
+	assertHasRule(
+		baseMessages,
+		'expo/no-env-var-destructuring',
+		'Base preset did not report expo/no-env-var-destructuring.',
+	);
+	assertLacksRule(
+		baseMessages,
+		'no-console',
+		'Base preset should not report no-console.',
+	);
 
 	const defaultMessages = runLint(
 		tempProjectDir,
 		'eslint.default.config.js',
 		'default-smoke.ts',
 	);
-	if (!defaultMessages.some((message) => message.ruleId === 'no-console')) {
-		throw new Error('Default preset did not report no-console.');
-	}
-	if (
-		!defaultMessages.some((message) => message.ruleId === 'import-x/order')
-	) {
-		throw new Error('Default preset did not report import-x/order.');
-	}
-	if (
-		!defaultMessages.some((message) => message.ruleId === 'prettier/prettier')
-	) {
-		throw new Error('Default preset did not report prettier/prettier.');
-	}
+	assertHasRule(
+		defaultMessages,
+		'no-console',
+		'Default preset did not report no-console.',
+	);
+	assertHasRule(
+		defaultMessages,
+		'import-x/order',
+		'Default preset did not report import-x/order.',
+	);
+	assertHasRule(
+		defaultMessages,
+		'prettier/prettier',
+		'Default preset did not report prettier/prettier.',
+	);
 
 	const strictMessages = runLint(
 		tempProjectDir,
 		'eslint.strict.config.js',
 		'strict-smoke.ts',
 	);
-	if (!strictMessages.some((message) => message.ruleId === 'no-console')) {
-		throw new Error('Strict preset did not report no-console.');
-	}
+	assertHasRule(
+		strictMessages,
+		'no-console',
+		'Strict preset did not report no-console.',
+	);
 
 	const agentMessages = runLint(
 		tempProjectDir,
 		'eslint.agent.config.js',
 		'agent-smoke.test.ts',
 	);
-	if (
-		!agentMessages.some(
-			(message) => message.ruleId === '@typescript-eslint/ban-ts-comment',
-		)
-	) {
-		throw new Error('Agent preset did not report ban-ts-comment.');
-	}
-	if (!agentMessages.some((message) => message.ruleId === 'no-restricted-syntax')) {
-		throw new Error('Agent preset did not report no-restricted-syntax.');
-	}
-	if (agentMessages.some((message) => message.ruleId === 'prettier/prettier')) {
-		throw new Error('Agent preset should not report prettier/prettier.');
-	}
+	assertHasRule(
+		agentMessages,
+		'@typescript-eslint/ban-ts-comment',
+		'Agent preset did not report ban-ts-comment.',
+	);
+	assertHasRule(
+		agentMessages,
+		NO_RESTRICTED_SYNTAX_RULE_ID,
+		'Agent preset did not report no-restricted-syntax.',
+	);
+	assertLacksRule(
+		agentMessages,
+		'prettier/prettier',
+		'Agent preset should not report prettier/prettier.',
+	);
 
 	const typedMessages = runLint(
 		tempProjectDir,
 		'eslint.typed.config.js',
 		'typed-smoke.ts',
 	);
-	if (
-		!typedMessages.some(
-			(message) => message.ruleId === '@typescript-eslint/no-base-to-string',
-		)
-	) {
-		throw new Error(
-			'Typed preset did not report @typescript-eslint/no-base-to-string.',
-		);
-	}
-	if (
-		typedMessages.some((message) => message.ruleId === 'import-x/no-unresolved')
-	) {
-		throw new Error('Typed preset failed to resolve bun:test.');
-	}
+	assertHasRule(
+		typedMessages,
+		'@typescript-eslint/no-base-to-string',
+		'Typed preset did not report @typescript-eslint/no-base-to-string.',
+	);
+	assertLacksRule(
+		typedMessages,
+		'import-x/no-unresolved',
+		'Typed preset failed to resolve bun:test.',
+	);
 
 	const typedEsmMessages = runLint(
 		tempProjectDir,
 		'eslint.typed-esm.config.mjs',
 		'typed-esm-smoke.ts',
 	);
-	if (
-		!typedEsmMessages.some(
-			(message) => message.ruleId === '@typescript-eslint/no-base-to-string',
-		)
-	) {
-		throw new Error(
-			'ESM typed preset did not report @typescript-eslint/no-base-to-string.',
-		);
-	}
-	if (
-		typedEsmMessages.some(
-			(message) => message.ruleId === 'import-x/no-unresolved',
-		)
-	) {
-		throw new Error('ESM typed preset failed to resolve bun:test.');
-	}
+	assertHasRule(
+		typedEsmMessages,
+		'@typescript-eslint/no-base-to-string',
+		'ESM typed preset did not report @typescript-eslint/no-base-to-string.',
+	);
+	assertLacksRule(
+		typedEsmMessages,
+		'import-x/no-unresolved',
+		'ESM typed preset failed to resolve bun:test.',
+	);
 
 	const noPrettierMessages = runLint(
 		tempProjectDir,
 		'eslint.no-prettier.config.js',
 		'no-prettier-smoke.ts',
 	);
-	if (
-		noPrettierMessages.some((message) => message.ruleId === 'prettier/prettier')
-	) {
-		throw new Error('no-prettier preset reported prettier/prettier.');
-	}
-	if (
-		!noPrettierMessages.some((message) => message.ruleId === 'import-x/order')
-	) {
-		throw new Error('no-prettier preset did not report import-x/order.');
-	}
+	assertLacksRule(
+		noPrettierMessages,
+		'prettier/prettier',
+		'no-prettier preset reported prettier/prettier.',
+	);
+	assertHasRule(
+		noPrettierMessages,
+		'import-x/order',
+		'no-prettier preset did not report import-x/order.',
+	);
 
 	const factoryMessages = runLint(
 		tempProjectDir,
 		'eslint.factory.config.js',
 		'factory-custom-smoke.ts',
 	);
-	if (!factoryMessages.some((message) => message.ruleId === 'no-console')) {
-		throw new Error('Factory config did not report no-console.');
-	}
-	if (!factoryMessages.some((message) => message.ruleId === 'import-x/order')) {
-		throw new Error('Factory config did not report import-x/order.');
-	}
-	if (factoryMessages.some((message) => message.ruleId === 'prettier/prettier')) {
-		throw new Error('Factory config should not report prettier/prettier.');
-	}
-	if (
-		factoryMessages.some((message) => message.ruleId === 'jest/no-disabled-tests')
-	) {
-		throw new Error('Factory config should not enable Jest rules when testing is false.');
-	}
+	assertHasRule(
+		factoryMessages,
+		'no-console',
+		'Factory config did not report no-console.',
+	);
+	assertHasRule(
+		factoryMessages,
+		'import-x/order',
+		'Factory config did not report import-x/order.',
+	);
+	assertLacksRule(
+		factoryMessages,
+		'prettier/prettier',
+		'Factory config should not report prettier/prettier.',
+	);
+	assertLacksRule(
+		factoryMessages,
+		'jest/no-disabled-tests',
+		'Factory config should not enable Jest rules when testing is false.',
+	);
 
 	const hardeningMessages = runLint(
 		tempProjectDir,
 		'eslint.hardening.config.js',
 		'hardening-smoke.tsx',
 	);
-	if (
-		!hardeningMessages.some(
-			(message) => message.ruleId === 'no-restricted-imports',
-		)
-	) {
-		throw new Error('Hardening config did not report no-restricted-imports.');
+	if (process.env.DEBUG_SMOKE_HARDENING_RULES === '1') {
+		console.log(
+			`[${tempProjectDir}] hardening messages:`,
+			JSON.stringify(
+				hardeningMessages.map((message) => ({
+					ruleId: message.ruleId,
+					message: message.message,
+				})),
+				null,
+				2,
+			),
+		);
 	}
-	if (
-		hardeningMessages.filter(
-			(message) => message.ruleId === 'no-restricted-syntax',
-		).length < 6
-	) {
-		throw new Error('Hardening config did not compose no-restricted-syntax rules.');
-	}
-	if (
-		!hardeningMessages.some(
-			(message) => message.ruleId === 'no-restricted-properties',
-		)
-	) {
-		throw new Error('Hardening config did not compose deprecated-api rules.');
-	}
+	assertHasRule(
+		hardeningMessages,
+		'no-restricted-imports',
+		'Hardening config did not report no-restricted-imports.',
+	);
+	assertHasRule(
+		hardeningMessages,
+		NO_RESTRICTED_SYNTAX_RULE_ID,
+		'Hardening config did not compose no-restricted-syntax.',
+	);
+	assertMessageForRule(
+		hardeningMessages,
+		NO_RESTRICTED_SYNTAX_RULE_ID,
+		'Avoid double type assertions.',
+		'Hardening config did not report app guardrail double type assertions.',
+	);
+	assertMessageForRule(
+		hardeningMessages,
+		NO_RESTRICTED_SYNTAX_RULE_ID,
+		'Avoid `ReturnType<typeof useGet...',
+		'Hardening config did not report app guardrail ReturnType selectors.',
+	);
+	assertMessageForRule(
+		hardeningMessages,
+		NO_RESTRICTED_SYNTAX_RULE_ID,
+		'Memoize gesture config before passing it to RNGH gesture hooks',
+		'Hardening config did not report Reanimated gesture hardening.',
+	);
+	assertMessageForRule(
+		hardeningMessages,
+		NO_RESTRICTED_SYNTAX_RULE_ID,
+		'Do not use raw color literals.',
+		'Hardening config did not report semantic color hardening.',
+	);
+	assertHasRule(
+		hardeningMessages,
+		'no-restricted-properties',
+		'Hardening config did not compose deprecated-api rules.',
+	);
+	assertHasRule(
+		hardeningMessages,
+		REANIMATED_SHARED_VALUE_RULE_ID,
+		`Hardening config did not report ${REANIMATED_SHARED_VALUE_RULE_ID}.`,
+	);
 
 	const storyMessages = runLint(
 		tempProjectDir,
 		'eslint.hardening.config.js',
 		'hardening.stories.tsx',
 	);
-	if (storyMessages.some((message) => message.ruleId === 'no-console')) {
-		throw new Error('Storybook config should allow console in stories.');
-	}
+	assertLacksRule(
+		storyMessages,
+		'no-console',
+		'Storybook config should allow console in stories.',
+	);
 
 	const boundaryMessages = runLint(
 		tempProjectDir,
 		'eslint.hardening.config.js',
 		'services/people-service.ts',
 	);
-	if (
-		!boundaryMessages.some(
-			(message) => message.ruleId === 'boundaries/dependencies',
-		)
-	) {
-		throw new Error('Hardening config did not report feature boundary violations.');
-	}
+	assertHasRule(
+		boundaryMessages,
+		'boundaries/dependencies',
+		'Hardening config did not report feature boundary violations.',
+	);
 }
 
 function main() {
-	const lanes = process.argv.includes('--all-lanes')
-		? [...smokeLanes, ...previewSmokeLanes]
-		: process.argv.includes('--preview')
-			? previewSmokeLanes
-			: smokeLanes;
-
-	if (lanes.length === 0) {
-		console.log('No preview smoke lanes configured.');
-		return;
-	}
-
-	const tarballsBefore = snapshotTarballs();
-	let generatedTarballPath;
-	const tempProjectDirs = [];
-
-	try {
-		console.log('Packing local tarball...');
-		run('bun', ['pm', 'pack'], { cwd: packageDir });
-
-		const newTarball = listTarballs().find((file) => {
-			const previousMtimeMs = tarballsBefore.get(file);
-			if (previousMtimeMs === undefined) {
-				return true;
+	const contractsOnly = process.argv.includes('--contracts-only');
+	const npmOnly = process.argv.includes('--npm-only');
+	const lanes = contractsOnly ? [smokeLanes.at(-1)] : smokeLanes;
+	console.log('Packing local tarball...');
+	withPackedTarball((tarballPath) => {
+		if (!npmOnly) {
+			for (const lane of lanes) {
+				console.log(`Installing packed consumer for ${lane.name}...`);
+				withTempConsumer(lane.name, (tempProjectDir) => {
+					writeJson(
+						path.join(tempProjectDir, 'package.json'),
+						createFixturePackageJson(tarballPath, lane),
+					);
+					run('bun', ['install'], { cwd: tempProjectDir });
+					validatePackageContract(tempProjectDir);
+					if (!contractsOnly) {
+						writeFixtureFiles(tempProjectDir);
+						validateLane(tempProjectDir);
+					}
+				});
 			}
-
-			return fs.statSync(path.join(packageDir, file)).mtimeMs > previousMtimeMs;
-		});
-		if (!newTarball) {
-			throw new Error('Could not find generated tarball from bun pm pack.');
 		}
 
-		generatedTarballPath = path.join(packageDir, newTarball);
-
-		for (const lane of lanes) {
-			console.log(`Installing packed consumer for ${lane.name}...`);
-			const tempProjectDir = fs.mkdtempSync(
-				path.join(os.tmpdir(), `eslint-config-expo-magic-${lane.name}-`),
-			);
-			tempProjectDirs.push(tempProjectDir);
-
-			fs.writeFileSync(
-				path.join(tempProjectDir, 'package.json'),
-				`${JSON.stringify(
-					createFixturePackageJson(generatedTarballPath, lane),
-					null,
-					2,
-				)}\n`,
-			);
-
-			run('bun', ['install'], { cwd: tempProjectDir });
-			writeFixtureFiles(tempProjectDir);
-			validateLane(tempProjectDir);
+		if (!contractsOnly) {
+			console.log('Installing isolated npm consumer...');
+			validateNpmConsumer(tarballPath);
 		}
-
-		console.log('Pack smoke checks passed.');
-	} finally {
-		for (const tempProjectDir of tempProjectDirs) {
-			fs.rmSync(tempProjectDir, { recursive: true, force: true });
-		}
-
-		if (generatedTarballPath && fs.existsSync(generatedTarballPath)) {
-			fs.unlinkSync(generatedTarballPath);
-		}
-	}
+	});
+	console.log('Pack smoke checks passed.');
 }
 
 main();

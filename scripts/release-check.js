@@ -16,9 +16,17 @@ function run(command, args) {
 	}
 }
 
-run('bun', ['run', 'check-pm']);
-run('bun', ['run', 'report:config']);
-run('bun', ['run', 'test']);
-run('bun', ['run', 'validate']);
-run('bun', ['run', 'smoke:release']);
-run('bun', ['run', 'smoke:clean-sdk57']);
+const checks = [
+	'check-pm',
+	'report:config',
+	'audit:deps',
+	'test',
+	'typecheck',
+	'validate',
+	'smoke:release',
+	'smoke:clean-sdk57',
+];
+
+for (const script of checks) {
+	run('bun', ['run', script]);
+}

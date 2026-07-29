@@ -1,4 +1,4 @@
-import type { Linter } from 'eslint';
+import type { Linter, Rule } from 'eslint';
 
 type FlatConfig = Linter.Config;
 
@@ -16,8 +16,35 @@ type RestrictedSyntaxConfig = FlatConfig[] & {
 	restrictedSyntaxGroups: RestrictedSyntaxGroup[];
 };
 
+type AgentGuardrailsConfig = RestrictedSyntaxConfig & {
+	base: FlatConfig[];
+	createAgentGuardrailsConfig(): FlatConfig[];
+	createRestrictedSyntaxGroups(): RestrictedSyntaxGroup[];
+};
+
 type AppGuardrailsConfig = RestrictedSyntaxConfig & {
 	base: FlatConfig[];
+	createAppGuardrailsConfig(options?: AppGuardrailsOptions): FlatConfig[];
+	createRestrictedSyntaxGroups(options?: AppGuardrailsOptions): RestrictedSyntaxGroup[];
+};
+
+type ReanimatedConfig = FlatConfig[] & {
+	createReanimatedConfig(options?: ReanimatedOptions): FlatConfig[];
+	createRestrictedSyntaxGroups(options?: ReanimatedOptions): RestrictedSyntaxGroup[];
+	createSharedValueUsageConfig(): FlatConfig[];
+	restrictedSyntaxGroups: RestrictedSyntaxGroup[];
+	sharedValueUsageRule: Rule.RuleModule;
+};
+
+type SemanticColorsConfig = FlatConfig[] & {
+	createSemanticColorsConfig(
+		options?: SemanticColorsOptions,
+	): FlatConfig[];
+	createRestrictedSyntaxGroups(
+		options?: SemanticColorsOptions,
+	): RestrictedSyntaxGroup[];
+	createAllowConfig(options?: SemanticColorsOptions): FlatConfig[];
+	restrictedSyntaxGroups: RestrictedSyntaxGroup[];
 };
 
 type NativeUiRestriction = {
@@ -100,7 +127,7 @@ type CreateConfigOptions = {
 	componentStructure?: boolean | ComponentStructureOptions;
 	deprecatedApis?: boolean | DeprecatedApiOptions;
 	featureBoundaries?: boolean | FeatureBoundaryOptions;
-	inlineStyles?: boolean | Linter.RuleLevel;
+	inlineStyles?: boolean | Linter.RuleSeverity;
 	nativeUi?: boolean | NativeUiOptions;
 	reactCompiler?: boolean;
 	reanimated?: boolean | ReanimatedOptions;
@@ -113,15 +140,24 @@ type ReactCompilerConfig = FlatConfig[] & {
 	rules: Record<string, Linter.RuleEntry>;
 };
 
+type NoPrettierConfig = FlatConfig[] & {
+	strict: FlatConfig[];
+	typed: FlatConfig[];
+};
+
+type TypedConfig = FlatConfig[] & {
+	noPrettier: FlatConfig[];
+};
+
 declare const config: FlatConfig[] & {
 	agent: FlatConfig[];
-	agentGuardrails: RestrictedSyntaxConfig;
+	agentGuardrails: AgentGuardrailsConfig;
 	base: FlatConfig[];
 	createConfig(options?: CreateConfigOptions): FlatConfig[];
 	createAgentGuardrailsConfig(): FlatConfig[];
 	strict: FlatConfig[];
-	typed: FlatConfig[];
-	noPrettier: FlatConfig[];
+	typed: TypedConfig;
+	noPrettier: NoPrettierConfig;
 	strictNoPrettier: FlatConfig[];
 	typedNoPrettier: FlatConfig[];
 	appGuardrails: AppGuardrailsConfig;
@@ -137,9 +173,9 @@ declare const config: FlatConfig[] & {
 	featureBoundaries: FlatConfig[];
 	nativeUi: FlatConfig[];
 	reactCompiler: ReactCompilerConfig;
-	reanimated: FlatConfig[];
+	reanimated: ReanimatedConfig;
 	createReanimatedConfig(options?: ReanimatedOptions): FlatConfig[];
-	semanticColors: FlatConfig[];
+	semanticColors: SemanticColorsConfig;
 	createSemanticColorsConfig(options?: SemanticColorsOptions): FlatConfig[];
 	storybook: FlatConfig[];
 	worklets: RestrictedSyntaxConfig;
@@ -147,6 +183,7 @@ declare const config: FlatConfig[] & {
 
 declare namespace config {
 	export {
+		AgentGuardrailsConfig,
 		AgentOptions,
 		AppGuardrailsConfig,
 		AppGuardrailsOptions,
@@ -159,10 +196,14 @@ declare namespace config {
 		NativeUiOptions,
 		NativeUiRestriction,
 		ReactCompilerConfig,
+		ReanimatedConfig,
 		ReanimatedOptions,
 		RestrictedSyntaxConfig,
 		RestrictedSyntaxGroup,
 		RestrictedSyntaxSelector,
+		NoPrettierConfig,
+		TypedConfig,
+		SemanticColorsConfig,
 		SemanticColorsOptions,
 	};
 }

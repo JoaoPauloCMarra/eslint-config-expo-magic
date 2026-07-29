@@ -2,58 +2,55 @@
 
 [![npm version](https://img.shields.io/npm/v/eslint-config-expo-magic.svg)](https://www.npmjs.com/package/eslint-config-expo-magic)
 [![CI](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/actions/workflows/ci.yml/badge.svg)](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Release](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/actions/workflows/release.yml/badge.svg)](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/actions/workflows/release.yml)
+[![Documentation](https://img.shields.io/badge/docs-guides-blue.svg)](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/tree/main/docs)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/LICENSE)
 
-Production-focused ESLint flat config for Expo and React Native projects, with TypeScript, React 19, Jest, Testing Library, import hygiene, and Prettier integration prewired.
+Flat ESLint config for Expo and React Native projects. It combines Expo defaults with TypeScript, React 19, React Native, imports, Jest, Testing Library, optional production guardrails, and typed CommonJS/ESM exports.
 
-## Table of Contents
+## Contents
 
+- [Install](#install)
+- [Quick start](#quick-start)
+- [Presets](#presets)
+- [`createConfig`](#createconfig)
+- [Exports and types](#exports-and-types)
+- [Behavior and file scope](#behavior-and-file-scope)
 - [Compatibility](#compatibility)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [API Reference](#api-reference)
-- [Behavior Reference](#behavior-reference)
-- [Customization Patterns](#customization-patterns)
-- [Monorepo Usage](#monorepo-usage)
+- [Upgrade to 3.0.0](#upgrade-to-300)
+- [Documentation](#documentation)
 - [Troubleshooting](#troubleshooting)
-- [Changelog](#changelog)
-- [Contributing](#contributing)
 
-## Compatibility
-
-- Node.js: `>=18.0.0`
-- Bun: `>=1.0.0` (recommended for development and publishing)
-- ESLint: `10.x` flat config
-- Expo: `^54.0.33 || ^55.0.0 || ^56.0.0 || ^57.0.0` (peer dependency)
-- React: `^19.1.0 || ^19.2.0` (peer dependency)
-- React Test Renderer: `^19.1.0 || ^19.2.0` (peer dependency)
-- TypeScript: `>=5.9.3 <6.1.0` (peer dependency)
-
-Validated lanes:
-
-- Full fixture validation: Expo SDK 57.0.4, React Native 0.86.0, React 19.2.3
-- Packed-consumer smoke validation: Expo SDK 54.0.33, 55.0.9, 56.0.9, and 57.0.4
-- Clean SDK 57 consumer smoke validation with Expo Doctor and ESLint outside this workspace
-
-Support policy:
-
-- Stable support tracks the latest stable Expo SDK.
-- Standalone React Native releases newer than Expo stable stay out of stable support claims until a matching Expo SDK ships.
-- Preview smoke coverage can be added for Expo canary when a canary lane is active.
-
-## Installation
+## Install
 
 ```bash
 bun add --dev eslint-config-expo-magic
 ```
 
-Consumer projects must provide the peer dependencies listed above.
+ESLint and Prettier are bundled. Consumer projects provide these peer dependencies, which an existing Expo app normally already has:
 
-## Quick Start
+- Expo
+- React
+- React Test Renderer
+- TypeScript
 
-### 1) Basic (recommended)
+## Quick start
 
-Create `eslint.config.js`:
+### Recommended: lint and format separately
+
+Use the `no-prettier` preset when Prettier already runs in your editor, pre-commit hook, or formatter command:
+
+```js
+const expoMagic = require('eslint-config-expo-magic/no-prettier');
+
+module.exports = [...expoMagic];
+```
+
+This is the recommended setup for faster, quieter lint runs. It keeps the default TypeScript, React, React Native, import, and test rules, but does not run Prettier through `prettier/prettier`.
+
+### Default: Prettier inside ESLint
+
+Use the package root when one ESLint command should also report formatting differences:
 
 ```js
 const expoMagic = require('eslint-config-expo-magic');
@@ -61,188 +58,204 @@ const expoMagic = require('eslint-config-expo-magic');
 module.exports = [...expoMagic];
 ```
 
-### 2) Strict preset
+The default preset includes `eslint-plugin-prettier` and `prettier/prettier`.
+
+### ESM
 
 ```js
-const { strict } = require('eslint-config-expo-magic');
-
-module.exports = [...strict];
-```
-
-Or via strict subpath:
-
-```js
-const strict = require('eslint-config-expo-magic/strict');
-
-module.exports = [...strict];
-```
-
-### 3) ESM config file (`eslint.config.mjs`)
-
-```js
-import expoMagic from 'eslint-config-expo-magic';
+import expoMagic from 'eslint-config-expo-magic/no-prettier';
 
 export default [...expoMagic];
 ```
 
-### 4) No-Prettier preset
+### Type-safe JavaScript config
+
+JSDoc keeps `eslint.config.mjs` directly loadable while giving editors and coding agents the complete option contract:
 
 ```js
-const noPrettier = require('eslint-config-expo-magic/no-prettier');
+import { createConfig } from 'eslint-config-expo-magic';
 
-module.exports = [...noPrettier];
+/** @type {import('eslint-config-expo-magic').CreateConfigOptions} */
+const options = {
+	prettier: false,
+	componentStructure: true,
+	deprecatedApis: true,
+	reanimated: true,
+};
+
+export default createConfig(options);
 ```
 
-Use this preset when Prettier already runs in your editor, pre-commit hook, or a dedicated format script. It keeps import/style linting without turning formatting into ESLint noise.
+### TypeScript config
 
-### 5) Typed preset
+If your ESLint runtime is configured to load `eslint.config.ts`, use package types directly:
+
+```ts
+import {
+	createConfig,
+	type CreateConfigOptions,
+} from 'eslint-config-expo-magic';
+
+const options = {
+	prettier: false,
+	componentStructure: { propsTypePattern: 'Props$' },
+	inlineStyles: 'warn',
+	reanimated: { additionalGestureHooks: ['useFlingGesture'] },
+	semanticColors: {
+		tokenModule: 'theme/palette',
+		importName: 'palette',
+	},
+} satisfies CreateConfigOptions;
+
+export default createConfig(options);
+```
+
+These package-name imports work in consumer repositories; no relative import into `node_modules` is required.
+
+## Presets
+
+| Preset      | Import                                 | Adds                                                                                         | Prettier rule |
+| ----------- | -------------------------------------- | -------------------------------------------------------------------------------------------- | ------------- |
+| Base        | `eslint-config-expo-magic/base`        | Expo flat-config foundation with minimal package opinion                                     | No            |
+| Default     | `eslint-config-expo-magic`             | TypeScript, React/RN, imports, app, test, and workspace rules                                | Yes           |
+| No Prettier | `eslint-config-expo-magic/no-prettier` | Default behavior without ESLint-driven formatting                                            | No            |
+| Typed       | `eslint-config-expo-magic/typed`       | Default plus maintained type-checked TypeScript rules                                        | Yes           |
+| Strict      | `eslint-config-expo-magic/strict`      | Default plus strict type-aware rules and `no-console: error`                                 | Yes           |
+| Agent       | `eslint-config-expo-magic/agent`       | Default plus agent, app, deprecated API, React Compiler, Reanimated, and Worklets guardrails | Yes           |
+
+Equivalent factory calls:
 
 ```js
-const typed = require('eslint-config-expo-magic/typed');
+const { createConfig } = require('eslint-config-expo-magic');
 
-module.exports = [...typed];
+const base = createConfig({ preset: 'base' });
+const standard = createConfig();
+const noPrettier = createConfig({ prettier: false });
+const typed = createConfig({ typeChecked: true });
+const strict = createConfig({ strict: true });
+const agent = createConfig({ agent: true });
 ```
 
-This adds opt-in type-aware rules from `typescript-eslint`'s maintained type-checked configs on top of the base preset.
+All production-hardening layers remain opt-in for the default, strict, typed, and no-Prettier configurations. Agent mode intentionally enables a selected hardening set; semantic colors remain opt-in.
 
-### 6) Agent preset
+Explicit top-level options customize agent defaults. When `agent` is an options object, its nested value takes precedence over the matching top-level option.
+
+## `createConfig`
+
+```ts
+function createConfig(options?: CreateConfigOptions): Linter.Config[];
+```
+
+Core options:
+
+| Option             | Default              | Purpose                                               |
+| ------------------ | -------------------- | ----------------------------------------------------- |
+| `preset`           | `'default'`          | Select `'base'` or `'default'` composition            |
+| `prettier`         | `true` except base   | Include Prettier plugin and rule                      |
+| `testing`          | `true` except base   | Include Jest and Testing Library rules                |
+| `typeChecked`      | `false`              | Add maintained type-aware TypeScript configs          |
+| `strict`           | `false`              | Add strict type-aware rules and strict console policy |
+| `tsconfigProjects` | Monorepo-aware globs | Override TypeScript project paths                     |
+| `extraIgnores`     | `[]`                 | Add repository-specific ignore globs                  |
+
+Optional layers:
+
+| Option               | Accepted value                      | Purpose                                                                      |
+| -------------------- | ----------------------------------- | ---------------------------------------------------------------------------- |
+| `agent`              | `boolean` or agent options          | Enable coordinated agent-safe defaults                                       |
+| `appGuardrails`      | `boolean` or `{ queryHookPattern }` | Guard suppressions, assertions, query hooks, snapshots, and risky syntax     |
+| `componentStructure` | `boolean` or `{ propsTypePattern }` | Enforce prop ordering, export placement, inline-prop, and children-use rules |
+| `deprecatedApis`     | `boolean` or deprecated-API options | Restrict removed or discouraged React/RN symbols                             |
+| `featureBoundaries`  | `boolean` or boundary options       | Enforce feature, app, service, and shared-component boundaries               |
+| `inlineStyles`       | `boolean` or ESLint severity        | Enable `react-native/no-inline-styles`; `true` means `warn`                  |
+| `nativeUi`           | `boolean` or native-UI options      | Route React Native primitives through project wrappers                       |
+| `reactCompiler`      | `boolean`                           | Promote React Compiler diagnostics to errors                                 |
+| `reanimated`         | `boolean` or gesture-hook options   | Detect Reanimated SharedValue misuse and unsafe gesture configuration        |
+| `semanticColors`     | `boolean` or token options          | Require semantic color tokens                                                |
+| `storybook`          | `boolean`                           | Add story-file overrides                                                     |
+| `worklets`           | `boolean`                           | Harden Worklets `scheduleOnRN` usage                                         |
+
+Example:
 
 ```js
-const agent = require('eslint-config-expo-magic/agent');
+const { createConfig } = require('eslint-config-expo-magic');
 
-module.exports = [...agent];
+module.exports = createConfig({
+	prettier: false,
+	extraIgnores: ['.eas/**', 'coverage/**'],
+	appGuardrails: { queryHookPattern: '^useFetch[A-Z]' },
+	componentStructure: { propsTypePattern: 'Props$' },
+	deprecatedApis: true,
+	inlineStyles: 'warn',
+	reactCompiler: true,
+	reanimated: {
+		additionalGestureHooks: ['useFlingGesture'],
+	},
+	semanticColors: {
+		tokenModule: 'theme/palette',
+		importName: 'palette',
+		flagDirectAccess: true,
+		allowFiles: ['**/theme/**'],
+	},
+	nativeUi: {
+		allowFiles: ['**/uikit/**'],
+	},
+	worklets: true,
+});
 ```
 
-Use this for AI-agent-heavy mobile repos. Full setup: [`docs/AGENTS_RECIPE.md`](./docs/AGENTS_RECIPE.md).
+More project-specific controls are available:
 
-## API Reference
+- `deprecatedApis`: `additionalRestrictedProperties`, `additionalRestrictedTypes`
+- `featureBoundaries`: feature element types and shared-component patterns
+- `nativeUi`: `restrictions`, `additionalRestrictions`, `allowFiles`
+- `reanimated`: `gestureHooks`, `additionalGestureHooks`
+- `semanticColors`: `tokenModule`, `importName`, `flagDirectAccess`, `allowFiles`
 
-### Package Exports
+In 3.0.0, `semanticColors.allowFiles` disables only semantic-color selectors for matching files. `nativeUi.allowFiles` relaxes only native-UI wrapper restrictions and preserves unrelated baseline import restrictions.
 
-This package exposes:
+## Exports and types
 
-- `eslint-config-expo-magic` -> default config array
-- `eslint-config-expo-magic/base` -> low-opinion base config close to Expo defaults
-- `eslint-config-expo-magic/agent` -> agent-safe config with app guardrails, React Compiler, Reanimated, Worklets, deprecated API checks, and agent-specific risky syntax checks
-- `eslint-config-expo-magic/agent-guardrails` -> focused agent-damage guardrails for unsafe suppressions, type weakening, skipped tests, snapshot churn, attribution strings, empty catches, and unhandled promises
-- `eslint-config-expo-magic/strict` -> strict config array
-- `eslint-config-expo-magic/no-prettier` -> base config array without Prettier plugin/rules
-- `eslint-config-expo-magic/typed` -> base config array plus type-aware TypeScript rules
-- `eslint-config-expo-magic/app-guardrails` -> app hygiene layer for suppressions, assertions, query-hook return types, and snapshots (factory accepts a custom `queryHookPattern`)
-- `eslint-config-expo-magic/react-compiler` -> promotes the React Compiler diagnostics shipped by `eslint-plugin-react-hooks` v7 (`unsupported-syntax`, `purity`, `immutability`, …) to `error`
-- `eslint-config-expo-magic/reanimated` -> Reanimated/RNGH hardening (shared-value render reads, worklet-hook `.get()`, inline gesture config; factory accepts custom gesture hook names)
-- `eslint-config-expo-magic/worklets` -> Worklets `scheduleOnRN` hardening layer
-- `eslint-config-expo-magic/deprecated-apis` -> flags deprecated React Native / React 19 symbols (`MutableRefObject`, `StyleSheet.absoluteFillObject`, `AccessibilityInfo.setAccessibilityFocus`)
-- `eslint-config-expo-magic/component-structure` -> custom `expo-magic` plugin rules for prop-type ordering, default-export placement, inline props, and unused child slots
-- `eslint-config-expo-magic/semantic-colors` -> factory enforcing semantic color tokens over raw color literals/direct token access
-- `eslint-config-expo-magic/native-ui` -> factory for React Native primitive import restrictions
-- `eslint-config-expo-magic/feature-boundaries` -> factory for feature/app/service/UIKit dependency boundaries
-- `eslint-config-expo-magic/storybook` -> story-file overrides
-- `eslint-config-expo-magic/pr-guardrails` -> reusable PR guardrail validator and CLI
+Every declared config subpath ships matching CommonJS, ESM, and TypeScript entry points.
 
-### `default` export
+| Import                                         | Public surface                                                                                  |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `eslint-config-expo-magic`                     | Default config plus named presets, `createConfig`, focused configs, factories, and option types |
+| `eslint-config-expo-magic/base`                | Minimal base preset                                                                             |
+| `eslint-config-expo-magic/no-prettier`         | Default preset without Prettier                                                                 |
+| `eslint-config-expo-magic/typed`               | Type-checked preset                                                                             |
+| `eslint-config-expo-magic/strict`              | Strict preset                                                                                   |
+| `eslint-config-expo-magic/agent`               | Agent preset and factory                                                                        |
+| `eslint-config-expo-magic/agent-guardrails`    | Focused agent-damage guardrails                                                                 |
+| `eslint-config-expo-magic/app-guardrails`      | App guardrails and factory                                                                      |
+| `eslint-config-expo-magic/component-structure` | Component rules and factory                                                                     |
+| `eslint-config-expo-magic/deprecated-apis`     | Deprecated API rules and factory                                                                |
+| `eslint-config-expo-magic/feature-boundaries`  | Boundary rules and factory                                                                      |
+| `eslint-config-expo-magic/native-ui`           | Native UI restrictions and factory                                                              |
+| `eslint-config-expo-magic/pr-guardrails`       | Reusable PR guardrail validator                                                                 |
+| `eslint-config-expo-magic/react-compiler`      | React Compiler diagnostic layer                                                                 |
+| `eslint-config-expo-magic/reanimated`          | Reanimated rules and factories                                                                  |
+| `eslint-config-expo-magic/semantic-colors`     | Semantic-color rules and factory                                                                |
+| `eslint-config-expo-magic/storybook`           | Story-file overrides                                                                            |
+| `eslint-config-expo-magic/worklets`            | Worklets hardening layer                                                                        |
 
-Type:
+The root declaration exposes `CreateConfigOptions` and each focused layer's option types. Editors and AI coding tools can therefore autocomplete valid nested options and reject unknown keys before ESLint runs.
 
-```ts
-Linter.Config[]
+Manual composition remains supported:
+
+```js
+const expoMagic = require('eslint-config-expo-magic/no-prettier');
+const reactCompiler = require('eslint-config-expo-magic/react-compiler');
+const reanimated = require('eslint-config-expo-magic/reanimated');
+
+module.exports = [...expoMagic, ...reactCompiler, ...reanimated];
 ```
 
-Behavior:
+Prefer `createConfig` when several layers contribute `no-restricted-syntax`; it composes those single-slot ESLint rules without one layer replacing another.
 
-- Includes Expo flat config foundation
-- Adds TypeScript, React/React Native, import-x, Jest, Testing Library, app rules, and Prettier
-- Applies monorepo-aware import resolver settings
-- Applies baseline ignore patterns for generated/native folders
+## Behavior and file scope
 
-### `strict` preset
-
-Type:
-
-```ts
-Linter.Config[]
-```
-
-Adds stricter overrides on top of base:
-
-- `@typescript-eslint/no-explicit-any: error`
-- `@typescript-eslint/no-non-null-assertion: error`
-- `@typescript-eslint/await-thenable: error`
-- `@typescript-eslint/no-floating-promises: error`
-- `@typescript-eslint/no-misused-promises: error`
-- `no-console: error`
-
-Type-aware strict TypeScript rules are scoped to TypeScript files only, so strict config can lint plain `.js` files without plugin resolution errors.
-
-### `no-prettier` preset
-
-Type:
-
-```ts
-Linter.Config[]
-```
-
-Behavior:
-
-- Same rule baseline as the default preset
-- Omits `eslint-plugin-prettier` and `prettier/prettier`
-
-### `typed` preset
-
-Type:
-
-```ts
-Linter.Config[]
-```
-
-Behavior:
-
-- Keeps the default preset behavior
-- Adds opt-in type-aware `typescript-eslint` rules from maintained upstream configs
-- Reuses the same monorepo-aware TS project resolution as the base preset
-
-### Type Declarations
-
-The package ships declaration files:
-
-- `index.d.ts`
-- `strict.d.ts`
-- `no-prettier.d.ts`
-- `typed.d.ts`
-- `app-guardrails.d.ts`
-- `react-compiler.d.ts`
-- `reanimated.d.ts`
-- `worklets.d.ts`
-- `deprecated-apis.d.ts`
-- `component-structure.d.ts`
-- `semantic-colors.d.ts`
-- `native-ui.d.ts`
-- `feature-boundaries.d.ts`
-- `storybook.d.ts`
-- `pr-guardrails.d.ts`
-
-This improves IntelliSense/autocomplete when composing config arrays.
-
-## Behavior Reference
-
-### Config Modules (composition order)
-
-The base export composes modules in this order:
-
-1. Ignore patterns + import ignore settings
-2. Filtered Expo flat config
-3. TypeScript rules
-4. React / React Native / React 19 upgrade rules
-5. Import organization rules
-6. Jest and Testing Library rules
-7. App-level rules
-8. Prettier integration
-9. Workspace-specific `no-console` overrides
-10. Shared resolver + globals settings
-
-### Ignored Paths
-
-These globs are ignored by default:
+Default ignores:
 
 - `**/node_modules/**`
 - `**/dist/**`
@@ -251,182 +264,113 @@ These globs are ignored by default:
 - `**/ios/**`
 - `**/android/**`
 
-### TypeScript Import Resolution
-
-Import resolution is configured for monorepos and app/package layouts:
+Default TypeScript project discovery:
 
 - `./tsconfig.json`
 - `./apps/*/tsconfig.json`
 - `./packages/*/tsconfig.json`
 - `./test-project/tsconfig.json`
 
-### Workspace Console Policy
+Other important behavior:
 
-- `apps/**`: `no-console` is `warn`
-- `packages/**`: `no-console` is `error`
+- `import-x` owns import diagnostics; overlapping legacy `import/*` rules are disabled.
+- `@typescript-eslint/no-unused-vars` owns unused bindings in TypeScript. Core `no-unused-vars` remains active for JavaScript.
+- App code uses `no-console: warn`; package code uses `no-console: error`. Strict mode uses `error` globally.
+- Selector-based hardening groups are composed by file scope instead of replacing one another.
+- Module and declaration scopes include `.ts`, `.tsx`, `.mts`, `.cts`, `.d.ts`, `.d.mts`, and `.d.cts`.
+- Test guardrails include `.test` and `.spec` files for TypeScript, MTS, and CTS modules.
+- `require-children-usage` evaluates each uppercase function component independently.
 
-### Import Rule Policy
-
-`import-x` is treated as the source of truth. Overlapping legacy `import/*` diagnostics are disabled to avoid duplicate noise.
-
-### Restricted Rule Composition
-
-`no-restricted-imports` and `no-restricted-syntax` are single-slot ESLint rules: the last matching config entry replaces the rule entirely rather than merging. To avoid clobbering:
-
-- All selector-based hardening (`appGuardrails`, `reactCompiler` precursors, `reanimated`, `worklets`, `semanticColors`) is merged into one composed `no-restricted-syntax` config per file group, so enabling several layers together preserves every selector.
-- The base `SafeAreaView` import restriction is shared from one source between the default app rules and `nativeUi`. Replacing `nativeUi` restrictions intentionally drops the base set; pass them back via `restrictions` or use `additionalRestrictions` to extend instead.
-
-## Customization Patterns
-
-Append your own override object after the preset:
+Append local overrides after this package:
 
 ```js
-const expoMagic = require('eslint-config-expo-magic');
-
-module.exports = [
-	...expoMagic,
-	{
-		rules: {
-			'no-console': 'error',
-			'@typescript-eslint/no-explicit-any': 'off',
-		},
-	},
-];
-```
-
-Disable a specific rule for one file group:
-
-```js
-const expoMagic = require('eslint-config-expo-magic');
+const expoMagic = require('eslint-config-expo-magic/no-prettier');
 
 module.exports = [
 	...expoMagic,
 	{
 		files: ['scripts/**/*.ts'],
 		rules: {
-			'@typescript-eslint/no-floating-promises': 'off',
+			'no-console': 'off',
 		},
 	},
 ];
 ```
 
-### Preset Selection
+## Compatibility
 
-| Goal                                                            | Preset                                 |
-| --------------------------------------------------------------- | -------------------------------------- |
-| Standard Expo/React Native setup with formatting integrated     | `eslint-config-expo-magic`             |
-| Same as base, with stricter TypeScript and `no-console: error`  | `eslint-config-expo-magic/strict`      |
-| Same as base, with type-aware TypeScript rules                  | `eslint-config-expo-magic/typed`       |
-| Use a separate formatter pipeline (no `prettier/prettier` rule) | `eslint-config-expo-magic/no-prettier` |
-| Harden production app flows (React Compiler, Reanimated, deprecated APIs, structure) | `createConfig({ appGuardrails: true, reactCompiler: true, reanimated: true, deprecatedApis: true, componentStructure: true })` |
+| Surface             | Supported or validated range                                              |
+| ------------------- | ------------------------------------------------------------------------- |
+| Node.js             | `>=18.0.0`                                                                |
+| Bun                 | `>=1.0.0` for repository tooling; current package manager pin is `1.3.14` |
+| ESLint              | `10.x`; package currently bundles `^10.8.0`                               |
+| Expo                | `^54.0.33 \|\| ^55.0.0 \|\| ^56.0.0 \|\| ^57.0.0`                         |
+| React               | `^19.1.0 \|\| ^19.2.0`                                                    |
+| React Test Renderer | `^19.1.0 \|\| ^19.2.0`                                                    |
+| TypeScript          | `>=5.9.3 <6.1.0`                                                          |
 
-### Production App Hardening
+Packed-consumer lanes:
 
-All hardening layers are opt-in; the default/strict/typed presets are unchanged. Enable any combination:
+| Expo    | React Native | React  | TypeScript |
+| ------- | ------------ | ------ | ---------- |
+| 54.0.33 | 0.81.5       | 19.1.0 | 5.9        |
+| 55.0.9  | 0.83.4       | 19.2.0 | 5.9        |
+| 56.0.9  | 0.85.3       | 19.2.3 | 6.0        |
+| 57.0.8  | 0.86.0       | 19.2.3 | 6.0        |
 
-```js
-const { createConfig } = require('eslint-config-expo-magic');
+Expo SDK 57.0.8 / React Native 0.86.0 / React 19.2.3 is the full fixture lane. SDK 57 also has a clean external-consumer smoke with Expo Doctor and ESLint.
 
-module.exports = createConfig({
-	extraIgnores: ['.eas/**', '.github/**', '.vscode/**', 'assets/**'],
-	appGuardrails: true,
-	componentStructure: true,
-	deprecatedApis: true,
-	inlineStyles: true,
-	reactCompiler: true,
-	reanimated: true,
-	semanticColors: true,
-	worklets: true,
-	storybook: true,
-	nativeUi: {
-		allowFiles: [
-			'**/uikit/components/pressables.tsx',
-			'**/uikit/components/scroll-view.tsx',
-			'**/uikit/components/modal.tsx',
-			'**/hooks/use-navigator.ts',
-		],
-	},
-	featureBoundaries: {
-		sharedComponentPatterns: [
-			'features/*/components/focus-selection-form.tsx',
-			'features/*/components/request-user-phone-flow.tsx',
-		],
-	},
-});
+React Native support is Expo-coupled. A standalone React Native release is not advertised as stable until it ships in a supported stable Expo SDK or receives an explicit preview lane.
+
+## Upgrade to 3.0.0
+
+Upgrade, then run ESLint across the full repository:
+
+```bash
+bun add --dev eslint-config-expo-magic@^3.0.0
+bunx eslint .
 ```
 
-Each hardening option also accepts configuration for project-specific conventions:
+Migration actions:
 
-```js
-module.exports = createConfig({
-	appGuardrails: { queryHookPattern: '^useFetch[A-Z]' },
-	reanimated: { additionalGestureHooks: ['useFlingGesture'] },
-	semanticColors: { tokenModule: 'theme/palette', importName: 'palette' },
-	componentStructure: { propsTypePattern: 'Props$' },
-});
-```
+1. **Agent preset:** expect agent-specific suppression descriptions, warning-comment policy, and overlap messages to take precedence. Update violations instead of depending on the previous duplicate or weaker diagnostic.
+2. **Scoped allow files:** matching `semanticColors.allowFiles` and `nativeUi.allowFiles` now preserve unrelated restrictions. Add an explicit local rule override if a file must opt out of those other rules too.
+3. **Reanimated suppressions:** replace suppressions for the old `no-restricted-syntax` SharedValue diagnostic with `expo-magic-reanimated/no-shared-value-misuse`.
+4. **Manual Reanimated composition:** use `createReanimatedConfig` or `createSharedValueUsageConfig` for SharedValue diagnostics. `createRestrictedSyntaxGroups` now covers gesture selectors only.
+5. **Component children:** fix every component that declares `children` without using it. One component can no longer satisfy another component's `require-children-usage` check.
+6. **TypeScript unused bindings:** let `@typescript-eslint/no-unused-vars` own TypeScript diagnostics; remove local duplication with core `no-unused-vars` if present.
+7. **Module and test files:** review new findings in `.mts`, `.cts`, declaration variants, and `.test`/`.spec` MTS or CTS files.
 
-The optional layers are available as subpaths when manual composition is clearer:
+See the full [migration guide](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/docs/MIGRATING.md) and [3.0.0 changelog](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/CHANGELOG.md#300).
 
-```js
-const expoMagic = require('eslint-config-expo-magic');
-const reactCompiler = require('eslint-config-expo-magic/react-compiler');
-const reanimated = require('eslint-config-expo-magic/reanimated');
-const deprecatedApis = require('eslint-config-expo-magic/deprecated-apis');
+## Documentation
 
-module.exports = [...expoMagic, ...reactCompiler, ...reanimated, ...deprecatedApis];
-```
-
-## Monorepo Usage
-
-For monorepos, this package works best when each app/package has its own `tsconfig.json` and path aliases are defined there.
-
-Recommended:
-
-- Keep `eslint.config.js` at repo root
-- Keep per-package/app `tsconfig.json` files
-- Use `@/*` aliases in TS config where needed
+- [Rule rationale](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/RULES.md)
+- [Config diff](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/docs/CONFIG_DIFF.md)
+- [Recipes](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/docs/RECIPES.md)
+- [Agent setup recipe](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/docs/AGENTS_RECIPE.md)
+- [Release notes](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases)
+- [Changelog](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/CHANGELOG.md)
+- [Issues](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/issues)
 
 ## Troubleshooting
 
-### `TypeError: Class extends value undefined is not a constructor or null`
+### Flat config does not load
 
-Cause:
+Use ESLint 10 and `eslint.config.js`, `eslint.config.mjs`, or a TypeScript config supported by your runtime. Legacy `.eslintrc*` files are not used.
 
-- Mixed `@typescript-eslint/*` major versions (commonly from older import plugins)
+### `Class extends value undefined`
 
-Fix:
+Mixed `@typescript-eslint/*` major versions are the common cause. Reinstall dependencies and ensure the graph resolves TypeScript ESLint v8 consistently.
 
-1. Use latest `eslint-config-expo-magic`
-2. Reinstall dependencies (`bun install`)
-3. Ensure only `@typescript-eslint` v8 is installed in dependency graph
+### Duplicate `import/*` and `import-x/*` diagnostics
 
-### Duplicate import errors with both `import/*` and `import-x/*`
+Another config later in the array is probably re-enabling legacy `import/*` rules. Disable those rules in the final local override.
 
-This package disables overlapping legacy `import/*` rules. If you still see duplicates, another config in your stack is re-enabling them. Turn those back off in your local override.
+### Unexpected Prettier diagnostics or slow lint runs
 
-### Flat config not loading
+Switch from the package root to `eslint-config-expo-magic/no-prettier`, then keep formatting in the editor or a separate formatter command.
 
-Make sure you are using ESLint 10+ and an `eslint.config.js` or `eslint.config.mjs` file (not legacy `.eslintrc*`).
+## License
 
-## Changelog
-
-Consumer-facing changes are documented in [`CHANGELOG.md`](./CHANGELOG.md). Per-release notes are also published on the [GitHub releases page](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
-
-## Contributing
-
-- Rule rationale: [`RULES.md`](./RULES.md)
-- Changelog: [`CHANGELOG.md`](./CHANGELOG.md)
-- Main config entry: [`packages/eslint-config-expo-magic/index.js`](./packages/eslint-config-expo-magic/index.js)
-- Validation harness: [`test-project/validate-comprehensive.js`](./test-project/validate-comprehensive.js)
-
-Run locally:
-
-```bash
-bun install
-bun run test
-bun run typecheck
-bun run validate
-bun run smoke:pack
-bun run smoke:clean-sdk57
-```
+[MIT](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/LICENSE)

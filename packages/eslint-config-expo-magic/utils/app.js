@@ -12,6 +12,11 @@ module.exports = [
 					paths: [...baseRestrictedImports],
 				},
 			],
+		},
+	},
+	{
+		files: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
+		rules: {
 			'no-unused-vars': [
 				'error',
 				{

@@ -2,6 +2,42 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
+## 3.0.0
+
+Corrects rule ownership and scoped composition across agent, Reanimated, component, TypeScript, and module configurations.
+
+### Breaking Changes
+
+- Agent-preset rules now take precedence over overlapping app guardrails. Agent users receive the stricter 10-character TypeScript suppression-description requirement, agent-specific warning-comment policy, and one authoritative overlap diagnostic.
+- `semanticColors.allowFiles` now disables only semantic-color selectors for matching files. `nativeUi.allowFiles` relaxes only native-UI wrapper restrictions and preserves unrelated baseline import restrictions such as the `SafeAreaView` ban.
+- Reanimated SharedValue diagnostics now use the provenance-aware `expo-magic-reanimated/no-shared-value-misuse` rule instead of broad `no-restricted-syntax` selectors. The rule follows Reanimated imports, aliases, namespace access, typed bindings, and variable aliases while ignoring lookalikes and shadowed functions.
+- `expo-magic/require-children-usage` now evaluates every uppercase function component independently. A `children` reference in another component, object, or spread no longer satisfies the component being checked.
+- Selector composition and test guardrails now include `.mts`, `.cts`, `.d.mts`, `.d.cts`, and `.test` / `.spec` MTS and CTS files. Repositories using these module forms may receive new diagnostics.
+- Agent mode now respects explicit top-level hardening options when the matching nested `agent` option is absent. Nested agent options still take precedence.
+
+### Changed
+
+- `@typescript-eslint/no-unused-vars` now exclusively owns unused-binding diagnostics in TypeScript files; core `no-unused-vars` remains enabled for JavaScript.
+- CommonJS, ESM, and TypeScript declarations now expose matching public helpers across agent and app guardrails, native UI, PR guardrails, React Compiler, Reanimated, and Worklets.
+- `inlineStyles` now uses ESLint's public `RuleSeverity` type.
+- Updates the bundled consumer lint stack to ESLint 10.8, TypeScript ESLint 8.65, `eslint-plugin-boundaries` 7.1, `eslint-plugin-jest` 29.16, and Prettier 3.9.6.
+- Updates the Expo SDK 57 validation lane from 57.0.4 to 57.0.8.
+
+### Migration
+
+- Run ESLint across the repository after upgrading and resolve newly authoritative agent-preset diagnostics.
+- If an allowed semantic-color or native-UI file previously depended on an unrelated restriction being removed, add an explicit local override for that restriction.
+- Replace SharedValue suppressions for `no-restricted-syntax` with `expo-magic-reanimated/no-shared-value-misuse`.
+- Manual Reanimated compositions should use `createReanimatedConfig` or `createSharedValueUsageConfig`; `createRestrictedSyntaxGroups` now covers gesture selectors only.
+- Fix each component that declares but does not use `children`; usage in a sibling component no longer suppresses the report.
+- Remove local core `no-unused-vars` duplication for TypeScript and keep TypeScript-specific options on `@typescript-eslint/no-unused-vars`.
+- Review `.mts`, `.cts`, declaration-module, and MTS/CTS test files for newly in-scope diagnostics.
+- Remove conflicting duplicate agent options or keep the intended value inside the `agent` options object.
+
+### Compatibility
+
+- Expo SDK 54 / 55 / 56 / 57, Expo-coupled React Native 0.81 / 0.83 / 0.85 / 0.86 lanes, React 19.1-19.2, ESLint 10, and TypeScript `>=5.9.3 <6.1`.
+
 ## 2.8.0
 
 Adds Expo SDK 57 validation and refreshes the bundled lint stack.
