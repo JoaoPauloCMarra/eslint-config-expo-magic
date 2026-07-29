@@ -11,6 +11,7 @@ type RestrictedSyntaxGroup = {
 };
 
 declare const agentGuardrails: Linter.Config[] & {
+	base: Linter.Config[];
 	createAgentGuardrailsConfig(): Linter.Config[];
 	createRestrictedSyntaxGroups(): RestrictedSyntaxGroup[];
 	restrictedSyntaxGroups: RestrictedSyntaxGroup[];

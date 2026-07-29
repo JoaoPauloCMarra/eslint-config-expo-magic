@@ -8,7 +8,10 @@ const { pathToFileURL } = require('node:url');
 const { RuleTester } = require('eslint');
 const tsParser = require('@typescript-eslint/parser');
 const expoFlatConfig = require('eslint-config-expo/flat');
-const { createConfigReport } = require('../../scripts/lib/config-report.js');
+const {
+	createConfigReport,
+	createMarkdownReport,
+} = require('../../scripts/lib/config-report.js');
 const config = require('./index.js');
 const agentSubpath = require('./agent.js');
 const agentGuardrailsSubpath = require('./agent-guardrails.js');
@@ -1532,16 +1535,21 @@ describe('eslint-config-expo-magic', () => {
 	});
 
 	describe('repo guardrails', () => {
-		it('keeps checked-in config diff artifact current', () => {
-			const currentReport = createConfigReport();
+		it('keeps checked-in config diff artifact current', async () => {
+			const currentReport = await createConfigReport();
 			const checkedInReport = JSON.parse(
 				fs.readFileSync(
 					path.join(rootDir, 'docs', 'config-diff.json'),
 					'utf8',
 				),
 			);
+			const checkedInMarkdown = fs.readFileSync(
+				path.join(rootDir, 'docs', 'CONFIG_DIFF.md'),
+				'utf8',
+			);
 
 			expect(checkedInReport).toEqual(currentReport);
+			expect(checkedInMarkdown).toBe(createMarkdownReport(currentReport));
 		});
 
 		it('keeps Expo plugin rules enabled from eslint-config-expo', () => {
@@ -1698,14 +1706,14 @@ describe('eslint-config-expo-magic', () => {
 				}`),
 				files: {
 					'anim.ts': [
-						'declare const other: { get(): number; value: number };',
-						'declare function useSharedValue<T>(v: T): { get(): T; value: T };',
-						'declare function useAnimatedStyle(cb: () => object): object;',
+						"import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';",
 						'declare function usePanGesture(cfg: object): object;',
 						'export function build() {',
-						'\tconst fromGet = useSharedValue(other.get());',
-						'\tconst fromValue = useSharedValue(other.value);',
-						'\tconst style = useAnimatedStyle(() => ({ x: other.get() }));',
+						'\tconst source = useSharedValue(0);',
+						'\tconst alias = source;',
+						'\tconst fromGet = useSharedValue(source.get());',
+						'\tconst fromValue = useSharedValue(alias.value);',
+						'\tconst style = useAnimatedStyle(() => ({ x: source.get() }));',
 						'\tconst gesture = usePanGesture({ onStart: () => {} });',
 						'\treturn [fromGet, fromValue, style, gesture];',
 						'}',
@@ -1716,7 +1724,14 @@ describe('eslint-config-expo-magic', () => {
 
 			expect(
 				messages.filter((message) => message.ruleId === 'no-restricted-syntax'),
-			).toHaveLength(4);
+			).toHaveLength(1);
+			expect(
+				messages.filter(
+					(message) =>
+						message.ruleId ===
+						'expo-magic-reanimated/no-shared-value-misuse',
+				),
+			).toHaveLength(3);
 		}, 15_000);
 
 		it('supports custom gesture hook names', () => {
@@ -1752,11 +1767,11 @@ describe('eslint-config-expo-magic', () => {
 				}`),
 				files: {
 					'compose.ts': [
-						'declare const other: { value: number };',
-						'declare function useSharedValue<T>(v: T): { value: T };',
+						"import { useSharedValue } from 'react-native-reanimated';",
 						'declare function scheduleOnRN(callback: () => void): void;',
 						'export function build() {',
-						'\tconst shared = useSharedValue(other.value);',
+						'\tconst source = useSharedValue(0);',
+						'\tconst shared = useSharedValue(source.value);',
 						'\tscheduleOnRN(() => {});',
 						'\treturn shared;',
 						'}',
@@ -1767,7 +1782,14 @@ describe('eslint-config-expo-magic', () => {
 
 			expect(
 				messages.filter((message) => message.ruleId === 'no-restricted-syntax'),
-			).toHaveLength(2);
+			).toHaveLength(1);
+			expect(
+				messages.filter(
+					(message) =>
+						message.ruleId ===
+						'expo-magic-reanimated/no-shared-value-misuse',
+				),
+			).toHaveLength(1);
 		}, 15_000);
 	});
 

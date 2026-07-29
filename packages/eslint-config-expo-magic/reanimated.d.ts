@@ -1,4 +1,4 @@
-import type { Linter } from 'eslint';
+import type { Linter, Rule } from 'eslint';
 
 type RestrictedSyntaxSelector = {
 	selector: string;
@@ -20,7 +20,9 @@ declare const reanimatedConfig: Linter.Config[] & {
 	createRestrictedSyntaxGroups(
 		options?: ReanimatedOptions,
 	): RestrictedSyntaxGroup[];
+	createSharedValueUsageConfig(): Linter.Config[];
 	restrictedSyntaxGroups: RestrictedSyntaxGroup[];
+	sharedValueUsageRule: Rule.RuleModule;
 };
 
 declare namespace reanimatedConfig {

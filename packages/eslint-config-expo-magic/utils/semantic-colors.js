@@ -1,4 +1,10 @@
-const { createRestrictedSyntaxConfigs } = require('./restricted-syntax.js');
+const {
+	createRestrictedSyntaxConfigs,
+	RESTRICTED_SYNTAX_SCOPES,
+} = require('./restricted-syntax.js');
+
+const DEFAULT_TOKEN_MODULE = 'uikit/tokens/colors';
+const DEFAULT_IMPORT_NAME = 'colors';
 
 const typeScriptFiles = ['**/*.ts', '**/*.tsx'];
 
@@ -14,8 +20,9 @@ function buildImportSourceRegex(tokenModule) {
 }
 
 function createRestrictedSyntaxGroups(options = {}) {
-	const tokenModule = options.tokenModule ?? 'uikit/tokens/colors';
-	const importName = options.importName ?? 'colors';
+	const tokenModule = options.tokenModule ?? DEFAULT_TOKEN_MODULE;
+	const importName = options.importName ?? DEFAULT_IMPORT_NAME;
+	const allowFiles = options.allowFiles ?? [`**/${tokenModule}.{ts,tsx}`];
 	const flagDirectAccess = options.flagDirectAccess ?? true;
 	const importSourceRegex = buildImportSourceRegex(tokenModule);
 
@@ -42,31 +49,18 @@ function createRestrictedSyntaxGroups(options = {}) {
 
 	return [
 		{
+			allowFiles,
 			files: typeScriptFiles,
+			scope: RESTRICTED_SYNTAX_SCOPES.TYPESCRIPT,
+			capability: 'semantic-colors',
 			selectors,
 		},
 	];
 }
 
-function getAllowFiles(options = {}) {
-	const tokenModule = options.tokenModule ?? 'uikit/tokens/colors';
-	return options.allowFiles ?? [`**/${tokenModule}.{ts,tsx}`];
-}
-
 function createAllowConfig(options = {}) {
-	const allowFiles = getAllowFiles(options);
-	if (allowFiles.length === 0) {
-		return [];
-	}
-
-	return [
-		{
-			files: allowFiles,
-			rules: {
-				'no-restricted-syntax': 'off',
-			},
-		},
-	];
+	void options;
+	return [];
 }
 
 function createSemanticColorsConfig(options = {}) {

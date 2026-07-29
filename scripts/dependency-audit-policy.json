@@ -1,0 +1,144 @@
+{
+	"schemaVersion": 1,
+	"reviewBy": "2026-08-29",
+	"classifications": {
+		"expo-sdk-fixture-tooling": {
+			"reason": "Transitive Expo SDK fixture and CLI tooling. Keep Expo-managed versions aligned; do not apply broad overrides.",
+			"mayAppearInPublishedDependencyTree": false
+		},
+		"shared-build-tooling": {
+			"reason": "Transitive lint, test, Babel, or package-analysis tooling. Not part of the config runtime API; update owning tools instead of overriding shared transitives.",
+			"mayAppearInPublishedDependencyTree": false
+		}
+	},
+	"allowlist": {
+		"@babel/core": {
+			"classification": "shared-build-tooling",
+			"mayAppearInPublishedDependencyTree": true,
+			"advisories": {
+				"GHSA-4x5r-pxfx-6jf8": "low"
+			}
+		},
+		"@tootallnate/once": {
+			"classification": "expo-sdk-fixture-tooling",
+			"advisories": {
+				"GHSA-vpq2-c234-7xj6": "low"
+			}
+		},
+		"@xmldom/xmldom": {
+			"classification": "expo-sdk-fixture-tooling",
+			"advisories": {
+				"GHSA-2v35-w6hq-6mfw": "high",
+				"GHSA-f6ww-3ggp-fr8h": "high",
+				"GHSA-j759-j44w-7fr8": "high",
+				"GHSA-wh4c-j3r5-mjhp": "high",
+				"GHSA-x6wf-f3px-wcqx": "high"
+			}
+		},
+		"ajv": {
+			"classification": "shared-build-tooling",
+			"mayAppearInPublishedDependencyTree": true,
+			"advisories": {
+				"GHSA-2g4f-4pwh-qvx6": "moderate"
+			}
+		},
+		"brace-expansion": {
+			"classification": "shared-build-tooling",
+			"mayAppearInPublishedDependencyTree": true,
+			"advisories": {
+				"GHSA-3jxr-9vmj-r5cp": "high",
+				"GHSA-f886-m6hf-6m8v": "moderate",
+				"GHSA-jxxr-4gwj-5jf2": "moderate",
+				"GHSA-mh99-v99m-4gvg": "high"
+			}
+		},
+		"flatted": {
+			"classification": "shared-build-tooling",
+			"mayAppearInPublishedDependencyTree": true,
+			"advisories": {
+				"GHSA-25h7-pfq9-p65f": "high",
+				"GHSA-rf6f-7fwh-wjgh": "high"
+			}
+		},
+		"form-data": {
+			"classification": "expo-sdk-fixture-tooling",
+			"advisories": {
+				"GHSA-hmw2-7cc7-3qxx": "high"
+			}
+		},
+		"js-yaml": {
+			"classification": "shared-build-tooling",
+			"mayAppearInPublishedDependencyTree": true,
+			"advisories": {
+				"GHSA-52cp-r559-cp3m": "high",
+				"GHSA-h67p-54hq-rp68": "moderate"
+			}
+		},
+		"lodash": {
+			"classification": "shared-build-tooling",
+			"advisories": {
+				"GHSA-f23m-r3pf-42rh": "moderate",
+				"GHSA-r5fr-rjxr-66jc": "high",
+				"GHSA-xxjr-mmjv-4gpg": "moderate"
+			}
+		},
+		"minimatch": {
+			"classification": "shared-build-tooling",
+			"mayAppearInPublishedDependencyTree": true,
+			"advisories": {
+				"GHSA-23c5-xmqv-rm74": "high",
+				"GHSA-3ppc-4f35-3m26": "high",
+				"GHSA-7r86-cg39-jmmj": "high"
+			}
+		},
+		"node-forge": {
+			"classification": "expo-sdk-fixture-tooling",
+			"advisories": {
+				"GHSA-2328-f5f3-gj25": "high",
+				"GHSA-5m6q-g25r-mvwx": "high",
+				"GHSA-ppp5-5v6c-4jwp": "high",
+				"GHSA-q67f-28xg-22rw": "high"
+			}
+		},
+		"picomatch": {
+			"classification": "shared-build-tooling",
+			"mayAppearInPublishedDependencyTree": true,
+			"advisories": {
+				"GHSA-3v7f-55p6-f55p": "moderate",
+				"GHSA-c2c7-rcm5-vvqj": "high"
+			}
+		},
+		"postcss": {
+			"classification": "expo-sdk-fixture-tooling",
+			"advisories": {
+				"GHSA-r28c-9q8g-f849": "high"
+			}
+		},
+		"shell-quote": {
+			"classification": "expo-sdk-fixture-tooling",
+			"advisories": {
+				"GHSA-395f-4hp3-45gv": "high",
+				"GHSA-w7jw-789q-3m8p": "critical"
+			}
+		},
+		"uuid": {
+			"classification": "expo-sdk-fixture-tooling",
+			"advisories": {
+				"GHSA-w5hq-g745-h8pq": "moderate"
+			}
+		},
+		"ws": {
+			"classification": "expo-sdk-fixture-tooling",
+			"advisories": {
+				"GHSA-58qx-3vcg-4xpx": "moderate",
+				"GHSA-96hv-2xvq-fx4p": "high"
+			}
+		},
+		"yaml": {
+			"classification": "shared-build-tooling",
+			"advisories": {
+				"GHSA-48c2-rrv3-qjmp": "moderate"
+			}
+		}
+	}
+}

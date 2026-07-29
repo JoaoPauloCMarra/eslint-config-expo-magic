@@ -1,14 +1,66 @@
 # Config Diff
 
-Package version: `2.8.0`
+Package version: `3.0.0`
 Expo config version: `57.0.0`
 
-## Rule Counts
+## Effective Rule Counts
+
+| Scope | File | expo | agent | base | default | noPrettier | typed | strict | productionApp |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| app | `apps/mobile/App.tsx` | 83 | 140 | 46 | 491 | 132 | 560 | 492 | 501 |
+| package | `packages/shared/src/index.ts` | 83 | 140 | 46 | 491 | 132 | 560 | 492 | 499 |
+| test | `apps/mobile/src/__tests__/App.test.tsx` | 83 | 165 | 46 | 516 | 157 | 585 | 517 | 526 |
+| story | `apps/mobile/src/components/Button.stories.tsx` | 83 | 140 | 46 | 491 | 132 | 560 | 492 | 501 |
+| config | `metro.config.js` | 72 | 106 | 34 | 463 | 104 | 463 | 463 | 465 |
+| web | `apps/mobile/src/App.web.tsx` | 83 | 140 | 46 | 491 | 132 | 560 | 492 | 501 |
+
+## Effective Delta Counts
+
+| Scope | Comparison | Added | Changed | Removed |
+| --- | --- | ---: | ---: | ---: |
+| app | baseVsExpo | 2 | 0 | 39 |
+| app | defaultVsExpo | 408 | 10 | 0 |
+| app | noPrettierVsDefault | 0 | 0 | 359 |
+| app | typedVsDefault | 69 | 14 | 0 |
+| app | strictVsDefault | 1 | 2 | 0 |
+| app | productionAppVsDefault | 10 | 5 | 0 |
+| package | baseVsExpo | 2 | 0 | 39 |
+| package | defaultVsExpo | 408 | 10 | 0 |
+| package | noPrettierVsDefault | 0 | 0 | 359 |
+| package | typedVsDefault | 69 | 14 | 0 |
+| package | strictVsDefault | 1 | 1 | 0 |
+| package | productionAppVsDefault | 8 | 4 | 0 |
+| test | baseVsExpo | 2 | 0 | 39 |
+| test | defaultVsExpo | 433 | 10 | 0 |
+| test | noPrettierVsDefault | 0 | 0 | 359 |
+| test | typedVsDefault | 69 | 14 | 0 |
+| test | strictVsDefault | 1 | 2 | 0 |
+| test | productionAppVsDefault | 10 | 5 | 0 |
+| story | baseVsExpo | 2 | 0 | 39 |
+| story | defaultVsExpo | 408 | 10 | 0 |
+| story | noPrettierVsDefault | 0 | 0 | 359 |
+| story | typedVsDefault | 69 | 14 | 0 |
+| story | strictVsDefault | 1 | 2 | 0 |
+| story | productionAppVsDefault | 10 | 6 | 0 |
+| config | baseVsExpo | 1 | 0 | 39 |
+| config | defaultVsExpo | 391 | 10 | 0 |
+| config | noPrettierVsDefault | 0 | 0 | 359 |
+| config | typedVsDefault | 0 | 0 | 0 |
+| config | strictVsDefault | 0 | 1 | 0 |
+| config | productionAppVsDefault | 2 | 3 | 0 |
+| web | baseVsExpo | 2 | 0 | 39 |
+| web | defaultVsExpo | 408 | 10 | 0 |
+| web | noPrettierVsDefault | 0 | 0 | 359 |
+| web | typedVsDefault | 69 | 14 | 0 |
+| web | strictVsDefault | 1 | 2 | 0 |
+| web | productionAppVsDefault | 10 | 5 | 0 |
+
+## Aggregate Compatibility
 
 | Preset | Rule count |
 | --- | ---: |
 | expo | 84 |
-| agent | 164 |
+| agent | 165 |
 | agentGuardrails | 7 |
 | base | 46 |
 | default | 516 |
@@ -21,23 +73,23 @@ Expo config version: `57.0.0`
 | featureBoundaries | 1 |
 | nativeUi | 1 |
 | reactCompiler | 7 |
-| reanimated | 1 |
+| reanimated | 2 |
 | semanticColors | 1 |
 | storybook | 1 |
 | worklets | 1 |
-| productionApp | 525 |
+| productionApp | 526 |
 
-## baseVsExpo
+### baseVsExpo
 
-### Added
+#### Added
 
 - `expo/prefer-box-shadow`
 
-### Changed
+#### Changed
 
 - None
 
-### Removed
+#### Removed
 
 - `react-hooks/config`
 - `react-hooks/error-boundaries`
@@ -79,9 +131,9 @@ Expo config version: `57.0.0`
 - `react/react-in-jsx-scope`
 - `react/require-render-return`
 
-## defaultVsExpo
+### defaultVsExpo
 
-### Added
+#### Added
 
 - `@babel/object-curly-spacing`
 - `@babel/semi`
@@ -516,7 +568,7 @@ Expo config version: `57.0.0`
 - `wrap-regex`
 - `yield-star-spacing`
 
-### Changed
+#### Changed
 
 - `@typescript-eslint/array-type`
 - `@typescript-eslint/consistent-type-assertions`
@@ -533,21 +585,21 @@ Expo config version: `57.0.0`
 - `react-hooks/set-state-in-effect`
 - `react/jsx-key`
 
-### Removed
+#### Removed
 
 - None
 
-## noPrettierVsDefault
+### noPrettierVsDefault
 
-### Added
-
-- None
-
-### Changed
+#### Added
 
 - None
 
-### Removed
+#### Changed
+
+- None
+
+#### Removed
 
 - `@babel/object-curly-spacing`
 - `@babel/semi`
@@ -909,9 +961,9 @@ Expo config version: `57.0.0`
 - `wrap-regex`
 - `yield-star-spacing`
 
-## typedVsDefault
+### typedVsDefault
 
-### Added
+#### Added
 
 - `@typescript-eslint/adjacent-overload-signatures`
 - `@typescript-eslint/ban-ts-comment`
@@ -983,7 +1035,7 @@ Expo config version: `57.0.0`
 - `prefer-spread`
 - `require-await`
 
-### Changed
+#### Changed
 
 - `@typescript-eslint/array-type`
 - `@typescript-eslint/consistent-type-assertions`
@@ -1003,30 +1055,31 @@ Expo config version: `57.0.0`
 - `no-unused-vars`
 - `no-with`
 
-### Removed
+#### Removed
 
 - None
 
-## strictVsDefault
+### strictVsDefault
 
-### Added
+#### Added
 
 - `@typescript-eslint/no-misused-promises`
 
-### Changed
+#### Changed
 
 - `@typescript-eslint/no-non-null-assertion`
 
-### Removed
+#### Removed
 
 - None
 
-## productionAppVsDefault
+### productionAppVsDefault
 
-### Added
+#### Added
 
 - `@typescript-eslint/ban-ts-comment`
 - `@typescript-eslint/no-restricted-types`
+- `expo-magic-reanimated/no-shared-value-misuse`
 - `expo-magic/default-export-placement`
 - `expo-magic/no-inline-props`
 - `expo-magic/props-type-order`
@@ -1035,7 +1088,7 @@ Expo config version: `57.0.0`
 - `no-restricted-syntax`
 - `no-warning-comments`
 
-### Changed
+#### Changed
 
 - `@typescript-eslint/no-non-null-assertion`
 - `no-console`
@@ -1044,6 +1097,6 @@ Expo config version: `57.0.0`
 - `react-hooks/unsupported-syntax`
 - `react-native/no-inline-styles`
 
-### Removed
+#### Removed
 
 - None

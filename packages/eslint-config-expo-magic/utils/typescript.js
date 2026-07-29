@@ -26,6 +26,7 @@ const config = [
 			},
 		},
 		rules: {
+			'no-unused-vars': 'off',
 			'@typescript-eslint/array-type': 'warn',
 			'@typescript-eslint/await-thenable': 'error',
 			'@typescript-eslint/consistent-type-assertions': 'warn',

@@ -7,4 +7,7 @@ export default reanimated;
 export const createReanimatedConfig = reanimated.createReanimatedConfig;
 export const createRestrictedSyntaxGroups =
 	reanimated.createRestrictedSyntaxGroups;
+export const createSharedValueUsageConfig =
+	reanimated.createSharedValueUsageConfig;
 export const restrictedSyntaxGroups = reanimated.restrictedSyntaxGroups;
+export const sharedValueUsageRule = reanimated.sharedValueUsageRule;

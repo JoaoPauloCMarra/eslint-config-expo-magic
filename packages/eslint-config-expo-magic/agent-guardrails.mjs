@@ -4,6 +4,7 @@ const require = createRequire(import.meta.url);
 const agentGuardrails = require('./agent-guardrails.js');
 
 export default agentGuardrails;
+export const base = agentGuardrails.base;
 export const createAgentGuardrailsConfig =
 	agentGuardrails.createAgentGuardrailsConfig;
 export const createRestrictedSyntaxGroups =
