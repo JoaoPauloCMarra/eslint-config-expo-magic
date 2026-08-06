@@ -59,8 +59,90 @@ function findMissingRuleFileCoverage(expectedRules, ruleFiles) {
 	return missingCoverage;
 }
 
+function collectMessagesByFile(results, rootDir) {
+	const messagesByFile = {};
+
+	for (const { filePath, messages = [] } of results) {
+		if (!filePath) {
+			continue;
+		}
+
+		const fileName = normalizeRelativePath(filePath, rootDir);
+		messagesByFile[fileName] ??= [];
+
+		for (const message of messages) {
+			if (!message.ruleId) {
+				continue;
+			}
+
+			messagesByFile[fileName].push(message);
+		}
+	}
+
+	return messagesByFile;
+}
+
+function findExpectedFileRuleFailures(messagesByFile, expectedByFile) {
+	const failures = [];
+
+	for (const [fileName, expectations] of Object.entries(expectedByFile ?? {})) {
+		const messages = messagesByFile[fileName] ?? [];
+
+		for (const expectation of expectations) {
+			const match = messages.find(
+				(message) => message.ruleId === expectation.ruleId,
+			);
+
+			if (!match) {
+				failures.push({
+					file: fileName,
+					reason: 'missing',
+					ruleId: expectation.ruleId,
+				});
+				continue;
+			}
+
+			if (
+				expectation.severity !== undefined &&
+				match.severity !== expectation.severity
+			) {
+				failures.push({
+					file: fileName,
+					reason: `severity ${match.severity}, expected ${expectation.severity}`,
+					ruleId: expectation.ruleId,
+				});
+			}
+		}
+	}
+
+	return failures;
+}
+
+function findUnexpectedFileRuleFailures(messagesByFile, forbiddenByFile) {
+	const failures = [];
+
+	for (const [fileName, ruleIds] of Object.entries(forbiddenByFile ?? {})) {
+		const messages = messagesByFile[fileName] ?? [];
+
+		for (const ruleId of ruleIds) {
+			if (messages.some((message) => message.ruleId === ruleId)) {
+				failures.push({
+					file: fileName,
+					reason: 'unexpected',
+					ruleId,
+				});
+			}
+		}
+	}
+
+	return failures;
+}
+
 module.exports = {
+	collectMessagesByFile,
 	collectLintRuleResults,
+	findExpectedFileRuleFailures,
 	findMissingRuleFileCoverage,
+	findUnexpectedFileRuleFailures,
 	normalizeRelativePath,
 };

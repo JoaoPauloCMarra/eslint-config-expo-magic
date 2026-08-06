@@ -1,12 +1,4 @@
-const typeScriptFiles = [
-	'**/*.ts',
-	'**/*.tsx',
-	'**/*.mts',
-	'**/*.cts',
-	'**/*.d.ts',
-	'**/*.d.mts',
-	'**/*.d.cts',
-];
+const { typeScriptFiles } = require('./file-patterns.js');
 
 const defaultRestrictedTypes = {
 	MutableRefObject: {

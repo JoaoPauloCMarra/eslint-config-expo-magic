@@ -1,37 +1,16 @@
-import type { Linter } from 'eslint';
+import type {
+	RestrictedSyntaxGroup,
+	RestrictedSyntaxSelector,
+	SemanticColorsConfig,
+	SemanticColorsOptions,
+} from './types';
 
-type RestrictedSyntaxSelector = {
-	selector: string;
-	message?: string;
-};
-
-type RestrictedSyntaxGroup = {
-	files: string[];
-	selectors: RestrictedSyntaxSelector[];
-};
-
-type SemanticColorsOptions = {
-	tokenModule?: string;
-	importName?: string;
-	flagDirectAccess?: boolean;
-	allowFiles?: string[];
-};
-
-declare const semanticColorsConfig: Linter.Config[] & {
-	createSemanticColorsConfig(options?: SemanticColorsOptions): Linter.Config[];
-	createRestrictedSyntaxGroups(
-		options?: SemanticColorsOptions,
-	): RestrictedSyntaxGroup[];
-	createAllowConfig(options?: SemanticColorsOptions): Linter.Config[];
-	restrictedSyntaxGroups: RestrictedSyntaxGroup[];
-};
+declare const semanticColorsConfig: SemanticColorsConfig;
 
 declare namespace semanticColorsConfig {
-	export {
-		RestrictedSyntaxGroup,
-		RestrictedSyntaxSelector,
-		SemanticColorsOptions,
-	};
+	export type RestrictedSyntaxGroup = import('./types').RestrictedSyntaxGroup;
+	export type RestrictedSyntaxSelector = import('./types').RestrictedSyntaxSelector;
+	export type SemanticColorsOptions = import('./types').SemanticColorsOptions;
 }
 
 export = semanticColorsConfig;

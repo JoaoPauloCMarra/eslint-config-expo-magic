@@ -1,12 +1,4 @@
-const typeScriptFiles = [
-	'**/*.ts',
-	'**/*.tsx',
-	'**/*.mts',
-	'**/*.cts',
-	'**/*.d.ts',
-	'**/*.d.mts',
-	'**/*.d.cts',
-];
+const { typeScriptFiles } = require('./file-patterns.js');
 
 /** @type {import('eslint').Linter.Config[]} */
 // Rationale: https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/RULES.md#typescript

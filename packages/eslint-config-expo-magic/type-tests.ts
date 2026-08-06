@@ -20,6 +20,32 @@ import type {
 } from './index';
 import type { NativeUiRestriction } from './native-ui';
 import type { ReanimatedOptions } from './reanimated';
+import prGuardrailsDefault from './pr-guardrails';
+import {
+	agentMobileAppOptions,
+	countChangedLines,
+	createPrGuardrailOptions,
+	defaultOptions,
+	hasCheckedCheckbox,
+	hasRelatedTestOrStory,
+	mentionsRuntimeTarget,
+	mobileAppOptions,
+	patchWithoutIgnoredFiles,
+	presets,
+	readCliOptionsFromEnv,
+	readPrGuardrailConfig,
+	readPullRequestInputFromEnv,
+	runCli,
+	validateGuardrails,
+} from './pr-guardrails';
+import type {
+	GuardrailInput,
+	GuardrailOptions,
+	GuardrailResult,
+	ResolvedGuardrailOptions,
+	RiskyPattern,
+} from './pr-guardrails';
+import * as prGuardrailsNamespace from './pr-guardrails';
 
 type ReanimatedModule = typeof import('./reanimated');
 type DeprecatedModule = typeof import('./deprecated-apis');
@@ -57,9 +83,12 @@ const options: Opts = {
 };
 
 const baseResult: Linter.Config[] = magic.createConfig(options);
-const reanimatedResult: Linter.Config[] = reanimatedModule.createReanimatedConfig();
-const deprecatedResult: Linter.Config[] = deprecated.createDeprecatedApiConfig();
-const structureResult: Linter.Config[] = structure.createComponentStructureConfig();
+const reanimatedResult: Linter.Config[] =
+	reanimatedModule.createReanimatedConfig();
+const deprecatedResult: Linter.Config[] =
+	deprecated.createDeprecatedApiConfig();
+const structureResult: Linter.Config[] =
+	structure.createComponentStructureConfig();
 const colorsResult: Linter.Config[] = colors.createSemanticColorsConfig();
 const nativeUiResult: Linter.Config[] = nativeUiModule.createNativeUiConfig();
 
@@ -67,10 +96,12 @@ const guardrailsCreateResult: Linter.Config[] =
 	magic.appGuardrails.createAppGuardrailsConfig({
 		queryHookPattern: '^useFetch[A-Z]',
 	});
-const guardrailsSyntaxGroups = magic.appGuardrails.createRestrictedSyntaxGroups();
+const guardrailsSyntaxGroups =
+	magic.appGuardrails.createRestrictedSyntaxGroups();
 const rootAgentGuardrailsResult: Linter.Config[] =
 	magic.agentGuardrails.createAgentGuardrailsConfig();
-const rootAgentGuardrailsGroups = magic.agentGuardrails.createRestrictedSyntaxGroups();
+const rootAgentGuardrailsGroups =
+	magic.agentGuardrails.createRestrictedSyntaxGroups();
 const rootReanimatedResult: Linter.Config[] =
 	magic.reanimated.createReanimatedConfig({ gestureHooks: ['useX'] });
 const rootReanimatedGroups = magic.reanimated.createRestrictedSyntaxGroups();
@@ -78,7 +109,8 @@ const rootSemanticColorsResult: Linter.Config[] =
 	magic.semanticColors.createSemanticColorsConfig({
 		tokenModule: 'uikit/tokens/colors',
 	});
-const rootSemanticColorsGroups = magic.semanticColors.createRestrictedSyntaxGroups();
+const rootSemanticColorsGroups =
+	magic.semanticColors.createRestrictedSyntaxGroups();
 
 const strictFromMagic = magic.strict;
 const typedFromMagic = magic.typed;
@@ -115,6 +147,49 @@ const restriction: NativeUiRestriction = {
 	name: 'react-native',
 	importNames: ['View'],
 };
+const prGuardrailsOptions: GuardrailOptions = {
+	preset: 'mobileApp',
+	additionalRequiredCheckboxes: ['Custom CI passed'],
+};
+const prGuardrailsInput: GuardrailInput = {
+	eventName: 'pull_request',
+	prBody: '',
+	labels: [],
+	changedFiles: [],
+	changedPatch: '',
+};
+const prGuardrailsDefaultResult: ResolvedGuardrailOptions =
+	prGuardrailsDefault.defaultOptions;
+const prGuardrailsNamedResult: ResolvedGuardrailOptions = defaultOptions;
+const prGuardrailsAgentOptions: ResolvedGuardrailOptions =
+	agentMobileAppOptions;
+const prGuardrailsMobileOptions: ResolvedGuardrailOptions = mobileAppOptions;
+const prGuardrailsPreset: ResolvedGuardrailOptions =
+	presets['agent-mobile-app'];
+const prGuardrailsCreated: ResolvedGuardrailOptions =
+	createPrGuardrailOptions(prGuardrailsOptions);
+const prGuardrailsValidation: GuardrailResult = validateGuardrails(
+	prGuardrailsInput,
+	{ preset: 'mobileApp' },
+);
+const prGuardrailsCheckbox: boolean = hasCheckedCheckbox('', '');
+const prGuardrailsChangedLines: number = countChangedLines('');
+const prGuardrailsPatch: string = patchWithoutIgnoredFiles('', []);
+const prGuardrailsHasTests: boolean = hasRelatedTestOrStory([]);
+const prGuardrailsRuntimeTarget: boolean = mentionsRuntimeTarget('');
+const prGuardrailsConfig: GuardrailOptions = readPrGuardrailConfig();
+const prGuardrailsEnvOptions: GuardrailOptions = readCliOptionsFromEnv();
+const prGuardrailsEnvInput: Promise<GuardrailInput> =
+	readPullRequestInputFromEnv();
+const prGuardrailsCliResult: Promise<void> = runCli(prGuardrailsOptions);
+const prGuardrailsRiskyPattern: RiskyPattern = {
+	name: 'explicit any',
+	pattern: /\bany\b/,
+};
+const prGuardrailsNamespaceDefault: ResolvedGuardrailOptions =
+	prGuardrailsNamespace.defaultOptions;
+const prGuardrailsNamespaceNamed: ResolvedGuardrailOptions =
+	prGuardrailsNamespace.mobileAppOptions;
 
 void defaultImport;
 void strictSubpath;
@@ -159,6 +234,27 @@ void appGuardrailsOptions;
 void nativeUiOptions;
 void reanimatedOptions;
 void restriction;
+void prGuardrailsOptions;
+void prGuardrailsInput;
+void prGuardrailsDefaultResult;
+void prGuardrailsNamedResult;
+void prGuardrailsAgentOptions;
+void prGuardrailsMobileOptions;
+void prGuardrailsPreset;
+void prGuardrailsCreated;
+void prGuardrailsValidation;
+void prGuardrailsCheckbox;
+void prGuardrailsChangedLines;
+void prGuardrailsPatch;
+void prGuardrailsHasTests;
+void prGuardrailsRuntimeTarget;
+void prGuardrailsConfig;
+void prGuardrailsEnvOptions;
+void prGuardrailsEnvInput;
+void prGuardrailsCliResult;
+void prGuardrailsRiskyPattern;
+void prGuardrailsNamespaceDefault;
+void prGuardrailsNamespaceNamed;
 
 // @ts-expect-error preset only accepts 'base' | 'default'
 const badPreset: Opts = { preset: 'ultra' };
@@ -176,6 +272,10 @@ const badNativeUi = createNativeUiConfig('not-a-restriction');
 const badReanimatedFactory = magic.createReanimatedConfig('useX');
 // @ts-expect-error createConfig rejects non-boolean strict option
 const badCreateConfigCall = createConfig({ strict: 'no' });
+// @ts-expect-error preset only accepts known guardrail presets or options
+const badGuardrailsPreset: GuardrailOptions = { preset: 'ultra' };
+// @ts-expect-error guardrail options reject unknown keys
+const badGuardrailsKey: GuardrailOptions = { unknownOption: true };
 
 void badPreset;
 void badKey;
@@ -185,3 +285,5 @@ void badAppGuardrailsQuery;
 void badNativeUi;
 void badReanimatedFactory;
 void badCreateConfigCall;
+void badGuardrailsPreset;
+void badGuardrailsKey;

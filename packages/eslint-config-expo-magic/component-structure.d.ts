@@ -1,19 +1,12 @@
-import type { ESLint, Linter } from 'eslint';
+import type {
+	ComponentStructureModule,
+	ComponentStructureOptions,
+} from './types';
 
-type ComponentStructureOptions = {
-	propsTypePattern?: string;
-};
-
-declare const componentStructureConfig: Linter.Config[] & {
-	createComponentStructureConfig(
-		options?: ComponentStructureOptions,
-	): Linter.Config[];
-	plugin: ESLint.Plugin;
-	recommended: Linter.Config[];
-};
+declare const componentStructureConfig: ComponentStructureModule;
 
 declare namespace componentStructureConfig {
-	export { ComponentStructureOptions };
+	export type ComponentStructureOptions = import('./types').ComponentStructureOptions;
 }
 
 export = componentStructureConfig;

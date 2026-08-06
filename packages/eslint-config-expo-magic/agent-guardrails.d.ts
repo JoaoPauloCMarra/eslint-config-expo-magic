@@ -1,24 +1,14 @@
-import type { Linter } from 'eslint';
+import type {
+	AgentGuardrailsConfig,
+	RestrictedSyntaxGroup,
+	RestrictedSyntaxSelector,
+} from './types';
 
-type RestrictedSyntaxSelector = {
-	selector: string;
-	message?: string;
-};
-
-type RestrictedSyntaxGroup = {
-	files: string[];
-	selectors: RestrictedSyntaxSelector[];
-};
-
-declare const agentGuardrails: Linter.Config[] & {
-	base: Linter.Config[];
-	createAgentGuardrailsConfig(): Linter.Config[];
-	createRestrictedSyntaxGroups(): RestrictedSyntaxGroup[];
-	restrictedSyntaxGroups: RestrictedSyntaxGroup[];
-};
+declare const agentGuardrails: AgentGuardrailsConfig;
 
 declare namespace agentGuardrails {
-	export { RestrictedSyntaxGroup, RestrictedSyntaxSelector };
+	export type RestrictedSyntaxGroup = import('./types').RestrictedSyntaxGroup;
+	export type RestrictedSyntaxSelector = import('./types').RestrictedSyntaxSelector;
 }
 
 export = agentGuardrails;

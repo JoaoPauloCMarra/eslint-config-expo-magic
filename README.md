@@ -1,12 +1,13 @@
 # eslint-config-expo-magic
 
 [![npm version](https://img.shields.io/npm/v/eslint-config-expo-magic.svg)](https://www.npmjs.com/package/eslint-config-expo-magic)
+[![npm downloads](https://img.shields.io/npm/dm/eslint-config-expo-magic.svg)](https://www.npmjs.com/package/eslint-config-expo-magic)
 [![CI](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/actions/workflows/ci.yml/badge.svg)](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/actions/workflows/ci.yml)
 [![Release](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/actions/workflows/release.yml/badge.svg)](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/actions/workflows/release.yml)
 [![Documentation](https://img.shields.io/badge/docs-guides-blue.svg)](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/tree/main/docs)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/LICENSE)
 
-Flat ESLint config for Expo and React Native projects. It combines Expo defaults with TypeScript, React 19, React Native, imports, Jest, Testing Library, optional production guardrails, and typed CommonJS/ESM exports.
+Type-safe flat ESLint configuration for Expo, React Native, and TypeScript projects. It combines Expo defaults with React 19, import and test rules, focused production guardrails, agent-safe workflows, and matching CommonJS, ESM, and TypeScript exports.
 
 ## Contents
 
@@ -14,6 +15,7 @@ Flat ESLint config for Expo and React Native projects. It combines Expo defaults
 - [Quick start](#quick-start)
 - [Presets](#presets)
 - [`createConfig`](#createconfig)
+- [CLI tools](#cli-tools)
 - [Exports and types](#exports-and-types)
 - [Behavior and file scope](#behavior-and-file-scope)
 - [Compatibility](#compatibility)
@@ -25,9 +27,11 @@ Flat ESLint config for Expo and React Native projects. It combines Expo defaults
 
 ```bash
 bun add --dev eslint-config-expo-magic
+# or
+npm install --save-dev eslint-config-expo-magic
 ```
 
-ESLint and Prettier are bundled. Consumer projects provide these peer dependencies, which an existing Expo app normally already has:
+The repository itself uses Bun. Consumer projects can use Bun, npm, pnpm, or Yarn. Runtime lint dependencies (ESLint, Prettier, plugins, and TypeScript ESLint tooling) are bundled as package dependencies. Only Expo, React, React Test Renderer, and TypeScript are declared peers, and an existing Expo app normally already provides them:
 
 - Expo
 - React
@@ -114,14 +118,14 @@ These package-name imports work in consumer repositories; no relative import int
 
 ## Presets
 
-| Preset      | Import                                 | Adds                                                                                         | Prettier rule |
-| ----------- | -------------------------------------- | -------------------------------------------------------------------------------------------- | ------------- |
-| Base        | `eslint-config-expo-magic/base`        | Expo flat-config foundation with minimal package opinion                                     | No            |
-| Default     | `eslint-config-expo-magic`             | TypeScript, React/RN, imports, app, test, and workspace rules                                | Yes           |
-| No Prettier | `eslint-config-expo-magic/no-prettier` | Default behavior without ESLint-driven formatting                                            | No            |
-| Typed       | `eslint-config-expo-magic/typed`       | Default plus maintained type-checked TypeScript rules                                        | Yes           |
-| Strict      | `eslint-config-expo-magic/strict`      | Default plus strict type-aware rules and `no-console: error`                                 | Yes           |
-| Agent       | `eslint-config-expo-magic/agent`       | Default plus agent, app, deprecated API, React Compiler, Reanimated, and Worklets guardrails | Yes           |
+| Preset      | Import                                 | Adds                                                                                | Prettier rule |
+| ----------- | -------------------------------------- | ----------------------------------------------------------------------------------- | ------------- |
+| Base        | `eslint-config-expo-magic/base`        | Expo flat-config foundation with minimal package opinion                            | No            |
+| Default     | `eslint-config-expo-magic`             | TypeScript, React/RN, imports, app, test, and workspace rules                       | Yes           |
+| No Prettier | `eslint-config-expo-magic/no-prettier` | Default behavior without ESLint-driven formatting                                   | No            |
+| Typed       | `eslint-config-expo-magic/typed`       | Default plus maintained type-checked TypeScript rules                               | Yes           |
+| Strict      | `eslint-config-expo-magic/strict`      | Default plus strict type-aware rules and `no-console: error`                        | Yes           |
+| Agent       | `eslint-config-expo-magic/agent`       | Default hardening plus agent-specific suppression, test, type, and patch guardrails | Yes           |
 
 Equivalent factory calls:
 
@@ -136,9 +140,11 @@ const strict = createConfig({ strict: true });
 const agent = createConfig({ agent: true });
 ```
 
-All production-hardening layers remain opt-in for the default, strict, typed, and no-Prettier configurations. Agent mode intentionally enables a selected hardening set; semantic colors remain opt-in.
+The default, strict, typed, and no-Prettier configurations enable app guardrails, deprecated API checks, React Compiler diagnostics, Reanimated checks, and Worklets checks. Pass `false` to any of those options to opt out. Agent mode keeps those defaults and also adds agent-specific guardrails; semantic colors remain opt-in.
 
 Explicit top-level options customize agent defaults. When `agent` is an options object, its nested value takes precedence over the matching top-level option.
+
+The root export also provides `strictNoPrettier` and `typedNoPrettier` named presets for projects that want strict or type-checked rules without ESLint-driven formatting.
 
 ## `createConfig`
 
@@ -214,6 +220,31 @@ More project-specific controls are available:
 
 In 3.0.0, `semanticColors.allowFiles` disables only semantic-color selectors for matching files. `nativeUi.allowFiles` relaxes only native-UI wrapper restrictions and preserves unrelated baseline import restrictions.
 
+## CLI tools
+
+The package publishes two command-line tools.
+
+### `expo-magic-init-agent`
+
+Scaffolds the agent preset for a consumer repository:
+
+```bash
+bunx expo-magic-init-agent
+bunx expo-magic-init-agent --write
+```
+
+Default behavior is a dry run: it prints the recommended `eslint.config.js`, `expo-magic.pr-guardrails.cjs`, and `package.json` scripts without writing files. With `--write`, it creates `eslint.config.js` and `expo-magic.pr-guardrails.cjs` only when missing, adds missing `lint`, `typecheck`, and `validate:pr-guardrails` scripts to `package.json`, and leaves existing values untouched.
+
+### `expo-magic-pr-guardrails`
+
+Read-only PR guardrail validation for GitHub Actions `pull_request` events:
+
+```bash
+bunx expo-magic-pr-guardrails
+```
+
+It reads `expo-magic.pr-guardrails.cjs` or `expo-magic.pr-guardrails.js` when present, plus the GitHub event environment. It prints a `Failure:` line for each unmet guardrail and exits `1` when validation fails. The CLI never writes files, so there is no `--write` mode.
+
 ## Exports and types
 
 Every declared config subpath ships matching CommonJS, ESM, and TypeScript entry points.
@@ -225,7 +256,7 @@ Every declared config subpath ships matching CommonJS, ESM, and TypeScript entry
 | `eslint-config-expo-magic/no-prettier`         | Default preset without Prettier                                                                 |
 | `eslint-config-expo-magic/typed`               | Type-checked preset                                                                             |
 | `eslint-config-expo-magic/strict`              | Strict preset                                                                                   |
-| `eslint-config-expo-magic/agent`               | Agent preset and factory                                                                        |
+| `eslint-config-expo-magic/agent`               | Agent preset                                                                                    |
 | `eslint-config-expo-magic/agent-guardrails`    | Focused agent-damage guardrails                                                                 |
 | `eslint-config-expo-magic/app-guardrails`      | App guardrails and factory                                                                      |
 | `eslint-config-expo-magic/component-structure` | Component rules and factory                                                                     |
@@ -239,7 +270,7 @@ Every declared config subpath ships matching CommonJS, ESM, and TypeScript entry
 | `eslint-config-expo-magic/storybook`           | Story-file overrides                                                                            |
 | `eslint-config-expo-magic/worklets`            | Worklets hardening layer                                                                        |
 
-The root declaration exposes `CreateConfigOptions` and each focused layer's option types. Editors and AI coding tools can therefore autocomplete valid nested options and reject unknown keys before ESLint runs.
+The root declaration exposes `CreateConfigOptions`, every focused layer option type, and the public PR guardrail types. Use `satisfies CreateConfigOptions` in TypeScript or JSDoc-typed JavaScript configs. Editors and AI coding tools can then autocomplete valid nested options and reject unknown keys before ESLint runs.
 
 Manual composition remains supported:
 
@@ -304,6 +335,7 @@ module.exports = [
 | Node.js             | `>=18.0.0`                                                                |
 | Bun                 | `>=1.0.0` for repository tooling; current package manager pin is `1.3.14` |
 | ESLint              | `10.x`; package currently bundles `^10.8.0`                               |
+| TypeScript ESLint   | `8.x`; package currently bundles `^8.66.0`                                |
 | Expo                | `^54.0.33 \|\| ^55.0.0 \|\| ^56.0.0 \|\| ^57.0.0`                         |
 | React               | `^19.1.0 \|\| ^19.2.0`                                                    |
 | React Test Renderer | `^19.1.0 \|\| ^19.2.0`                                                    |
@@ -318,7 +350,7 @@ Packed-consumer lanes:
 | 56.0.9  | 0.85.3       | 19.2.3 | 6.0        |
 | 57.0.8  | 0.86.0       | 19.2.3 | 6.0        |
 
-Expo SDK 57.0.8 / React Native 0.86.0 / React 19.2.3 is the full fixture lane. SDK 57 also has a clean external-consumer smoke with Expo Doctor and ESLint.
+Expo SDK 57.0.8 / React Native 0.86.0 / React 19.2.3 is the reproducible full-fixture lane. The clean external-consumer SDK 57 smoke uses the current doctor-passing versions (Expo 57.0.11, React Native 0.86.2, jest-expo 57.0.3, React 19.2.3, Expo Doctor 1.20.1) and runs both Expo Doctor and ESLint against the packed tarball.
 
 React Native support is Expo-coupled. A standalone React Native release is not advertised as stable until it ships in a supported stable Expo SDK or receives an explicit preview lane.
 

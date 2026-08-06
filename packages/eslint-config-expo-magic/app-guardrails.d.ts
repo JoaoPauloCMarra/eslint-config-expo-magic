@@ -1,34 +1,16 @@
-import type { Linter } from 'eslint';
+import type {
+	AppGuardrailsConfig,
+	AppGuardrailsOptions,
+	RestrictedSyntaxGroup,
+	RestrictedSyntaxSelector,
+} from './types';
 
-type RestrictedSyntaxSelector = {
-	selector: string;
-	message?: string;
-};
-
-type RestrictedSyntaxGroup = {
-	files: string[];
-	selectors: RestrictedSyntaxSelector[];
-};
-
-type AppGuardrailsOptions = {
-	queryHookPattern?: string;
-};
-
-declare const appGuardrailsConfig: Linter.Config[] & {
-	base: Linter.Config[];
-	createAppGuardrailsConfig(options?: AppGuardrailsOptions): Linter.Config[];
-	createRestrictedSyntaxGroups(
-		options?: AppGuardrailsOptions,
-	): RestrictedSyntaxGroup[];
-	restrictedSyntaxGroups: RestrictedSyntaxGroup[];
-};
+declare const appGuardrailsConfig: AppGuardrailsConfig;
 
 declare namespace appGuardrailsConfig {
-	export {
-		AppGuardrailsOptions,
-		RestrictedSyntaxGroup,
-		RestrictedSyntaxSelector,
-	};
+	export type AppGuardrailsOptions = import('./types').AppGuardrailsOptions;
+	export type RestrictedSyntaxGroup = import('./types').RestrictedSyntaxGroup;
+	export type RestrictedSyntaxSelector = import('./types').RestrictedSyntaxSelector;
 }
 
 export = appGuardrailsConfig;

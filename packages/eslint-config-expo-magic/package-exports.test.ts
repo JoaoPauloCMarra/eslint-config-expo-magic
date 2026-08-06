@@ -23,6 +23,19 @@ function isRuntimeNamedExport(name: string) {
 }
 
 describe('package exports', () => {
+	it('keeps the package README synchronized with the repository README', () => {
+		const repositoryReadme = fs.readFileSync(
+			path.join(packageDir, '..', '..', 'README.md'),
+			'utf8',
+		);
+		const packageReadme = fs.readFileSync(
+			path.join(packageDir, 'README.md'),
+			'utf8',
+		);
+
+		expect(packageReadme).toBe(repositoryReadme);
+	});
+
 	for (const [subpath, exportValue] of Object.entries(
 		packageManifest.exports,
 	)) {
@@ -62,4 +75,21 @@ describe('package exports', () => {
 			expect(esmNamedExports).toEqual(commonJsNamedExports);
 		});
 	}
+
+	it('pr-guardrails default and named imports expose the CommonJS values', async () => {
+		const exportValue = packageManifest.exports['./pr-guardrails'];
+		if (typeof exportValue === 'string') {
+			throw new Error('pr-guardrails must declare conditional exports');
+		}
+
+		const commonJsModule = require(path.join(packageDir, exportValue.require));
+		const esmModule = await import(
+			`${pathToFileURL(path.join(packageDir, exportValue.import)).href}?pr-guardrails-contract`
+		);
+
+		expect(esmModule.default).toBe(commonJsModule);
+		for (const name of Object.keys(commonJsModule)) {
+			expect(esmModule[name]).toBe(commonJsModule[name]);
+		}
+	});
 });

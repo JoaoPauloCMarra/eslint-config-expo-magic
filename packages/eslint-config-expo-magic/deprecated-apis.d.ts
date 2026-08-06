@@ -1,37 +1,21 @@
 import type { Linter } from 'eslint';
-
-type DeprecatedApiRestrictedProperty = {
-	object?: string;
-	property?: string;
-	message?: string;
-};
-
-type DeprecatedApiRestrictedType = {
-	message?: string;
-	fixWith?: string;
-};
-
-type DeprecatedApiOptions = {
-	additionalRestrictedProperties?: DeprecatedApiRestrictedProperty[];
-	additionalRestrictedTypes?: Record<
-		string,
-		string | DeprecatedApiRestrictedType
-	>;
-};
+import type {
+	DeprecatedApiOptions,
+	DeprecatedApiRestrictedProperty,
+	DeprecatedApiRestrictedType,
+} from './types';
 
 declare const deprecatedApisConfig: Linter.Config[] & {
 	createDeprecatedApiConfig(options?: DeprecatedApiOptions): Linter.Config[];
-	defaultRestrictedProperties: DeprecatedApiRestrictedProperty[];
-	defaultRestrictedTypes: Record<string, DeprecatedApiRestrictedType>;
+	defaultRestrictedProperties: readonly DeprecatedApiRestrictedProperty[];
+	defaultRestrictedTypes: Readonly<Record<string, DeprecatedApiRestrictedType>>;
 	recommended: Linter.Config[];
 };
 
 declare namespace deprecatedApisConfig {
-	export {
-		DeprecatedApiOptions,
-		DeprecatedApiRestrictedProperty,
-		DeprecatedApiRestrictedType,
-	};
+	export type DeprecatedApiOptions = import('./types').DeprecatedApiOptions;
+	export type DeprecatedApiRestrictedProperty = import('./types').DeprecatedApiRestrictedProperty;
+	export type DeprecatedApiRestrictedType = import('./types').DeprecatedApiRestrictedType;
 }
 
 export = deprecatedApisConfig;

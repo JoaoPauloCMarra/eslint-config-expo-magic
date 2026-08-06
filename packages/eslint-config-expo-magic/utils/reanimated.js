@@ -1,6 +1,5 @@
 const { createRestrictedSyntaxConfigs } = require('./restricted-syntax.js');
-
-const typeScriptFiles = ['**/*.ts', '**/*.tsx'];
+const { tsAndTsxFiles } = require('./file-patterns.js');
 const DEFAULT_GESTURE_HOOKS = ['usePanGesture'];
 const WRAPPER_EXPRESSION_TYPES = new Set([
 	'ChainExpression',
@@ -17,10 +16,7 @@ const ANIMATED_HOOKS = new Set([
 	'useDerivedValue',
 	'useAnimatedProps',
 ]);
-const SHARED_VALUE_FACTORIES = new Set([
-	'useDerivedValue',
-	'useSharedValue',
-]);
+const SHARED_VALUE_FACTORIES = new Set(['useDerivedValue', 'useSharedValue']);
 const SHARED_VALUE_INITIALIZER_HOOKS = new Set(['useSharedValue']);
 const SHARED_VALUE_TYPES = new Set(['SharedValue', 'DerivedValue']);
 const REANIMATED_MODULE = 'react-native-reanimated';
@@ -150,7 +146,10 @@ function typeIsSharedValue(typeNode, references, importedNames, namespaces) {
 		);
 	}
 
-	if (typeNode.type === 'TSUnionType' || typeNode.type === 'TSIntersectionType') {
+	if (
+		typeNode.type === 'TSUnionType' ||
+		typeNode.type === 'TSIntersectionType'
+	) {
 		return typeNode.types.some((member) =>
 			typeIsSharedValue(member, references, importedNames, namespaces),
 		);
@@ -235,15 +234,9 @@ function collectSharedValueBindings({
 			const initsSharedValue =
 				(init.type === 'CallExpression' &&
 					SHARED_VALUE_FACTORIES.has(
-						getImportedName(
-							init.callee,
-							references,
-							importedNames,
-							namespaces,
-						),
+						getImportedName(init.callee, references, importedNames, namespaces),
 					)) ||
-				(init.type === 'Identifier' &&
-					sharedValues.has(references.get(init)));
+				(init.type === 'Identifier' && sharedValues.has(references.get(init)));
 
 			if (initsSharedValue) {
 				sharedValues.add(variable);
@@ -270,12 +263,7 @@ function isWithinImportedHook(
 			parent.type === 'CallExpression' &&
 			parent.arguments.includes(current) &&
 			expectedNames.has(
-				getImportedName(
-					parent.callee,
-					references,
-					importedNames,
-					namespaces,
-				),
+				getImportedName(parent.callee, references, importedNames, namespaces),
 			)
 		) {
 			return true;
@@ -383,11 +371,11 @@ const sharedValueUsageRule = {
 					) {
 						context.report({ node: member, messageId: 'getInWorklet' });
 					}
-					}
+				}
 			},
 		};
-		},
-	};
+	},
+};
 
 const sharedValueUsagePlugin = {
 	rules: {
@@ -398,7 +386,7 @@ const sharedValueUsagePlugin = {
 function createSharedValueUsageConfig() {
 	return [
 		{
-			files: typeScriptFiles,
+			files: tsAndTsxFiles,
 			plugins: {
 				[PLUGIN_NAME]: sharedValueUsagePlugin,
 			},
@@ -421,7 +409,7 @@ function createRestrictedSyntaxGroups(options = {}) {
 
 	return [
 		{
-			files: typeScriptFiles,
+			files: tsAndTsxFiles,
 			selectors: [
 				{
 					selector: `CallExpression[callee.name=/^(${gestureHooks.join('|')})$/] > ObjectExpression`,

@@ -1,9 +1,5 @@
-import type { Linter } from 'eslint';
+import type { TypedConfig } from './types';
 
-type FlatConfig = Linter.Config;
-
-declare const config: FlatConfig[] & {
-	noPrettier: FlatConfig[];
-};
+declare const config: TypedConfig;
 
 export = config;
