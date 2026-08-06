@@ -31,7 +31,7 @@
     },
     "packages/eslint-config-expo-magic": {
       "name": "eslint-config-expo-magic",
-      "version": "3.0.0",
+      "version": "3.0.1",
       "bin": {
         "expo-magic-init-agent": "bin/init-agent.js",
         "expo-magic-pr-guardrails": "bin/pr-guardrails.js",
