@@ -1,6 +1,6 @@
 {
 	"name": "eslint-config-expo-magic",
-	"version": "3.0.0",
+	"version": "3.0.1",
 	"description": "ESLint flat config for Expo, React Native, and TypeScript projects",
 	"keywords": [
 		"eslint",

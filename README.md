@@ -19,6 +19,7 @@ Type-safe flat ESLint configuration for Expo, React Native, and TypeScript proje
 - [Exports and types](#exports-and-types)
 - [Behavior and file scope](#behavior-and-file-scope)
 - [Compatibility](#compatibility)
+- [Upgrade to 3.0.1](#upgrade-to-301)
 - [Upgrade to 3.0.0](#upgrade-to-300)
 - [Documentation](#documentation)
 - [Troubleshooting](#troubleshooting)
@@ -354,9 +355,28 @@ Expo SDK 57.0.8 / React Native 0.86.0 / React 19.2.3 is the reproducible full-fi
 
 React Native support is Expo-coupled. A standalone React Native release is not advertised as stable until it ships in a supported stable Expo SDK or receives an explicit preview lane.
 
+## Upgrade to 3.0.1
+
+Upgrade to the current patch release, then run ESLint across the full repository:
+
+```bash
+bun add --dev eslint-config-expo-magic@^3.0.1
+bunx eslint .
+```
+
+This release keeps the 3.0.0 runtime behavior and improves the published package surface:
+
+- Shared TypeScript declarations now cover the root and focused exports, including PR guardrail inputs, results, presets, and React Compiler rule names.
+- CommonJS, ESM, and TypeScript entry points stay aligned after the configuration assembly refactor.
+- Feature-boundary handling covers file-category metadata and MTS, CTS, declaration, and test module variants.
+- The bundled TypeScript ESLint packages are updated to 8.66.
+- The root README, packed README, compatibility guidance, config report, and release metadata are synchronized.
+
+If you are upgrading from 2.x, also follow the [3.0.0 migration guidance](#upgrade-to-300) below.
+
 ## Upgrade to 3.0.0
 
-Upgrade, then run ESLint across the full repository:
+If you are upgrading from 2.x, install 3.0.0 or any later 3.x release, then run ESLint across the full repository:
 
 ```bash
 bun add --dev eslint-config-expo-magic@^3.0.0
@@ -373,7 +393,7 @@ Migration actions:
 6. **TypeScript unused bindings:** let `@typescript-eslint/no-unused-vars` own TypeScript diagnostics; remove local duplication with core `no-unused-vars` if present.
 7. **Module and test files:** review new findings in `.mts`, `.cts`, declaration variants, and `.test`/`.spec` MTS or CTS files.
 
-See the full [migration guide](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/docs/MIGRATING.md) and [3.0.0 changelog](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/CHANGELOG.md#300).
+See the full [migration guide](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/docs/MIGRATING.md), [3.0.0 changelog](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/CHANGELOG.md#300), and [3.0.1 changelog](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/CHANGELOG.md#301).
 
 ## Documentation
 
