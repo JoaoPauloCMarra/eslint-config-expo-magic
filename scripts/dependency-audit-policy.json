@@ -49,7 +49,8 @@
 				"GHSA-3jxr-9vmj-r5cp": "high",
 				"GHSA-f886-m6hf-6m8v": "moderate",
 				"GHSA-jxxr-4gwj-5jf2": "moderate",
-				"GHSA-mh99-v99m-4gvg": "high"
+				"GHSA-mh99-v99m-4gvg": "high",
+				"GHSA-rgw5-rvv9-x895": "high"
 			}
 		},
 		"flatted": {
@@ -111,6 +112,7 @@
 		"postcss": {
 			"classification": "expo-sdk-fixture-tooling",
 			"advisories": {
+				"GHSA-fxqj-rqcc-2cmp": "moderate",
 				"GHSA-r28c-9q8g-f849": "high"
 			}
 		},
@@ -139,6 +141,133 @@
 			"advisories": {
 				"GHSA-48c2-rrv3-qjmp": "moderate"
 			}
+		}
+	},
+	"contracts": {
+		"@xmldom/xmldom:GHSA-2v35-w6hq-6mfw": {
+			"owner": "dependencies",
+			"remediation": "Fixture transitive only; not in published config tree. Track upgrades when Expo bumps its graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"@xmldom/xmldom:GHSA-f6ww-3ggp-fr8h": {
+			"owner": "dependencies",
+			"remediation": "Fixture transitive only; not in published config tree. Track upgrades when Expo bumps its graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"@xmldom/xmldom:GHSA-j759-j44w-7fr8": {
+			"owner": "dependencies",
+			"remediation": "Fixture transitive only; not in published config tree. Track upgrades when Expo bumps its graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"@xmldom/xmldom:GHSA-wh4c-j3r5-mjhp": {
+			"owner": "dependencies",
+			"remediation": "Fixture transitive only; not in published config tree. Track upgrades when Expo bumps its graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"@xmldom/xmldom:GHSA-x6wf-f3px-wcqx": {
+			"owner": "dependencies",
+			"remediation": "Fixture transitive only; not in published config tree. Track upgrades when Expo bumps its graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"brace-expansion:GHSA-3jxr-9vmj-r5cp": {
+			"owner": "dependencies",
+			"remediation": "Published-tree transitive with no direct dependency. Upgrade owning lint/test tool when a fixed version enters the graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"brace-expansion:GHSA-mh99-v99m-4gvg": {
+			"owner": "dependencies",
+			"remediation": "Published-tree transitive with no direct dependency. Upgrade owning lint/test tool when a fixed version enters the graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"brace-expansion:GHSA-rgw5-rvv9-x895": {
+			"owner": "dependencies",
+			"remediation": "Published-tree transitive with no direct dependency. Upgrade owning lint/test tool when a fixed version enters the graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"flatted:GHSA-25h7-pfq9-p65f": {
+			"owner": "dependencies",
+			"remediation": "Published-tree transitive with no direct dependency. Upgrade owning lint/test tool when a fixed version enters the graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"flatted:GHSA-rf6f-7fwh-wjgh": {
+			"owner": "dependencies",
+			"remediation": "Published-tree transitive with no direct dependency. Upgrade owning lint/test tool when a fixed version enters the graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"form-data:GHSA-hmw2-7cc7-3qxx": {
+			"owner": "dependencies",
+			"remediation": "Fixture transitive only; not in published config tree. Track upgrades when Expo bumps its graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"js-yaml:GHSA-52cp-r559-cp3m": {
+			"owner": "dependencies",
+			"remediation": "Published-tree transitive with no direct dependency. Upgrade owning lint/test tool when a fixed version enters the graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"lodash:GHSA-r5fr-rjxr-66jc": {
+			"owner": "dependencies",
+			"remediation": "Build-time tooling transitive; not in published config tree. Upgrade when owning tool ships a fixed path; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"minimatch:GHSA-23c5-xmqv-rm74": {
+			"owner": "dependencies",
+			"remediation": "Published-tree transitive with no direct dependency. Upgrade owning lint/test tool when a fixed version enters the graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"minimatch:GHSA-3ppc-4f35-3m26": {
+			"owner": "dependencies",
+			"remediation": "Published-tree transitive with no direct dependency. Upgrade owning lint/test tool when a fixed version enters the graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"minimatch:GHSA-7r86-cg39-jmmj": {
+			"owner": "dependencies",
+			"remediation": "Published-tree transitive with no direct dependency. Upgrade owning lint/test tool when a fixed version enters the graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"node-forge:GHSA-2328-f5f3-gj25": {
+			"owner": "dependencies",
+			"remediation": "Fixture transitive only; not in published config tree. Track upgrades when Expo bumps its graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"node-forge:GHSA-5m6q-g25r-mvwx": {
+			"owner": "dependencies",
+			"remediation": "Fixture transitive only; not in published config tree. Track upgrades when Expo bumps its graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"node-forge:GHSA-ppp5-5v6c-4jwp": {
+			"owner": "dependencies",
+			"remediation": "Fixture transitive only; not in published config tree. Track upgrades when Expo bumps its graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"node-forge:GHSA-q67f-28xg-22rw": {
+			"owner": "dependencies",
+			"remediation": "Fixture transitive only; not in published config tree. Track upgrades when Expo bumps its graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"picomatch:GHSA-c2c7-rcm5-vvqj": {
+			"owner": "dependencies",
+			"remediation": "Published-tree transitive with no direct dependency. Upgrade owning lint/test tool when a fixed version enters the graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"postcss:GHSA-r28c-9q8g-f849": {
+			"owner": "dependencies",
+			"remediation": "Fixture transitive only; not in published config tree. Track upgrades when Expo bumps its graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"shell-quote:GHSA-395f-4hp3-45gv": {
+			"owner": "dependencies",
+			"remediation": "Fixture transitive only; not in published config tree. Track upgrades when Expo bumps its graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"shell-quote:GHSA-w7jw-789q-3m8p": {
+			"owner": "dependencies",
+			"remediation": "Fixture transitive only; not in published config tree. Track upgrades when Expo bumps its graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
+		},
+		"ws:GHSA-96hv-2xvq-fx4p": {
+			"owner": "dependencies",
+			"remediation": "Fixture transitive only; not in published config tree. Track upgrades when Expo bumps its graph; re-review by policy expiry.",
+			"expiry": "2026-08-29"
 		}
 	}
 }

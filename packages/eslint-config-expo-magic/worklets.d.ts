@@ -1,17 +1,5 @@
-import type { Linter } from 'eslint';
+import type { RestrictedSyntaxConfig } from './types';
 
-type RestrictedSyntaxSelector = {
-	selector: string;
-	message?: string;
-};
-
-type RestrictedSyntaxGroup = {
-	files: string[];
-	selectors: RestrictedSyntaxSelector[];
-};
-
-declare const workletsConfig: Linter.Config[] & {
-	restrictedSyntaxGroups: RestrictedSyntaxGroup[];
-};
+declare const workletsConfig: RestrictedSyntaxConfig;
 
 export = workletsConfig;

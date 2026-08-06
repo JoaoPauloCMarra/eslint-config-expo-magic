@@ -6,8 +6,11 @@ const { spawnSync } = require('child_process');
 const path = require('path');
 const { ESLint } = require('eslint');
 const {
+	collectMessagesByFile,
 	collectLintRuleResults,
+	findExpectedFileRuleFailures,
 	findMissingRuleFileCoverage,
+	findUnexpectedFileRuleFailures,
 } = require('./validation-results.js');
 
 console.log('🚀 ESLint Config Expo Magic - Comprehensive Validation Suite');
@@ -270,10 +273,22 @@ function parseLintResults(result) {
 function resolvePresetModulePath(presetModule) {
 	const localPresetFiles = {
 		'eslint-config-expo-magic': 'index.js',
+		'eslint-config-expo-magic/agent': 'agent.js',
+		'eslint-config-expo-magic/agent-guardrails': 'agent-guardrails.js',
+		'eslint-config-expo-magic/app-guardrails': 'app-guardrails.js',
 		'eslint-config-expo-magic/base': 'base.js',
+		'eslint-config-expo-magic/component-structure': 'component-structure.js',
+		'eslint-config-expo-magic/deprecated-apis': 'deprecated-apis.js',
+		'eslint-config-expo-magic/feature-boundaries': 'feature-boundaries.js',
+		'eslint-config-expo-magic/native-ui': 'native-ui.js',
 		'eslint-config-expo-magic/strict': 'strict.js',
 		'eslint-config-expo-magic/no-prettier': 'no-prettier.js',
 		'eslint-config-expo-magic/typed': 'typed.js',
+		'eslint-config-expo-magic/react-compiler': 'react-compiler.js',
+		'eslint-config-expo-magic/reanimated': 'reanimated.js',
+		'eslint-config-expo-magic/semantic-colors': 'semantic-colors.js',
+		'eslint-config-expo-magic/storybook': 'storybook.js',
+		'eslint-config-expo-magic/worklets': 'worklets.js',
 	};
 
 	const localPresetFile = localPresetFiles[presetModule];
@@ -284,18 +299,44 @@ function resolvePresetModulePath(presetModule) {
 	return presetModule;
 }
 
-function runPresetLint(presetModule, targets) {
+function createPresetConfigSource(presetModules) {
+	const presetExpressions = presetModules.map((presetModule) => {
+		const presetModulePath = resolvePresetModulePath(presetModule);
+		const preset = require(presetModulePath);
+
+		return Array.isArray(preset)
+			? `require(${JSON.stringify(presetModulePath)})`
+			: `require(${JSON.stringify(presetModulePath)}).recommended`;
+	});
+
+	return `module.exports = [...${presetExpressions.join(', ')}].flat();\n`;
+}
+
+function runPresetLint(presetModules, targets, options = {}) {
+	const { stageFiles = {}, tsconfig } = options;
+	const staged = Object.keys(stageFiles).length > 0 || tsconfig !== undefined;
+	const tempRoot = staged ? process.cwd() : os.tmpdir();
 	const tempDir = fs.mkdtempSync(
-		path.join(os.tmpdir(), 'eslint-config-expo-magic-preset-'),
+		path.join(
+			tempRoot,
+			staged ? 'validation-staging-' : 'eslint-config-expo-magic-preset-',
+		),
 	);
 	const configPath = path.join(tempDir, 'eslint.config.js');
-	const presetModulePath = resolvePresetModulePath(presetModule);
+	const lintCwd = staged ? tempDir : process.cwd();
 
 	try {
-		fs.writeFileSync(
-			configPath,
-			`const preset = require(${JSON.stringify(presetModulePath)});\n\nmodule.exports = [...preset];\n`,
-		);
+		fs.writeFileSync(configPath, createPresetConfigSource(presetModules));
+
+		if (tsconfig !== undefined) {
+			fs.writeFileSync(path.join(tempDir, 'tsconfig.json'), tsconfig);
+		}
+
+		for (const [relativePath, sourcePath] of Object.entries(stageFiles)) {
+			const destPath = path.join(tempDir, relativePath);
+			fs.mkdirSync(path.dirname(destPath), { recursive: true });
+			fs.copyFileSync(sourcePath, destPath);
+		}
 
 		const result = runCommand(
 			'bunx',
@@ -307,27 +348,38 @@ function runPresetLint(presetModule, targets) {
 				configPath,
 				'--format=json',
 			],
-			process.cwd(),
+			lintCwd,
 		);
 
-		return parseLintResults(result);
+		return {
+			cwd: lintCwd,
+			lintResults: parseLintResults(result),
+		};
 	} finally {
 		fs.rmSync(tempDir, { recursive: true, force: true });
 	}
 }
 
-function validatePreset(
+function validatePresetCheck({
 	label,
-	presetModule,
+	presetModules,
 	targets,
-	requiredRules,
+	requiredRules = [],
 	forbiddenRules = [],
-) {
+	stageFiles,
+	tsconfig,
+	expectedByFile,
+	forbiddenByFile,
+}) {
 	console.log(`\n🧪 Preset Check: ${label}`);
 	console.log('==============================');
 
-	const lintResults = runPresetLint(presetModule, targets);
+	const { cwd, lintResults } = runPresetLint(presetModules, targets, {
+		stageFiles,
+		tsconfig,
+	});
 	const messages = lintResults.flatMap((result) => result.messages ?? []);
+	const messagesByFile = collectMessagesByFile(lintResults, cwd);
 
 	let passed = true;
 
@@ -360,7 +412,52 @@ function validatePreset(
 		console.log(`✅ ${ruleId} absent`);
 	}
 
+	const expectedFailures = findExpectedFileRuleFailures(
+		messagesByFile,
+		expectedByFile,
+	);
+	const forbiddenFailures = findUnexpectedFileRuleFailures(
+		messagesByFile,
+		forbiddenByFile,
+	);
+
+	for (const failure of [...expectedFailures, ...forbiddenFailures]) {
+		console.log(`❌ ${failure.file}: ${failure.ruleId} (${failure.reason})`);
+	}
+
+	if (expectedFailures.length > 0 || forbiddenFailures.length > 0) {
+		passed = false;
+	}
+
 	return passed;
+}
+
+function validatePresetChecks(checks) {
+	let passed = true;
+
+	for (const check of checks) {
+		if (!validatePresetCheck(check)) {
+			passed = false;
+		}
+	}
+
+	return passed;
+}
+
+function validatePreset(
+	label,
+	presetModule,
+	targets,
+	requiredRules,
+	forbiddenRules,
+) {
+	return validatePresetCheck({
+		label,
+		presetModules: [presetModule],
+		targets,
+		requiredRules,
+		forbiddenRules,
+	});
 }
 
 function isRuleEnabled(ruleConfig) {
@@ -529,6 +626,105 @@ async function runValidation() {
 		[{ ruleId: '@typescript-eslint/no-base-to-string', severity: 2 }],
 	);
 
+	const focusedPresetPassed = validatePresetChecks([
+		{
+			label: 'component structure',
+			presetModules: [
+				'eslint-config-expo-magic',
+				'eslint-config-expo-magic/component-structure',
+			],
+			targets: ['preset-fixtures/component-structure.tsx'],
+			requiredRules: [
+				{ ruleId: 'expo-magic/no-inline-props', severity: 2 },
+				{ ruleId: 'expo-magic/props-type-order', severity: 1 },
+				{ ruleId: 'expo-magic/default-export-placement', severity: 2 },
+				{ ruleId: 'expo-magic/require-children-usage', severity: 1 },
+			],
+		},
+		{
+			label: 'deprecated APIs',
+			presetModules: [
+				'eslint-config-expo-magic',
+				'eslint-config-expo-magic/deprecated-apis',
+			],
+			targets: ['preset-fixtures/deprecated-apis.tsx'],
+			requiredRules: [
+				{ ruleId: 'no-restricted-properties', severity: 2 },
+				{ ruleId: '@typescript-eslint/no-restricted-types', severity: 2 },
+			],
+		},
+		{
+			label: 'native UI restrictions',
+			presetModules: [
+				'eslint-config-expo-magic',
+				'eslint-config-expo-magic/native-ui',
+			],
+			targets: ['preset-fixtures/native-ui.tsx'],
+			requiredRules: [{ ruleId: 'no-restricted-imports', severity: 2 }],
+		},
+		{
+			label: 'React Compiler diagnostics',
+			presetModules: [
+				'eslint-config-expo-magic',
+				'eslint-config-expo-magic/react-compiler',
+			],
+			targets: ['preset-fixtures/react-compiler-focused.tsx'],
+			requiredRules: [
+				{ ruleId: 'react-hooks/purity', severity: 2 },
+				{ ruleId: 'react-hooks/set-state-in-render', severity: 2 },
+			],
+		},
+		{
+			label: 'Reanimated restrictions',
+			presetModules: [
+				'eslint-config-expo-magic',
+				'eslint-config-expo-magic/reanimated',
+			],
+			targets: ['preset-fixtures/reanimated.tsx'],
+			requiredRules: [
+				{
+					ruleId: 'expo-magic-reanimated/no-shared-value-misuse',
+					severity: 2,
+				},
+			],
+		},
+		{
+			label: 'semantic colors',
+			presetModules: [
+				'eslint-config-expo-magic',
+				'eslint-config-expo-magic/semantic-colors',
+			],
+			targets: ['preset-fixtures/semantic-colors.tsx'],
+			requiredRules: [{ ruleId: 'no-restricted-syntax', severity: 2 }],
+		},
+		{
+			label: 'storybook overrides',
+			presetModules: [
+				'eslint-config-expo-magic',
+				'eslint-config-expo-magic/storybook',
+			],
+			targets: ['preset-fixtures/Button.stories.tsx'],
+			requiredRules: [
+				{ ruleId: '@typescript-eslint/no-explicit-any', severity: 2 },
+			],
+			forbiddenRules: ['no-console'],
+		},
+		{
+			label: 'TypeScript extension scopes',
+			presetModules: ['eslint-config-expo-magic'],
+			targets: [
+				'preset-fixtures/extensions/probe.cts',
+				'preset-fixtures/extensions/probe.mts',
+				'preset-fixtures/extensions/probe.d.cts',
+				'preset-fixtures/extensions/probe.d.mts',
+				'preset-fixtures/extensions/probe.d.ts',
+			],
+			requiredRules: [
+				{ ruleId: '@typescript-eslint/no-explicit-any', severity: 2 },
+			],
+		},
+	]);
+
 	console.log('\n🎯 Final Validation:');
 	console.log('===================');
 
@@ -541,7 +737,8 @@ async function runValidation() {
 		defaultPresetPassed &&
 		strictPresetPassed &&
 		noPrettierPresetPassed &&
-		typedPresetPassed
+		typedPresetPassed &&
+		focusedPresetPassed
 	) {
 		console.log('🎉 All expected rules and file coverage checks passed!');
 		console.log('🚀 Ready for publishing!');

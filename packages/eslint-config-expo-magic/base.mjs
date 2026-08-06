@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const config = require('./index.js');
+const config = require('./base.js');
 
-export default config.base;
+export default config;

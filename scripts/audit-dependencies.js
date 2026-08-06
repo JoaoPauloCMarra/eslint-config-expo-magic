@@ -14,6 +14,40 @@ const severityRank = {
 	high: 3,
 	critical: 4,
 };
+const contractDatePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+function validateContract(key, contract) {
+	if (!contract || typeof contract !== 'object' || Array.isArray(contract)) {
+		throw new Error(`Remediation contract for ${key} must be an object.`);
+	}
+
+	for (const field of ['owner', 'remediation', 'expiry']) {
+		if (typeof contract[field] !== 'string' || contract[field].trim() === '') {
+			throw new Error(
+				`Remediation contract for ${key} requires a non-empty ${field}.`,
+			);
+		}
+	}
+
+	if (!contractDatePattern.test(contract.expiry)) {
+		throw new Error(
+			`Remediation contract for ${key} has invalid expiry date: ${contract.expiry}.`,
+		);
+	}
+
+	const expiryTime = Date.parse(`${contract.expiry}T23:59:59Z`);
+	if (Number.isNaN(expiryTime)) {
+		throw new Error(
+			`Remediation contract for ${key} has invalid expiry date: ${contract.expiry}.`,
+		);
+	}
+
+	if (expiryTime < Date.now()) {
+		throw new Error(
+			`Remediation contract for ${key} expired on ${contract.expiry}.`,
+		);
+	}
+}
 
 function advisoryKey(packageName, advisoryId) {
 	return `${packageName}:${advisoryId}`;
@@ -174,17 +208,21 @@ function readPublishedDependencyPackages() {
 			`${JSON.stringify(consumerPackageJson, null, 2)}\n`,
 		);
 
-		run('npm', [
-			'install',
-			'--package-lock-only',
-			'--package-lock=true',
-			'--dry-run=false',
-			'--ignore-scripts',
-			'--legacy-peer-deps',
-			'--no-audit',
-		], {
-			cwd: tempDir,
-		});
+		run(
+			'npm',
+			[
+				'install',
+				'--package-lock-only',
+				'--package-lock=true',
+				'--dry-run=false',
+				'--ignore-scripts',
+				'--legacy-peer-deps',
+				'--no-audit',
+			],
+			{
+				cwd: tempDir,
+			},
+		);
 
 		const packageLock = JSON.parse(
 			fs.readFileSync(path.join(tempDir, 'package-lock.json'), 'utf8'),
@@ -247,9 +285,7 @@ function normalizePolicy(policy) {
 		const classificationMayAppearInPublishedDependencyTree =
 			classificationPolicy.mayAppearInPublishedDependencyTree ?? false;
 
-		if (
-			typeof classificationMayAppearInPublishedDependencyTree !== 'boolean'
-		) {
+		if (typeof classificationMayAppearInPublishedDependencyTree !== 'boolean') {
 			throw new Error(
 				`Invalid mayAppearInPublishedDependencyTree for classification ${classification}.`,
 			);
@@ -268,16 +304,13 @@ function normalizePolicy(policy) {
 			);
 		}
 
-		const classificationPolicy =
-			classificationRules.get(packagePolicy.classification);
+		const classificationPolicy = classificationRules.get(
+			packagePolicy.classification,
+		);
 		let mayAppearInPublishedDependencyTree =
 			classificationPolicy?.mayAppearInPublishedDependencyTree ?? false;
 
-		if (
-			packagePolicy.hasOwnProperty(
-				'mayAppearInPublishedDependencyTree',
-			)
-		) {
+		if (packagePolicy.hasOwnProperty('mayAppearInPublishedDependencyTree')) {
 			if (
 				typeof packagePolicy.mayAppearInPublishedDependencyTree !== 'boolean'
 			) {
@@ -316,7 +349,35 @@ function normalizePolicy(policy) {
 		}
 	}
 
-	return { advisories, classificationRules, packageClassifications };
+	const contracts = new Map();
+	for (const [key, contract] of Object.entries(policy.contracts ?? {})) {
+		if (!advisories.has(key)) {
+			throw new Error(
+				`Remediation contract references unclassified advisory ${key}.`,
+			);
+		}
+
+		validateContract(key, contract);
+		contracts.set(key, contract);
+	}
+
+	for (const [key, advisory] of advisories) {
+		if (
+			severityRank[advisory.severity] >= severityRank.high &&
+			!contracts.has(key)
+		) {
+			throw new Error(
+				`Missing remediation contract for high/critical advisory ${key} (${advisory.severity}).`,
+			);
+		}
+	}
+
+	return {
+		advisories,
+		classificationRules,
+		packageClassifications,
+		contracts,
+	};
 }
 
 function main() {
@@ -326,10 +387,12 @@ function main() {
 		advisories: allowedAdvisories,
 		classificationRules,
 		packageClassifications,
+		contracts,
 	} = normalizePolicy(policy);
 	const failures = [];
 	const resolved = [];
 	const classificationCounts = new Map();
+	const highCriticalAdvisoryKeys = new Set();
 	const publishedPackages = readPublishedDependencyPackages();
 
 	for (const [packageName, packageInfo] of packageClassifications) {
@@ -364,6 +427,9 @@ function main() {
 			allowed.classification,
 			(classificationCounts.get(allowed.classification) ?? 0) + 1,
 		);
+		if (severityRank[advisory.severity] >= severityRank.high) {
+			highCriticalAdvisoryKeys.add(key);
+		}
 	}
 
 	for (const [key, advisory] of allowedAdvisories) {
@@ -380,7 +446,9 @@ function main() {
 		console.log(`${classification}: ${count} unresolved advisories`);
 	}
 	console.log(
-		`Dependency audit passed with ${currentAdvisories.size} classified advisories; review by ${policy.reviewBy}.`,
+		`Dependency audit passed with ${currentAdvisories.size} classified advisories ` +
+			`(${highCriticalAdvisoryKeys.size} high/critical under remediation contracts); ` +
+			`review by ${policy.reviewBy}.`,
 	);
 
 	if (resolved.length > 0) {
@@ -388,6 +456,23 @@ function main() {
 			`Policy entries no longer reported: ${resolved.sort().join(', ')}`,
 		);
 	}
+
+	const resolvedContracts = resolved.filter((key) => contracts.has(key));
+	if (resolvedContracts.length > 0) {
+		console.log(
+			`Contracts for resolved advisories: ${resolvedContracts.sort().join(', ')}`,
+		);
+	}
 }
 
-main();
+if (require.main === module) {
+	main();
+}
+
+module.exports = {
+	advisoryKey,
+	normalizeAudit,
+	normalizePolicy,
+	severityRank,
+	validateContract,
+};

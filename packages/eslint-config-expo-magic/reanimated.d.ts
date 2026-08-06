@@ -1,32 +1,16 @@
-import type { Linter, Rule } from 'eslint';
+import type {
+	ReanimatedConfig,
+	ReanimatedOptions,
+	RestrictedSyntaxGroup,
+	RestrictedSyntaxSelector,
+} from './types';
 
-type RestrictedSyntaxSelector = {
-	selector: string;
-	message?: string;
-};
-
-type RestrictedSyntaxGroup = {
-	files: string[];
-	selectors: RestrictedSyntaxSelector[];
-};
-
-type ReanimatedOptions = {
-	gestureHooks?: string[];
-	additionalGestureHooks?: string[];
-};
-
-declare const reanimatedConfig: Linter.Config[] & {
-	createReanimatedConfig(options?: ReanimatedOptions): Linter.Config[];
-	createRestrictedSyntaxGroups(
-		options?: ReanimatedOptions,
-	): RestrictedSyntaxGroup[];
-	createSharedValueUsageConfig(): Linter.Config[];
-	restrictedSyntaxGroups: RestrictedSyntaxGroup[];
-	sharedValueUsageRule: Rule.RuleModule;
-};
+declare const reanimatedConfig: ReanimatedConfig;
 
 declare namespace reanimatedConfig {
-	export { ReanimatedOptions, RestrictedSyntaxGroup, RestrictedSyntaxSelector };
+	export type ReanimatedOptions = import('./types').ReanimatedOptions;
+	export type RestrictedSyntaxGroup = import('./types').RestrictedSyntaxGroup;
+	export type RestrictedSyntaxSelector = import('./types').RestrictedSyntaxSelector;
 }
 
 export = reanimatedConfig;

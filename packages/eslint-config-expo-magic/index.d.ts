@@ -1,153 +1,37 @@
-import type { Linter, Rule } from 'eslint';
-
-type FlatConfig = Linter.Config;
-
-type RestrictedSyntaxSelector = {
-	selector: string;
-	message?: string;
-};
-
-type RestrictedSyntaxGroup = {
-	files: string[];
-	selectors: RestrictedSyntaxSelector[];
-};
-
-type RestrictedSyntaxConfig = FlatConfig[] & {
-	restrictedSyntaxGroups: RestrictedSyntaxGroup[];
-};
-
-type AgentGuardrailsConfig = RestrictedSyntaxConfig & {
-	base: FlatConfig[];
-	createAgentGuardrailsConfig(): FlatConfig[];
-	createRestrictedSyntaxGroups(): RestrictedSyntaxGroup[];
-};
-
-type AppGuardrailsConfig = RestrictedSyntaxConfig & {
-	base: FlatConfig[];
-	createAppGuardrailsConfig(options?: AppGuardrailsOptions): FlatConfig[];
-	createRestrictedSyntaxGroups(options?: AppGuardrailsOptions): RestrictedSyntaxGroup[];
-};
-
-type ReanimatedConfig = FlatConfig[] & {
-	createReanimatedConfig(options?: ReanimatedOptions): FlatConfig[];
-	createRestrictedSyntaxGroups(options?: ReanimatedOptions): RestrictedSyntaxGroup[];
-	createSharedValueUsageConfig(): FlatConfig[];
-	restrictedSyntaxGroups: RestrictedSyntaxGroup[];
-	sharedValueUsageRule: Rule.RuleModule;
-};
-
-type SemanticColorsConfig = FlatConfig[] & {
-	createSemanticColorsConfig(
-		options?: SemanticColorsOptions,
-	): FlatConfig[];
-	createRestrictedSyntaxGroups(
-		options?: SemanticColorsOptions,
-	): RestrictedSyntaxGroup[];
-	createAllowConfig(options?: SemanticColorsOptions): FlatConfig[];
-	restrictedSyntaxGroups: RestrictedSyntaxGroup[];
-};
-
-type NativeUiRestriction = {
-	name: string;
-	importNames?: string[];
-	message?: string;
-};
-
-type NativeUiOptions = {
-	restrictions?: NativeUiRestriction[];
-	additionalRestrictions?: NativeUiRestriction[];
-	allowFiles?: string[];
-};
-
-type FeatureBoundaryOptions = {
-	featureElementTypes?: string[];
-	additionalFeatureElementTypes?: string[];
-	sharedComponentPatterns?: string[];
-	additionalSharedComponentPatterns?: string[];
-};
-
-type AppGuardrailsOptions = {
-	queryHookPattern?: string;
-};
-
-type ComponentStructureOptions = {
-	propsTypePattern?: string;
-};
-
-type DeprecatedApiRestrictedProperty = {
-	object?: string;
-	property?: string;
-	message?: string;
-};
-
-type DeprecatedApiRestrictedType = {
-	message?: string;
-	fixWith?: string;
-};
-
-type DeprecatedApiOptions = {
-	additionalRestrictedProperties?: DeprecatedApiRestrictedProperty[];
-	additionalRestrictedTypes?: Record<
-		string,
-		string | DeprecatedApiRestrictedType
-	>;
-};
-
-type ReanimatedOptions = {
-	gestureHooks?: string[];
-	additionalGestureHooks?: string[];
-};
-
-type SemanticColorsOptions = {
-	tokenModule?: string;
-	importName?: string;
-	flagDirectAccess?: boolean;
-	allowFiles?: string[];
-};
-
-type AgentOptions = {
-	appGuardrails?: boolean | AppGuardrailsOptions;
-	deprecatedApis?: boolean | DeprecatedApiOptions;
-	reactCompiler?: boolean;
-	reanimated?: boolean | ReanimatedOptions;
-	semanticColors?: boolean | SemanticColorsOptions;
-	worklets?: boolean;
-};
-
-type CreateConfigOptions = {
-	preset?: 'base' | 'default';
-	prettier?: boolean;
-	testing?: boolean;
-	typeChecked?: boolean;
-	strict?: boolean;
-	tsconfigProjects?: string[];
-	extraIgnores?: string[];
-	agent?: boolean | AgentOptions;
-	appGuardrails?: boolean | AppGuardrailsOptions;
-	componentStructure?: boolean | ComponentStructureOptions;
-	deprecatedApis?: boolean | DeprecatedApiOptions;
-	featureBoundaries?: boolean | FeatureBoundaryOptions;
-	inlineStyles?: boolean | Linter.RuleSeverity;
-	nativeUi?: boolean | NativeUiOptions;
-	reactCompiler?: boolean;
-	reanimated?: boolean | ReanimatedOptions;
-	semanticColors?: boolean | SemanticColorsOptions;
-	storybook?: boolean;
-	worklets?: boolean;
-};
-
-type ReactCompilerConfig = FlatConfig[] & {
-	rules: Record<string, Linter.RuleEntry>;
-};
-
-type NoPrettierConfig = FlatConfig[] & {
-	strict: FlatConfig[];
-	typed: FlatConfig[];
-};
-
-type TypedConfig = FlatConfig[] & {
-	noPrettier: FlatConfig[];
-};
+import type { Linter } from 'eslint';
+import type {
+	AgentGuardrailsConfig,
+	AgentOptions,
+	AppGuardrailsConfig,
+	AppGuardrailsOptions,
+	ComponentStructureOptions,
+	CreateConfigOptions,
+	DeprecatedApiOptions,
+	DeprecatedApiRestrictedProperty,
+	DeprecatedApiRestrictedType,
+	FeatureBoundaryOptions,
+	FlatConfig,
+	GuardrailInput,
+	GuardrailOptions,
+	GuardrailResult,
+	NativeUiOptions,
+	NativeUiRestriction,
+	PrGuardrailPreset,
+	PrGuardrailPresets,
+	ReactCompilerConfig,
+	ReactCompilerRuleName,
+	ReanimatedConfig,
+	ReanimatedOptions,
+	RestrictedSyntaxConfig,
+	RestrictedSyntaxGroup,
+	RestrictedSyntaxSelector,
+	RiskyPattern,
+	ResolvedGuardrailOptions,
+	SemanticColorsConfig,
+	SemanticColorsOptions,
+	TypedConfig,
+	NoPrettierConfig,
+} from './types';
 
 declare const config: FlatConfig[] & {
 	agent: FlatConfig[];
@@ -182,30 +66,37 @@ declare const config: FlatConfig[] & {
 };
 
 declare namespace config {
-	export {
-		AgentGuardrailsConfig,
-		AgentOptions,
-		AppGuardrailsConfig,
-		AppGuardrailsOptions,
-		ComponentStructureOptions,
-		CreateConfigOptions,
-		DeprecatedApiOptions,
-		DeprecatedApiRestrictedProperty,
-		DeprecatedApiRestrictedType,
-		FeatureBoundaryOptions,
-		NativeUiOptions,
-		NativeUiRestriction,
-		ReactCompilerConfig,
-		ReanimatedConfig,
-		ReanimatedOptions,
-		RestrictedSyntaxConfig,
-		RestrictedSyntaxGroup,
-		RestrictedSyntaxSelector,
-		NoPrettierConfig,
-		TypedConfig,
-		SemanticColorsConfig,
-		SemanticColorsOptions,
-	};
+	export type AgentGuardrailsConfig = import('./types').AgentGuardrailsConfig;
+	export type AgentOptions = import('./types').AgentOptions;
+	export type AppGuardrailsConfig = import('./types').AppGuardrailsConfig;
+	export type AppGuardrailsOptions = import('./types').AppGuardrailsOptions;
+	export type ComponentStructureOptions = import('./types').ComponentStructureOptions;
+	export type CreateConfigOptions = import('./types').CreateConfigOptions;
+	export type DeprecatedApiOptions = import('./types').DeprecatedApiOptions;
+	export type DeprecatedApiRestrictedProperty = import('./types').DeprecatedApiRestrictedProperty;
+	export type DeprecatedApiRestrictedType = import('./types').DeprecatedApiRestrictedType;
+	export type FeatureBoundaryOptions = import('./types').FeatureBoundaryOptions;
+	export type FlatConfig = import('./types').FlatConfig;
+	export type GuardrailInput = import('./types').GuardrailInput;
+	export type GuardrailOptions = import('./types').GuardrailOptions;
+	export type GuardrailResult = import('./types').GuardrailResult;
+	export type NativeUiOptions = import('./types').NativeUiOptions;
+	export type NativeUiRestriction = import('./types').NativeUiRestriction;
+	export type PrGuardrailPreset = import('./types').PrGuardrailPreset;
+	export type PrGuardrailPresets = import('./types').PrGuardrailPresets;
+	export type ReactCompilerConfig = import('./types').ReactCompilerConfig;
+	export type ReactCompilerRuleName = import('./types').ReactCompilerRuleName;
+	export type ReanimatedConfig = import('./types').ReanimatedConfig;
+	export type ReanimatedOptions = import('./types').ReanimatedOptions;
+	export type RestrictedSyntaxConfig = import('./types').RestrictedSyntaxConfig;
+	export type RestrictedSyntaxGroup = import('./types').RestrictedSyntaxGroup;
+	export type RestrictedSyntaxSelector = import('./types').RestrictedSyntaxSelector;
+	export type RiskyPattern = import('./types').RiskyPattern;
+	export type ResolvedGuardrailOptions = import('./types').ResolvedGuardrailOptions;
+	export type SemanticColorsConfig = import('./types').SemanticColorsConfig;
+	export type SemanticColorsOptions = import('./types').SemanticColorsOptions;
+	export type NoPrettierConfig = import('./types').NoPrettierConfig;
+	export type TypedConfig = import('./types').TypedConfig;
 }
 
 export = config;

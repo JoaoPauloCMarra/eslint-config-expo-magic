@@ -1,7 +1,5 @@
-import type { Linter } from 'eslint';
+import type { ReactCompilerConfig } from './types';
 
-declare const reactCompilerConfig: Linter.Config[] & {
-	rules: Record<string, Linter.RuleEntry>;
-};
+declare const reactCompilerConfig: ReactCompilerConfig;
 
 export = reactCompilerConfig;

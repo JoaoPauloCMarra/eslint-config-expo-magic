@@ -1,8 +1,9 @@
 const { createRestrictedSyntaxConfigs } = require('./restricted-syntax.js');
+const { tsAndTsxFiles } = require('./file-patterns.js');
 
 const restrictedSyntaxGroups = [
 	{
-		files: ['**/*.ts', '**/*.tsx'],
+		files: tsAndTsxFiles,
 		selectors: [
 			{
 				selector:

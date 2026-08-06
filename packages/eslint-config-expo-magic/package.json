@@ -191,6 +191,7 @@
 		"semantic-colors.d.ts",
 		"storybook.d.ts",
 		"worklets.d.ts",
+		"types.d.ts",
 		"README.md",
 		"bin/*.js",
 		"utils/*.js",
@@ -211,9 +212,9 @@
 	},
 	"dependencies": {
 		"@eslint/compat": "^2.1.0",
-		"@typescript-eslint/eslint-plugin": "^8.65.0",
-		"@typescript-eslint/parser": "^8.65.0",
-		"@typescript-eslint/utils": "^8.65.0",
+		"@typescript-eslint/eslint-plugin": "^8.66.0",
+		"@typescript-eslint/parser": "^8.66.0",
+		"@typescript-eslint/utils": "^8.66.0",
 		"eslint": "^10.8.0",
 		"eslint-config-expo": "^57.0.0",
 		"eslint-config-prettier": "^10.1.8",
@@ -229,7 +230,7 @@
 		"eslint-plugin-testing-library": "^7.16.2",
 		"eslint-plugin-unused-imports": "^4.4.1",
 		"prettier": "^3.9.6",
-		"typescript-eslint": "^8.65.0"
+		"typescript-eslint": "^8.66.0"
 	},
 	"peerDependencies": {
 		"expo": "^54.0.33 || ^55.0.0 || ^56.0.0 || ^57.0.0",

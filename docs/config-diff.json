@@ -1,6 +1,6 @@
 {
   "packageVersion": "3.0.0",
-  "expoConfigVersion": "57.0.0",
+  "expoConfigVersion": "57.0.1",
   "presets": {
     "expo": {
       "name": "expo",
@@ -3099,6 +3099,13 @@
                   },
                   {
                     "to": {
+                      "file": {
+                        "categories": "feature-atom"
+                      }
+                    }
+                  },
+                  {
+                    "to": {
                       "type": "feature-screen"
                     }
                   },
@@ -3169,6 +3176,13 @@
                   {
                     "to": {
                       "type": "feature-atom"
+                    }
+                  },
+                  {
+                    "to": {
+                      "file": {
+                        "categories": "feature-atom"
+                      }
                     }
                   }
                 ]
@@ -3270,6 +3284,16 @@
                         "feature": "{{from.captured.feature}}"
                       }
                     }
+                  },
+                  {
+                    "to": {
+                      "file": {
+                        "categories": "feature-atom",
+                        "captured": {
+                          "feature": "{{from.captured.feature}}"
+                        }
+                      }
+                    }
                   }
                 ]
               },
@@ -3348,6 +3372,16 @@
                         "feature": "{{from.captured.feature}}"
                       }
                     }
+                  },
+                  {
+                    "to": {
+                      "file": {
+                        "categories": "feature-atom",
+                        "captured": {
+                          "feature": "{{from.captured.feature}}"
+                        }
+                      }
+                    }
                   }
                 ]
               },
@@ -3424,6 +3458,16 @@
                       "type": "feature-private",
                       "captured": {
                         "feature": "{{from.captured.feature}}"
+                      }
+                    }
+                  },
+                  {
+                    "to": {
+                      "file": {
+                        "categories": "feature-atom",
+                        "captured": {
+                          "feature": "{{from.captured.feature}}"
+                        }
                       }
                     }
                   }
@@ -3528,6 +3572,16 @@
                       "type": "feature-private",
                       "captured": {
                         "feature": "{{from.captured.feature}}"
+                      }
+                    }
+                  },
+                  {
+                    "to": {
+                      "file": {
+                        "categories": "feature-atom",
+                        "captured": {
+                          "feature": "{{from.captured.feature}}"
+                        }
                       }
                     }
                   }

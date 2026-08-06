@@ -1,20 +1,11 @@
 import type { Linter } from 'eslint';
+import type { NativeUiOptions, NativeUiRestriction } from './types';
 
-export type NativeUiRestriction = {
-	name: string;
-	importNames?: string[];
-	message?: string;
-};
-
-export type NativeUiOptions = {
-	restrictions?: NativeUiRestriction[];
-	additionalRestrictions?: NativeUiRestriction[];
-	allowFiles?: string[];
-};
+export type { NativeUiOptions, NativeUiRestriction } from './types';
 
 export declare function createNativeUiConfig(
 	options?: NativeUiOptions,
 ): Linter.Config[];
 
-export declare const defaultRestrictions: NativeUiRestriction[];
+export declare const defaultRestrictions: readonly NativeUiRestriction[];
 export declare const recommended: Linter.Config[];

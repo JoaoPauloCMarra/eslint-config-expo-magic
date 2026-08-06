@@ -21,6 +21,16 @@ function dependencySelector(type, captured) {
 	return { to: elementSelector(type, captured) };
 }
 
+function dependencyFileSelector(category, captured) {
+	const selector = { categories: category };
+
+	if (captured) {
+		selector.captured = captured;
+	}
+
+	return { to: { file: selector } };
+}
+
 function createSameFeatureSelectors(featureElementTypes) {
 	return featureElementTypes.map((type) =>
 		dependencySelector(type, { feature: '{{from.captured.feature}}' }),
@@ -32,79 +42,67 @@ function createElementSettings(sharedComponentPatterns) {
 		{
 			type: 'app',
 			pattern: 'app/**',
-			mode: 'full',
+			partialMatch: false,
 			capture: ['entry'],
 		},
 		{
 			type: 'feature-api',
 			pattern: 'features/*/api/**/*',
-			mode: 'full',
+			partialMatch: false,
 			capture: ['feature', 'entry'],
 		},
 		{
 			type: 'feature-atom',
-			pattern: 'features/*/atoms.ts',
-			mode: 'full',
-			capture: ['feature'],
-		},
-		{
-			type: 'feature-atom',
-			pattern: 'features/*/atoms.tsx',
-			mode: 'full',
-			capture: ['feature'],
-		},
-		{
-			type: 'feature-atom',
 			pattern: 'features/*/atoms/**/*',
-			mode: 'full',
+			partialMatch: false,
 			capture: ['feature', 'entry'],
 		},
 		{
 			type: 'feature-screen',
 			pattern: 'features/*/screens/**/*',
-			mode: 'full',
+			partialMatch: false,
 			capture: ['feature', 'entry'],
 		},
 		...sharedComponentPatterns.map((pattern) => ({
 			type: 'feature-shared-component',
 			pattern,
-			mode: 'full',
+			partialMatch: false,
 			capture: ['feature'],
 		})),
 		{
 			type: 'feature-component',
 			pattern: 'features/*/components/**/*',
-			mode: 'full',
+			partialMatch: false,
 			capture: ['feature', 'entry'],
 		},
 		{
 			type: 'feature-hook',
 			pattern: 'features/*/hooks/**/*',
-			mode: 'full',
+			partialMatch: false,
 			capture: ['feature', 'entry'],
 		},
 		{
 			type: 'feature-private',
 			pattern: 'features/*/**',
-			mode: 'full',
+			partialMatch: false,
 			capture: ['feature', 'entry'],
 		},
 		{
 			type: 'service',
 			pattern: 'services/**',
-			mode: 'full',
+			partialMatch: false,
 			capture: ['entry'],
 		},
 		{
 			type: 'shared-hook',
 			pattern: 'hooks/**',
-			mode: 'full',
+			partialMatch: false,
 			capture: ['entry'],
 		},
 		{
 			type: 'uikit',
 			pattern: 'uikit/**',
-			mode: 'full',
+			partialMatch: false,
 			capture: ['entry'],
 		},
 	];
@@ -112,6 +110,11 @@ function createElementSettings(sharedComponentPatterns) {
 
 function createDependencyRules(featureElementTypes) {
 	const sameFeatureSelectors = createSameFeatureSelectors(featureElementTypes);
+	const sameFeatureAtomFileSelector = dependencyFileSelector(
+		'feature-atom',
+		{ feature: '{{from.captured.feature}}' },
+	);
+	const anyFeatureAtomFileSelector = dependencyFileSelector('feature-atom');
 
 	return [
 		{
@@ -123,6 +126,7 @@ function createDependencyRules(featureElementTypes) {
 				dependencySelector('uikit'),
 				dependencySelector('feature-api'),
 				dependencySelector('feature-atom'),
+				anyFeatureAtomFileSelector,
 				dependencySelector('feature-screen'),
 				dependencySelector('feature-shared-component'),
 				dependencySelector('feature-component'),
@@ -145,6 +149,7 @@ function createDependencyRules(featureElementTypes) {
 				dependencySelector('uikit'),
 				dependencySelector('feature-api'),
 				dependencySelector('feature-atom'),
+				anyFeatureAtomFileSelector,
 			],
 		},
 		{
@@ -162,6 +167,7 @@ function createDependencyRules(featureElementTypes) {
 				dependencySelector('shared-hook'),
 				dependencySelector('uikit'),
 				...sameFeatureSelectors,
+				sameFeatureAtomFileSelector,
 			],
 		},
 		{
@@ -171,6 +177,7 @@ function createDependencyRules(featureElementTypes) {
 				dependencySelector('shared-hook'),
 				dependencySelector('uikit'),
 				...sameFeatureSelectors,
+				sameFeatureAtomFileSelector,
 			],
 		},
 		{
@@ -180,6 +187,7 @@ function createDependencyRules(featureElementTypes) {
 				dependencySelector('shared-hook'),
 				dependencySelector('feature-api'),
 				...sameFeatureSelectors,
+				sameFeatureAtomFileSelector,
 			],
 		},
 		{
@@ -197,6 +205,7 @@ function createDependencyRules(featureElementTypes) {
 				dependencySelector('feature-screen'),
 				dependencySelector('feature-shared-component'),
 				...sameFeatureSelectors,
+				sameFeatureAtomFileSelector,
 			],
 		},
 	];
@@ -219,6 +228,18 @@ function createFeatureBoundaryConfig(options = {}) {
 			},
 			settings: {
 				'boundaries/elements': createElementSettings(sharedComponentPatterns),
+				'boundaries/files': [
+					{
+						category: 'feature-atom',
+						pattern: 'features/*/atoms.ts',
+						capture: ['feature'],
+					},
+					{
+						category: 'feature-atom',
+						pattern: 'features/*/atoms.tsx',
+						capture: ['feature'],
+					},
+				],
 			},
 			rules: {
 				'boundaries/dependencies': [

@@ -19,7 +19,11 @@ function run(command, args, options = {}) {
 	}
 
 	if (result.status !== 0) {
-		throw new Error(result.stderr || result.stdout || `${command} failed`);
+		const output = [result.stdout, result.stderr]
+			.filter(Boolean)
+			.join('\n')
+			.trim();
+		throw new Error(output || `${command} failed`);
 	}
 
 	return result;

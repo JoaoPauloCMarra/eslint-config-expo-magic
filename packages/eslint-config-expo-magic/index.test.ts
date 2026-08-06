@@ -61,11 +61,7 @@ function getRuleMessages(
 	return results.flatMap((result) => result.messages ?? []);
 }
 
-function runDirectoryLint(
-	cwd: string,
-	configPath: string,
-	targets: string[],
-) {
+function runDirectoryLint(cwd: string, configPath: string, targets: string[]) {
 	const result = spawnSync(
 		'bunx',
 		[
@@ -136,7 +132,7 @@ function runFixtureLint({
 
 function createPackageConfigSource(optionsSource: string) {
 	return [
-		"const { createConfig } = require(",
+		'const { createConfig } = require(',
 		`\t${JSON.stringify(path.join(__dirname, 'index.js'))},`,
 		');',
 		'',
@@ -344,23 +340,77 @@ describe('eslint-config-expo-magic', () => {
 			);
 
 			expect(settingsConfig).toBeDefined();
-			expect(settingsConfig.settings['import/resolver'].typescript.project).toEqual(
-				['./apps/mobile/tsconfig.json'],
-			);
+			expect(
+				settingsConfig.settings['import/resolver'].typescript.project,
+			).toEqual(['./apps/mobile/tsconfig.json']);
 			expect(
 				settingsConfig.settings['import-x/resolver'].typescript.project,
 			).toEqual(['./apps/mobile/tsconfig.json']);
+		});
+
+		it('uses explicit tsconfig projects for typed linting', () => {
+			const customConfig = config.createConfig({
+				tsconfigProjects: ['./apps/mobile/tsconfig.json'],
+				typeChecked: true,
+			});
+			const typedEntry = customConfig.find(
+				(entry: FlatConfig) =>
+					Array.isArray(entry.files) &&
+					entry.files.includes('**/*.ts') &&
+					entry.languageOptions?.parserOptions?.project,
+			);
+
+			expect(typedEntry?.languageOptions?.parserOptions?.project).toEqual([
+				'./apps/mobile/tsconfig.json',
+			]);
+			expect(
+				typedEntry?.languageOptions?.parserOptions?.projectService,
+			).toBeUndefined();
 		});
 
 		it('createConfig accepts extra ignore patterns', () => {
 			const customConfig = config.createConfig({
 				extraIgnores: ['**/.eas/**', 'expo-env.d.ts'],
 			});
-			const ignoreConfig = customConfig.find((entry: FlatConfig) => entry.ignores);
+			const ignoreConfig = customConfig.find(
+				(entry: FlatConfig) => entry.ignores,
+			);
 
 			expect(ignoreConfig.ignores).toContain('**/.eas/**');
 			expect(ignoreConfig.ignores).toContain('expo-env.d.ts');
 			expect(ignoreConfig.ignores).toContain('**/node_modules/**');
+		});
+
+		it('rejects unknown presets at the JavaScript boundary', () => {
+			expect(() => config.createConfig({ preset: 'legacy' as never })).toThrow(
+				'Unknown createConfig preset',
+			);
+		});
+
+		it('rejects invalid inline style severities at the JavaScript boundary', () => {
+			expect(() => config.createConfig({ inlineStyles: 3 as never })).toThrow(
+				'inlineStyles must be false, true, or an ESLint rule severity',
+			);
+		});
+
+		it('rejects malformed project and ignore options at the JavaScript boundary', () => {
+			expect(() =>
+				config.createConfig({
+					tsconfigProjects: ['./tsconfig.json', 42] as never,
+				}),
+			).toThrow('tsconfigProjects must be an array of strings');
+			expect(() =>
+				config.createConfig({ extraIgnores: 'coverage/**' as never }),
+			).toThrow('extraIgnores must be an array of strings');
+		});
+
+		it('rejects malformed boolean and layer options at the JavaScript boundary', () => {
+			expect(() => config.createConfig({ testing: 'yes' as never })).toThrow(
+				'testing must be a boolean',
+			);
+			expect(() => config.createConfig({ reanimated: [] as never })).toThrow(
+				'reanimated must be false, true, or an options object',
+			);
 		});
 
 		it('has browser and mobile globals', () => {
@@ -372,8 +422,7 @@ describe('eslint-config-expo-magic', () => {
 						'readonly',
 			);
 			const globals = globalsConfig?.languageOptions?.globals as
-				| Record<string, unknown>
-				| undefined;
+				Record<string, unknown> | undefined;
 
 			expect(globalsConfig).toBeDefined();
 			expect(globals?.fetch).toBe(false);
@@ -564,7 +613,7 @@ describe('eslint-config-expo-magic', () => {
 				fs.writeFileSync(
 					configPath,
 					[
-						"const { createConfig } = require(",
+						'const { createConfig } = require(',
 						`\t${JSON.stringify(path.join(__dirname, 'index.js'))},`,
 						');',
 						'',
@@ -609,9 +658,9 @@ describe('eslint-config-expo-magic', () => {
 				const results = runPresetLint(configPath, [targetPath]);
 				const messages = getRuleMessages(results);
 
-				expect(messages.some((message) => message.ruleId === 'no-console')).toBe(
-					true,
-				);
+				expect(
+					messages.some((message) => message.ruleId === 'no-console'),
+				).toBe(true);
 				expect(
 					messages.some((message) => message.ruleId === 'import-x/order'),
 				).toBe(true);
@@ -734,7 +783,9 @@ describe('eslint-config-expo-magic', () => {
 			});
 
 			expect(
-				messages.filter((message) => message.ruleId === 'no-restricted-imports'),
+				messages.filter(
+					(message) => message.ruleId === 'no-restricted-imports',
+				),
 			).toHaveLength(2);
 		}, 15_000);
 
@@ -759,18 +810,18 @@ describe('eslint-config-expo-magic', () => {
 				fs.writeFileSync(
 					configPath,
 					[
-						"const { createConfig } = require(",
+						'const { createConfig } = require(',
 						`\t${JSON.stringify(path.join(__dirname, 'index.js'))},`,
 						');',
 						'',
 						'module.exports = createConfig({',
-						"\tprettier: false,",
-						"\ttesting: false,",
-						"\tappGuardrails: true,",
-						"\tnativeUi: true,",
-						"\treactCompiler: true,",
-						"\tstorybook: true,",
-						"\tworklets: true,",
+						'\tprettier: false,',
+						'\ttesting: false,',
+						'\tappGuardrails: true,',
+						'\tnativeUi: true,',
+						'\treactCompiler: true,',
+						'\tstorybook: true,',
+						'\tworklets: true,',
 						'});',
 						'',
 					].join('\n'),
@@ -834,11 +885,14 @@ describe('eslint-config-expo-magic', () => {
 				const messages = getRuleMessages(results);
 
 				expect(
-					messages.some((message) => message.ruleId === 'no-restricted-imports'),
+					messages.some(
+						(message) => message.ruleId === 'no-restricted-imports',
+					),
 				).toBe(true);
 				expect(
-					messages.filter((message) => message.ruleId === 'no-restricted-syntax')
-						.length,
+					messages.filter(
+						(message) => message.ruleId === 'no-restricted-syntax',
+					).length,
 				).toBeGreaterThanOrEqual(3);
 				expect(
 					messages.some((message) => message.ruleId === 'no-console'),
@@ -941,21 +995,30 @@ describe('eslint-config-expo-magic', () => {
 			const configPath = path.join(tempDir, 'eslint.config.js');
 			const uikitDir = path.join(tempDir, 'uikit');
 			const featureApiDir = path.join(tempDir, 'features', 'people', 'api');
+			const peopleScreenDir = path.join(
+				tempDir,
+				'features',
+				'people',
+				'screens',
+			);
+			const billingFeatureDir = path.join(tempDir, 'features', 'billing');
 
 			try {
 				fs.mkdirSync(uikitDir, { recursive: true });
 				fs.mkdirSync(featureApiDir, { recursive: true });
+				fs.mkdirSync(peopleScreenDir, { recursive: true });
+				fs.mkdirSync(billingFeatureDir, { recursive: true });
 				fs.writeFileSync(
 					configPath,
 					[
-						"const { createConfig } = require(",
+						'const { createConfig } = require(',
 						`\t${JSON.stringify(path.join(__dirname, 'index.js'))},`,
 						');',
 						'',
 						'module.exports = createConfig({',
-						"\tprettier: false,",
-						"\ttesting: false,",
-						"\tfeatureBoundaries: true,",
+						'\tprettier: false,',
+						'\ttesting: false,',
+						'\tfeatureBoundaries: true,',
 						'});',
 						'',
 					].join('\n'),
@@ -999,6 +1062,36 @@ describe('eslint-config-expo-magic', () => {
 						(message) => message.ruleId === 'boundaries/dependencies',
 					),
 				).toBe(true);
+
+				fs.writeFileSync(
+					path.join(tempDir, 'features', 'people', 'atoms.ts'),
+					'export const peopleAtom = 1;\n',
+				);
+				fs.writeFileSync(
+					path.join(billingFeatureDir, 'atoms.ts'),
+					'export const billingAtom = 1;\n',
+				);
+				fs.writeFileSync(
+					path.join(peopleScreenDir, 'screen.ts'),
+					[
+						"import { peopleAtom } from '../atoms';",
+						"import { billingAtom } from '../../billing/atoms';",
+						'',
+						'export const screenValue = peopleAtom + billingAtom;',
+						'',
+					].join('\n'),
+				);
+
+				const directAtomMessages = getRuleMessages(
+					runDirectoryLint(tempDir, configPath, [
+						'features/people/screens/screen.ts',
+					]),
+				);
+				const boundaryMessages = directAtomMessages.filter(
+					(message) => message.ruleId === 'boundaries/dependencies',
+				);
+
+				expect(boundaryMessages).toHaveLength(1);
 			} finally {
 				fs.rmSync(tempDir, { recursive: true, force: true });
 			}
@@ -1155,16 +1248,15 @@ describe('eslint-config-expo-magic', () => {
 
 			expect(
 				messages.some(
-					(message) =>
-						message.ruleId === '@typescript-eslint/ban-ts-comment',
+					(message) => message.ruleId === '@typescript-eslint/ban-ts-comment',
 				),
 			).toBe(true);
 			expect(
 				messages.some((message) => message.ruleId === 'no-restricted-syntax'),
 			).toBe(true);
-			expect(messages.some((message) => message.ruleId === 'prettier/prettier')).toBe(
-				false,
-			);
+			expect(
+				messages.some((message) => message.ruleId === 'prettier/prettier'),
+			).toBe(false);
 		}, 15_000);
 
 		it('supports ESM entrypoints', async () => {
@@ -1538,10 +1630,7 @@ describe('eslint-config-expo-magic', () => {
 		it('keeps checked-in config diff artifact current', async () => {
 			const currentReport = await createConfigReport();
 			const checkedInReport = JSON.parse(
-				fs.readFileSync(
-					path.join(rootDir, 'docs', 'config-diff.json'),
-					'utf8',
-				),
+				fs.readFileSync(path.join(rootDir, 'docs', 'config-diff.json'), 'utf8'),
 			);
 			const checkedInMarkdown = fs.readFileSync(
 				path.join(rootDir, 'docs', 'CONFIG_DIFF.md'),
@@ -1655,22 +1744,26 @@ describe('eslint-config-expo-magic', () => {
 			},
 		);
 
-		ruleTester.run('no-inline-props', expoMagicPlugin.rules['no-inline-props'], {
-			valid: [
-				'type P = { a: string };\nfunction Foo(props: P) { return props; }',
-				'function Foo(value: { a: string }) { return value; }',
-			],
-			invalid: [
-				{
-					code: 'function Foo(props: { a: string }) { return props; }',
-					errors: [{ messageId: 'inline' }],
-				},
-				{
-					code: 'const Foo = (props: { a: string }) => props;',
-					errors: [{ messageId: 'inline' }],
-				},
-			],
-		});
+		ruleTester.run(
+			'no-inline-props',
+			expoMagicPlugin.rules['no-inline-props'],
+			{
+				valid: [
+					'type P = { a: string };\nfunction Foo(props: P) { return props; }',
+					'function Foo(value: { a: string }) { return value; }',
+				],
+				invalid: [
+					{
+						code: 'function Foo(props: { a: string }) { return props; }',
+						errors: [{ messageId: 'inline' }],
+					},
+					{
+						code: 'const Foo = (props: { a: string }) => props;',
+						errors: [{ messageId: 'inline' }],
+					},
+				],
+			},
+		);
 
 		ruleTester.run(
 			'require-children-usage',
@@ -1728,8 +1821,7 @@ describe('eslint-config-expo-magic', () => {
 			expect(
 				messages.filter(
 					(message) =>
-						message.ruleId ===
-						'expo-magic-reanimated/no-shared-value-misuse',
+						message.ruleId === 'expo-magic-reanimated/no-shared-value-misuse',
 				),
 			).toHaveLength(3);
 		}, 15_000);
@@ -1786,8 +1878,7 @@ describe('eslint-config-expo-magic', () => {
 			expect(
 				messages.filter(
 					(message) =>
-						message.ruleId ===
-						'expo-magic-reanimated/no-shared-value-misuse',
+						message.ruleId === 'expo-magic-reanimated/no-shared-value-misuse',
 				),
 			).toHaveLength(1);
 		}, 15_000);
@@ -1814,7 +1905,9 @@ describe('eslint-config-expo-magic', () => {
 			});
 
 			expect(
-				messages.filter((message) => message.ruleId === 'no-restricted-properties'),
+				messages.filter(
+					(message) => message.ruleId === 'no-restricted-properties',
+				),
 			).toHaveLength(2);
 			expect(
 				messages.some(
@@ -1929,8 +2022,7 @@ describe('eslint-config-expo-magic', () => {
 			).toBe(true);
 			expect(
 				messages.some(
-					(message) =>
-						message.ruleId === 'expo-magic/default-export-placement',
+					(message) => message.ruleId === 'expo-magic/default-export-placement',
 				),
 			).toBe(true);
 		}, 15_000);
@@ -1957,9 +2049,9 @@ describe('eslint-config-expo-magic', () => {
 			expect(reactCompilerSubpath.rules['react-hooks/unsupported-syntax']).toBe(
 				'error',
 			);
-			expect(reactCompilerSubpath.rules['react-hooks/incompatible-library']).toBe(
-				'error',
-			);
+			expect(
+				reactCompilerSubpath.rules['react-hooks/incompatible-library'],
+			).toBe('error');
 		});
 
 		it('no longer ships brittle restricted-syntax selectors', () => {
@@ -2014,9 +2106,9 @@ describe('eslint-config-expo-magic', () => {
 
 	describe('new subpath exports', () => {
 		it('exports component structure, deprecated apis, reanimated, semantic colors', () => {
-			expect(typeof componentStructureSubpath.createComponentStructureConfig).toBe(
-				'function',
-			);
+			expect(
+				typeof componentStructureSubpath.createComponentStructureConfig,
+			).toBe('function');
 			expect(typeof deprecatedApisSubpath.createDeprecatedApiConfig).toBe(
 				'function',
 			);
@@ -2048,7 +2140,9 @@ describe('eslint-config-expo-magic', () => {
 			expect(typeof componentStructureEsm.createComponentStructureConfig).toBe(
 				'function',
 			);
-			expect(typeof deprecatedApisEsm.createDeprecatedApiConfig).toBe('function');
+			expect(typeof deprecatedApisEsm.createDeprecatedApiConfig).toBe(
+				'function',
+			);
 			expect(typeof reanimatedEsm.createReanimatedConfig).toBe('function');
 			expect(typeof semanticColorsEsm.createSemanticColorsConfig).toBe(
 				'function',

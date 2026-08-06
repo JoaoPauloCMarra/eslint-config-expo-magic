@@ -2,11 +2,10 @@ const {
 	createRestrictedSyntaxConfigs,
 	RESTRICTED_SYNTAX_SCOPES,
 } = require('./restricted-syntax.js');
+const { tsAndTsxFiles } = require('./file-patterns.js');
 
 const DEFAULT_TOKEN_MODULE = 'uikit/tokens/colors';
 const DEFAULT_IMPORT_NAME = 'colors';
-
-const typeScriptFiles = ['**/*.ts', '**/*.tsx'];
 
 const RAW_COLOR_SELECTOR =
 	'Literal[value=/^(#([0-9a-fA-F]{3,8})|rgba?\\([^)]*\\)|hsla?\\([^)]*\\))$/]';
@@ -50,7 +49,7 @@ function createRestrictedSyntaxGroups(options = {}) {
 	return [
 		{
 			allowFiles,
-			files: typeScriptFiles,
+			files: tsAndTsxFiles,
 			scope: RESTRICTED_SYNTAX_SCOPES.TYPESCRIPT,
 			capability: 'semantic-colors',
 			selectors,

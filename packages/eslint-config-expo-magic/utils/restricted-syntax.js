@@ -1,3 +1,10 @@
+const {
+	testTsxFiles,
+	testTypeScriptFiles,
+	tsxFiles,
+	typeScriptFilesWithoutTsx,
+} = require('./file-patterns.js');
+
 const RESTRICTED_SYNTAX_SCOPES = Object.freeze({
 	TYPESCRIPT: 'typescript',
 	TYPESCRIPT_WITHOUT_TSX: 'typescript-without-tsx',
@@ -6,28 +13,6 @@ const RESTRICTED_SYNTAX_SCOPES = Object.freeze({
 	TEST_TYPESCRIPT: 'test-typescript',
 	TEST_TSX: 'test-tsx',
 });
-
-const typeScriptFilesWithoutTsx = [
-	'**/*.ts',
-	'**/*.mts',
-	'**/*.cts',
-	'**/*.d.ts',
-	'**/*.d.mts',
-	'**/*.d.cts',
-];
-
-const tsxFiles = ['**/*.tsx'];
-
-const testTypeScriptFiles = [
-	'**/*.test.ts',
-	'**/*.spec.ts',
-	'**/*.test.mts',
-	'**/*.spec.mts',
-	'**/*.test.cts',
-	'**/*.spec.cts',
-];
-
-const testTsxFiles = ['**/*.test.tsx', '**/*.spec.tsx'];
 
 const knownScopePatterns = [
 	...typeScriptFilesWithoutTsx,
@@ -200,7 +185,10 @@ function shouldKeepSelector(existing, candidate) {
 		return false;
 	}
 
-	if (selectorHasDoubleAssertionMessage(existing) && selectorHasDoubleAssertionMessage(candidate)) {
+	if (
+		selectorHasDoubleAssertionMessage(existing) &&
+		selectorHasDoubleAssertionMessage(candidate)
+	) {
 		return false;
 	}
 
@@ -211,8 +199,8 @@ function dedupeSelectors(selectors) {
 	const deduped = [];
 
 	for (const selector of selectors) {
-		const duplicateIndex = deduped.findIndex((existing) =>
-			!shouldKeepSelector(existing, selector),
+		const duplicateIndex = deduped.findIndex(
+			(existing) => !shouldKeepSelector(existing, selector),
 		);
 
 		if (duplicateIndex === -1) {
@@ -296,7 +284,11 @@ function createScopedComposedConfigs(groups) {
 	);
 }
 
-function collectSelectorsForAllowedFilePatterns(groups, excludedGroup, filePatterns) {
+function collectSelectorsForAllowedFilePatterns(
+	groups,
+	excludedGroup,
+	filePatterns,
+) {
 	const bucketGroups = getScopeBuckets();
 	const selectorsByInput = [];
 
@@ -355,9 +347,7 @@ function createCapabilityAllowConfigs(groups) {
 		}
 
 		configs.push({
-			files: getRelevantFilePatternsForAllowedFiles(
-				capabilityGroup.allowFiles,
-			),
+			files: getRelevantFilePatternsForAllowedFiles(capabilityGroup.allowFiles),
 			rules: {
 				'no-restricted-syntax': createRestrictedSyntaxRule(selectors),
 			},
@@ -368,8 +358,12 @@ function createCapabilityAllowConfigs(groups) {
 }
 
 function createComposedRestrictedSyntaxConfigs(groups) {
-	const directGroups = groups.filter((group) => !isKnownScopePatternGroup(group));
-	const scopedGroups = groups.filter((group) => isKnownScopePatternGroup(group));
+	const directGroups = groups.filter(
+		(group) => !isKnownScopePatternGroup(group),
+	);
+	const scopedGroups = groups.filter((group) =>
+		isKnownScopePatternGroup(group),
+	);
 
 	return [
 		...createRestrictedSyntaxConfigs(mergeRestrictedSyntaxGroups(directGroups)),
