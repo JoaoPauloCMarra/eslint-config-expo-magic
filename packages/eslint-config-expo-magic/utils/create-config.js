@@ -15,6 +15,7 @@ const {
 	createDefaultPreset,
 	createTypeCheckedConfigs,
 	defaultTsconfigProjectGlobs,
+	fastTsconfigProjectGlobs,
 	normalizeOptionConfig,
 	strictTypeScriptRules,
 	typeScriptFiles,
@@ -30,6 +31,7 @@ const booleanOptions = [
 	'testing',
 	'typeChecked',
 	'strict',
+	'importCycles',
 	'reactCompiler',
 	'storybook',
 	'worklets',
@@ -104,10 +106,10 @@ function validateCreateConfigOptions(options) {
 
 	if (
 		options.preset !== undefined &&
-		!['base', 'default'].includes(options.preset)
+		!['base', 'default', 'fast'].includes(options.preset)
 	) {
 		throw new RangeError(
-			`Unknown createConfig preset: ${String(options.preset)}. Use "base" or "default".`,
+			`Unknown createConfig preset: ${String(options.preset)}. Use "base", "default", or "fast".`,
 		);
 	}
 
@@ -154,12 +156,15 @@ function createConfig(options = {}) {
 
 	const {
 		preset = 'default',
-		prettier = preset !== 'base',
+		prettier = preset === 'default',
 		testing = preset !== 'base',
 		typeChecked = false,
 		strict = false,
-		tsconfigProjects = defaultTsconfigProjectGlobs,
+		tsconfigProjects = preset === 'fast'
+			? fastTsconfigProjectGlobs
+			: defaultTsconfigProjectGlobs,
 		extraIgnores = [],
+		importCycles = preset !== 'fast',
 		agent = false,
 		appGuardrails = false,
 		componentStructure = false,
@@ -173,6 +178,7 @@ function createConfig(options = {}) {
 		storybook = false,
 		worklets = false,
 	} = options;
+	const typeAware = preset !== 'fast' || typeChecked || strict;
 	const restrictedSyntaxGroups = [];
 	const agentOptions = agent === true ? {} : agent || {};
 	const agentEnabled = Boolean(agent);
@@ -195,7 +201,7 @@ function createConfig(options = {}) {
 	const effectiveReactCompiler = resolveAgentAwareOption(
 		reactCompiler,
 		'reactCompiler',
-		true,
+		typeAware,
 		options,
 		agent,
 		agentOptions,
@@ -228,7 +234,12 @@ function createConfig(options = {}) {
 	const presetConfig =
 		preset === 'base'
 			? createBasePreset(tsconfigProjects, extraIgnores)
-			: createDefaultPreset(tsconfigProjects, { extraIgnores, testing });
+			: createDefaultPreset(tsconfigProjects, {
+					extraIgnores,
+					importCycles,
+					testing,
+					typeAware,
+				});
 	const finalConfig = [...presetConfig];
 
 	if (effectiveAppGuardrails) {
@@ -241,7 +252,11 @@ function createConfig(options = {}) {
 	}
 
 	if (agentEnabled) {
-		finalConfig.push(...agentGuardrailsConfig.base);
+		finalConfig.push(
+			...(typeAware
+				? agentGuardrailsConfig.base
+				: agentGuardrailsConfig.syntaxBase),
+		);
 		restrictedSyntaxGroups.push(
 			...agentGuardrailsConfig.restrictedSyntaxGroups,
 		);

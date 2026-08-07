@@ -62,7 +62,7 @@ function createRestrictedSyntaxGroups() {
 
 const restrictedSyntaxGroups = createRestrictedSyntaxGroups();
 
-const base = [
+const syntaxBase = [
 	{
 		files: typeScriptFiles,
 		rules: {
@@ -76,8 +76,6 @@ const base = [
 					minimumDescriptionLength: 10,
 				},
 			],
-			'@typescript-eslint/no-floating-promises': 'error',
-			'@typescript-eslint/no-misused-promises': 'error',
 			'@typescript-eslint/no-non-null-assertion': 'error',
 			'no-empty': ['error', { allowEmptyCatch: false }],
 		},
@@ -95,6 +93,27 @@ const base = [
 	},
 ];
 
+const typeCheckedBase = [
+	{
+		files: typeScriptFiles,
+		rules: {
+			'@typescript-eslint/no-floating-promises': 'error',
+			'@typescript-eslint/no-misused-promises': 'error',
+		},
+	},
+];
+
+const base = [
+	{
+		files: typeScriptFiles,
+		rules: {
+			...syntaxBase[0].rules,
+			...typeCheckedBase[0].rules,
+		},
+	},
+	syntaxBase[1],
+];
+
 function createAgentGuardrailsConfig() {
 	return [...base, ...createRestrictedSyntaxConfigs(restrictedSyntaxGroups)];
 }
@@ -103,6 +122,7 @@ const config = createAgentGuardrailsConfig();
 
 module.exports = config;
 module.exports.base = base;
+module.exports.syntaxBase = syntaxBase;
 module.exports.createAgentGuardrailsConfig = createAgentGuardrailsConfig;
 module.exports.createRestrictedSyntaxGroups = createRestrictedSyntaxGroups;
 module.exports.restrictedSyntaxGroups = restrictedSyntaxGroups;

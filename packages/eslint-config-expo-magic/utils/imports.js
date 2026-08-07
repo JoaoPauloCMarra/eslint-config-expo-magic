@@ -4,84 +4,91 @@ const { fixupPluginRules } = require('@eslint/compat');
 const importX = require('eslint-plugin-import-x');
 const unusedImports = require('eslint-plugin-unused-imports');
 
-module.exports = [
-	{
-		plugins: {
-			'import-x': fixupPluginRules(importX),
-			'unused-imports': fixupPluginRules(unusedImports),
-		},
-		settings: {
-			...importX.configs.recommended.settings,
-			...importX.configs.typescript.settings,
-		},
-		rules: {
-			...importX.configs.recommended.rules,
-			...importX.configs.typescript.rules,
-			'unused-imports/no-unused-imports': 'error',
-			'import/first': 'off',
-			'import/no-duplicates': 'off',
-			'import/no-unresolved': 'off',
-			'import/no-named-as-default': 'off',
-			'import/no-named-as-default-member': 'off',
-			'import/export': 'off',
-			'import/namespace': 'off',
+function createImportConfig({ noCycle = true } = {}) {
+	return [
+		{
+			plugins: {
+				'import-x': fixupPluginRules(importX),
+				'unused-imports': fixupPluginRules(unusedImports),
+			},
+			settings: {
+				...importX.configs.recommended.settings,
+				...importX.configs.typescript.settings,
+			},
+			rules: {
+				...importX.configs.recommended.rules,
+				...importX.configs.typescript.rules,
+				'unused-imports/no-unused-imports': 'error',
+				'import/first': 'off',
+				'import/no-duplicates': 'off',
+				'import/no-unresolved': 'off',
+				'import/no-named-as-default': 'off',
+				'import/no-named-as-default-member': 'off',
+				'import/export': 'off',
+				'import/namespace': 'off',
 
-			'import-x/first': 'error',
-			'import-x/no-amd': 'error',
-			'import-x/no-anonymous-default-export': 'error',
-			'import-x/no-cycle': 'error',
-			'import-x/no-named-as-default': 'error',
-			'import-x/no-named-as-default-member': 'error',
-			'import-x/no-webpack-loader-syntax': 'error',
-			'import-x/order': [
-				'error',
-				{
-					'newlines-between': 'never',
-					groups: [
-						'builtin',
-						'external',
-						'internal',
-						'parent',
-						'sibling',
-						'index',
-						'unknown',
-						'object',
-						'type',
-					],
-					pathGroups: [
-						{
-							pattern: 'react',
-							group: 'external',
-							position: 'before',
+				'import-x/first': 'error',
+				'import-x/no-amd': 'error',
+				'import-x/no-anonymous-default-export': 'error',
+				'import-x/no-cycle': noCycle ? 'error' : 'off',
+				'import-x/no-named-as-default': 'error',
+				'import-x/no-named-as-default-member': 'error',
+				'import-x/no-webpack-loader-syntax': 'error',
+				'import-x/order': [
+					'error',
+					{
+						'newlines-between': 'never',
+						groups: [
+							'builtin',
+							'external',
+							'internal',
+							'parent',
+							'sibling',
+							'index',
+							'unknown',
+							'object',
+							'type',
+						],
+						pathGroups: [
+							{
+								pattern: 'react',
+								group: 'external',
+								position: 'before',
+							},
+							{
+								pattern: 'react-native',
+								group: 'external',
+								position: 'before',
+							},
+							{
+								pattern: 'expo**',
+								group: 'external',
+								position: 'before',
+							},
+							{
+								pattern: '@/**',
+								group: 'internal',
+								position: 'after',
+							},
+							{
+								pattern: './**',
+								group: 'internal',
+								position: 'after',
+							},
+						],
+						pathGroupsExcludedImportTypes: ['react'],
+						alphabetize: {
+							order: 'asc',
+							caseInsensitive: true,
 						},
-						{
-							pattern: 'react-native',
-							group: 'external',
-							position: 'before',
-						},
-						{
-							pattern: 'expo**',
-							group: 'external',
-							position: 'before',
-						},
-						{
-							pattern: '@/**',
-							group: 'internal',
-							position: 'after',
-						},
-						{
-							pattern: './**',
-							group: 'internal',
-							position: 'after',
-						},
-					],
-					pathGroupsExcludedImportTypes: ['react'],
-					alphabetize: {
-						order: 'asc',
-						caseInsensitive: true,
 					},
-				},
-			],
+				],
+			},
 		},
-	},
-];
+	];
+}
+
+const config = createImportConfig();
+
+module.exports = config;
+module.exports.createImportConfig = createImportConfig;

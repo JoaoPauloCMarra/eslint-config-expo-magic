@@ -7,6 +7,7 @@ import {
 	createConfig,
 	createNativeUiConfig,
 	createReanimatedConfig,
+	fast,
 	noPrettier,
 	reanimated,
 	strict,
@@ -69,6 +70,7 @@ declare const strictModule: typeof import('./strict');
 const defaultImport = indexDefault;
 const strictSubpath = strict;
 const noPrettierSubpath = noPrettier;
+const fastSubpath = fast;
 const typedSubpath = typed;
 
 const options: Opts = {
@@ -82,7 +84,14 @@ const options: Opts = {
 	semanticColors: { tokenModule: 'theme/palette', importName: 'palette' },
 };
 
+const fastOptions: Opts = {
+	preset: 'fast',
+	importCycles: false,
+	tsconfigProjects: ['./tsconfig.json'],
+};
+
 const baseResult: Linter.Config[] = magic.createConfig(options);
+const fastResult: Linter.Config[] = magic.createConfig(fastOptions);
 const reanimatedResult: Linter.Config[] =
 	reanimatedModule.createReanimatedConfig();
 const deprecatedResult: Linter.Config[] =
@@ -192,8 +201,10 @@ const prGuardrailsNamespaceNamed: ResolvedGuardrailOptions =
 	prGuardrailsNamespace.mobileAppOptions;
 
 void defaultImport;
+void fastResult;
 void strictSubpath;
 void noPrettierSubpath;
+void fastSubpath;
 void typedSubpath;
 void noPrettier;
 void strict;
@@ -256,7 +267,7 @@ void prGuardrailsRiskyPattern;
 void prGuardrailsNamespaceDefault;
 void prGuardrailsNamespaceNamed;
 
-// @ts-expect-error preset only accepts 'base' | 'default'
+// @ts-expect-error preset only accepts 'base' | 'default' | 'fast'
 const badPreset: Opts = { preset: 'ultra' };
 // @ts-expect-error unknown option keys are rejected
 const badKey: Opts = { unknownOption: true };
@@ -264,14 +275,20 @@ const badKey: Opts = { unknownOption: true };
 const badSeverity: Opts = { inlineStyles: 999 };
 // @ts-expect-error gestureHooks must be a string array
 const badReanimated: Opts = { reanimated: { gestureHooks: [1] } };
-// @ts-expect-error appGuardrails options require matching shape
-const badAppGuardrailsQuery: Opts = { appGuardrails: { queryHookPattern: 123 } };
+const badAppGuardrailsQuery: Opts = {
+	appGuardrails: {
+		// @ts-expect-error queryHookPattern must be a string
+		queryHookPattern: 123,
+	},
+};
 // @ts-expect-error additionalRestrictions expects NativeUiRestriction[]
 const badNativeUi = createNativeUiConfig('not-a-restriction');
 // @ts-expect-error createReanimatedConfig rejects invalid gesture hook entries
 const badReanimatedFactory = magic.createReanimatedConfig('useX');
 // @ts-expect-error createConfig rejects non-boolean strict option
 const badCreateConfigCall = createConfig({ strict: 'no' });
+// @ts-expect-error importCycles accepts only boolean values
+const badImportCycles: Opts = { importCycles: 'off' };
 // @ts-expect-error preset only accepts known guardrail presets or options
 const badGuardrailsPreset: GuardrailOptions = { preset: 'ultra' };
 // @ts-expect-error guardrail options reject unknown keys
@@ -285,5 +302,6 @@ void badAppGuardrailsQuery;
 void badNativeUi;
 void badReanimatedFactory;
 void badCreateConfigCall;
+void badImportCycles;
 void badGuardrailsPreset;
 void badGuardrailsKey;

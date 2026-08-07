@@ -7,6 +7,7 @@ export default config;
 export const agent = config.agent;
 export const agentGuardrails = config.agentGuardrails;
 export const base = config.base;
+export const fast = config.fast;
 export const createConfig = config.createConfig;
 export const createAgentGuardrailsConfig = config.createAgentGuardrailsConfig;
 export const createAppGuardrailsConfig = config.createAppGuardrailsConfig;

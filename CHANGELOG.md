@@ -2,6 +2,26 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
+## 3.0.2
+
+Improves lint startup time and strengthens the published configuration API.
+
+### Breaking Changes
+
+- None.
+
+### Added
+
+- Adds the `fast` preset (`eslint-config-expo-magic/fast` and `createConfig({ preset: 'fast' })`) for syntax-focused linting without TypeScript project services, type-aware rules, React Compiler diagnostics, or import-cycle traversal.
+- Adds the `importCycles` option to enable or disable `import-x/no-cycle` in factory-created configurations.
+- Adds matching CommonJS, ESM, and TypeScript entry points for the fast preset.
+
+### Changed
+
+- Lazily constructs named root presets so importing the package does not assemble every preset eagerly.
+- Keeps the default preset's monorepo-aware TypeScript project discovery and uses `./tsconfig.json` by default for the fast preset.
+- Expands public TypeScript declarations and compile-time coverage for the fast preset and factory options.
+
 ## 3.0.1
 
 Improves the published package surface and editor guidance after the 3.0.0 configuration hardening release.

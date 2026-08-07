@@ -31,6 +31,10 @@ describe('config report', () => {
 		expect(report.presets.default.rules).toEqual(
 			createAggregateConfigReport().presets.default.rules,
 		);
+		expect(report.presets.fast.rules).toEqual(
+			createAggregateConfigReport().presets.fast.rules,
+		);
+		expect(report.deltas.fastVsDefault).toBeDefined();
 	});
 
 	test('writes fresh JSON and Markdown from same report', async () => {

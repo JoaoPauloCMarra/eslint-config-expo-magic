@@ -18,6 +18,7 @@ export type RestrictedSyntaxConfig = FlatConfig[] & {
 
 export type AgentGuardrailsConfig = RestrictedSyntaxConfig & {
 	base: FlatConfig[];
+	syntaxBase: FlatConfig[];
 	createAgentGuardrailsConfig(): FlatConfig[];
 	createRestrictedSyntaxGroups(): RestrictedSyntaxGroup[];
 };
@@ -97,13 +98,14 @@ export type AgentOptions = Readonly<{
 }>;
 
 export type CreateConfigOptions = Readonly<{
-	preset?: 'base' | 'default';
+	preset?: 'base' | 'default' | 'fast';
 	prettier?: boolean;
 	testing?: boolean;
 	typeChecked?: boolean;
 	strict?: boolean;
 	tsconfigProjects?: readonly string[];
 	extraIgnores?: readonly string[];
+	importCycles?: boolean;
 	agent?: boolean | AgentOptions;
 	appGuardrails?: boolean | AppGuardrailsOptions;
 	componentStructure?: boolean | ComponentStructureOptions;
@@ -151,6 +153,7 @@ export type SemanticColorsConfig = FlatConfig[] & {
 };
 
 export type NoPrettierConfig = FlatConfig[] & {
+	fast: FlatConfig[];
 	strict: FlatConfig[];
 	typed: FlatConfig[];
 };

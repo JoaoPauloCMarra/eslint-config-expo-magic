@@ -16,6 +16,7 @@ const config = require('./index.js');
 const agentSubpath = require('./agent.js');
 const agentGuardrailsSubpath = require('./agent-guardrails.js');
 const baseSubpath = require('./base.js');
+const fastSubpath = require('./fast.js');
 const strictSubpath = require('./strict.js');
 const noPrettierSubpath = require('./no-prettier.js');
 const typedSubpath = require('./typed.js');
@@ -163,6 +164,11 @@ describe('eslint-config-expo-magic', () => {
 			expect(config.agent.length).toBeGreaterThan(config.noPrettier.length);
 		});
 
+		it('has a fast preset', () => {
+			expect(Array.isArray(config.fast)).toBe(true);
+			expect(config.fast).toBe(fastSubpath);
+		});
+
 		it('exports agent subpath', () => {
 			expect(Array.isArray(agentSubpath)).toBe(true);
 			expect(agentSubpath).toBe(config.agent);
@@ -190,6 +196,7 @@ describe('eslint-config-expo-magic', () => {
 			expect(noPrettierSubpath).toBe(config.noPrettier);
 			expect(Array.isArray(noPrettierSubpath.strict)).toBe(true);
 			expect(Array.isArray(noPrettierSubpath.typed)).toBe(true);
+			expect(noPrettierSubpath.fast).toBe(config.fast);
 		});
 
 		it('exports typed subpath', () => {
@@ -346,6 +353,43 @@ describe('eslint-config-expo-magic', () => {
 			expect(
 				settingsConfig.settings['import-x/resolver'].typescript.project,
 			).toEqual(['./apps/mobile/tsconfig.json']);
+		});
+
+		it('keeps the fast preset syntax-only', () => {
+			const fastConfig = config.createConfig({
+				agent: true,
+				preset: 'fast',
+			});
+			const typescriptConfig = fastConfig.find(
+				(entry: FlatConfig) =>
+					entry.files?.includes('**/*.ts') && entry.languageOptions,
+			);
+			const rules = typescriptConfig?.rules ?? {};
+
+			expect(
+				typescriptConfig?.languageOptions?.parserOptions?.projectService,
+			).toBe(undefined);
+			expect(rules['@typescript-eslint/no-floating-promises']).toBeUndefined();
+			expect(rules['@typescript-eslint/no-misused-promises']).toBeUndefined();
+			expect(
+				fastConfig.some(
+					(entry: FlatConfig) => entry.rules?.['import-x/no-cycle'] === 'off',
+				),
+			).toBe(true);
+		});
+
+		it('uses the root tsconfig by default for the fast preset', () => {
+			const fastConfig = config.createConfig({ preset: 'fast' });
+			const settingsConfig = fastConfig.find(
+				(entry: FlatConfig) =>
+					entry.settings?.['import/resolver'] &&
+					entry.settings?.['import-x/resolver'],
+			);
+
+			expect(settingsConfig).toBeDefined();
+			expect(
+				settingsConfig.settings['import/resolver'].typescript.project,
+			).toEqual(['./tsconfig.json']);
 		});
 
 		it('uses explicit tsconfig projects for typed linting', () => {
@@ -1272,6 +1316,9 @@ describe('eslint-config-expo-magic', () => {
 			const baseEsm = await import(
 				pathToFileURL(path.join(__dirname, 'base.mjs')).href
 			);
+			const fastEsm = await import(
+				pathToFileURL(path.join(__dirname, 'fast.mjs')).href
+			);
 			const noPrettierEsm = await import(
 				pathToFileURL(path.join(__dirname, 'no-prettier.mjs')).href
 			);
@@ -1309,10 +1356,12 @@ describe('eslint-config-expo-magic', () => {
 			expect(Array.isArray(agentEsm.default)).toBe(true);
 			expect(Array.isArray(agentGuardrailsEsm.default)).toBe(true);
 			expect(Array.isArray(indexEsm.base)).toBe(true);
+			expect(Array.isArray(indexEsm.fast)).toBe(true);
 			expect(Array.isArray(indexEsm.strict)).toBe(true);
 			expect(Array.isArray(indexEsm.typed)).toBe(true);
 			expect(Array.isArray(indexEsm.noPrettier)).toBe(true);
 			expect(Array.isArray(baseEsm.default)).toBe(true);
+			expect(Array.isArray(fastEsm.default)).toBe(true);
 			expect(Array.isArray(noPrettierEsm.default)).toBe(true);
 			expect(Array.isArray(noPrettierEsm.strict)).toBe(true);
 			expect(Array.isArray(noPrettierEsm.typed)).toBe(true);

@@ -37,6 +37,7 @@ declare const config: FlatConfig[] & {
 	agent: FlatConfig[];
 	agentGuardrails: AgentGuardrailsConfig;
 	base: FlatConfig[];
+	fast: FlatConfig[];
 	createConfig(options?: CreateConfigOptions): FlatConfig[];
 	createAgentGuardrailsConfig(): FlatConfig[];
 	strict: FlatConfig[];
