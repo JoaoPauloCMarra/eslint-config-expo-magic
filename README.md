@@ -19,6 +19,7 @@ Type-safe flat ESLint configuration for Expo, React Native, and TypeScript proje
 - [Exports and types](#exports-and-types)
 - [Behavior and file scope](#behavior-and-file-scope)
 - [Compatibility](#compatibility)
+- [Upgrade to 3.0.2](#upgrade-to-302)
 - [Upgrade to 3.0.1](#upgrade-to-301)
 - [Upgrade to 3.0.0](#upgrade-to-300)
 - [Documentation](#documentation)
@@ -52,6 +53,18 @@ module.exports = [...expoMagic];
 ```
 
 This is the recommended setup for faster, quieter lint runs. It keeps the default TypeScript, React, React Native, import, and test rules, but does not run Prettier through `prettier/prettier`.
+
+### Fast syntax-focused linting
+
+Use the `fast` preset when lint startup time matters more than project-wide type-aware analysis:
+
+```js
+const expoMagic = require('eslint-config-expo-magic/fast');
+
+module.exports = [...expoMagic];
+```
+
+This preset keeps syntax and project guardrails but skips TypeScript project services, type-aware rules, React Compiler diagnostics, and import-cycle traversal. It defaults to `./tsconfig.json`; pass `tsconfigProjects` to `createConfig` when the repository needs different project paths.
 
 ### Default: Prettier inside ESLint
 
@@ -123,6 +136,7 @@ These package-name imports work in consumer repositories; no relative import int
 | ----------- | -------------------------------------- | ----------------------------------------------------------------------------------- | ------------- |
 | Base        | `eslint-config-expo-magic/base`        | Expo flat-config foundation with minimal package opinion                            | No            |
 | Default     | `eslint-config-expo-magic`             | TypeScript, React/RN, imports, app, test, and workspace rules                       | Yes           |
+| Fast        | `eslint-config-expo-magic/fast`        | Default syntax rules without type-aware parsing, compiler diagnostics, or cycles    | No            |
 | No Prettier | `eslint-config-expo-magic/no-prettier` | Default behavior without ESLint-driven formatting                                   | No            |
 | Typed       | `eslint-config-expo-magic/typed`       | Default plus maintained type-checked TypeScript rules                               | Yes           |
 | Strict      | `eslint-config-expo-magic/strict`      | Default plus strict type-aware rules and `no-console: error`                        | Yes           |
@@ -135,6 +149,7 @@ const { createConfig } = require('eslint-config-expo-magic');
 
 const base = createConfig({ preset: 'base' });
 const standard = createConfig();
+const fast = createConfig({ preset: 'fast' });
 const noPrettier = createConfig({ prettier: false });
 const typed = createConfig({ typeChecked: true });
 const strict = createConfig({ strict: true });
@@ -157,13 +172,14 @@ Core options:
 
 | Option             | Default              | Purpose                                               |
 | ------------------ | -------------------- | ----------------------------------------------------- |
-| `preset`           | `'default'`          | Select `'base'` or `'default'` composition            |
+| `preset`           | `'default'`          | Select `'base'`, `'default'`, or `'fast'` composition |
 | `prettier`         | `true` except base   | Include Prettier plugin and rule                      |
 | `testing`          | `true` except base   | Include Jest and Testing Library rules                |
 | `typeChecked`      | `false`              | Add maintained type-aware TypeScript configs          |
 | `strict`           | `false`              | Add strict type-aware rules and strict console policy |
 | `tsconfigProjects` | Monorepo-aware globs | Override TypeScript project paths                     |
 | `extraIgnores`     | `[]`                 | Add repository-specific ignore globs                  |
+| `importCycles`     | `true` except fast   | Enable the graph-wide `import-x/no-cycle` check       |
 
 Optional layers:
 
@@ -219,6 +235,14 @@ More project-specific controls are available:
 - `reanimated`: `gestureHooks`, `additionalGestureHooks`
 - `semanticColors`: `tokenModule`, `importName`, `flagDirectAccess`, `allowFiles`
 
+The `fast` preset keeps syntax, React, React Native, import, test, and project
+guardrails while omitting TypeScript project services, type-aware rules, React
+Compiler diagnostics, and import-cycle traversal. Use `typeChecked: true` or
+`importCycles: true` when a fast configuration needs one of those slower layers.
+The default preset discovers the root, app, package, and fixture TypeScript
+projects. The `fast` preset checks only `./tsconfig.json` by default; pass
+`tsconfigProjects` when a fast configuration needs additional project files.
+
 In 3.0.0, `semanticColors.allowFiles` disables only semantic-color selectors for matching files. `nativeUi.allowFiles` relaxes only native-UI wrapper restrictions and preserves unrelated baseline import restrictions.
 
 ## CLI tools
@@ -254,6 +278,7 @@ Every declared config subpath ships matching CommonJS, ESM, and TypeScript entry
 | ---------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | `eslint-config-expo-magic`                     | Default config plus named presets, `createConfig`, focused configs, factories, and option types |
 | `eslint-config-expo-magic/base`                | Minimal base preset                                                                             |
+| `eslint-config-expo-magic/fast`                | Fast syntax-focused preset                                                                      |
 | `eslint-config-expo-magic/no-prettier`         | Default preset without Prettier                                                                 |
 | `eslint-config-expo-magic/typed`               | Type-checked preset                                                                             |
 | `eslint-config-expo-magic/strict`              | Strict preset                                                                                   |
@@ -355,6 +380,24 @@ Expo SDK 57.0.8 / React Native 0.86.0 / React 19.2.3 is the reproducible full-fi
 
 React Native support is Expo-coupled. A standalone React Native release is not advertised as stable until it ships in a supported stable Expo SDK or receives an explicit preview lane.
 
+## Upgrade to 3.0.2
+
+Upgrade to the current patch release, then run ESLint across the full repository:
+
+```bash
+bun add --dev eslint-config-expo-magic@^3.0.2
+bunx eslint .
+```
+
+This release does not introduce breaking changes. It adds a lower-cost `fast`
+preset, lazy named-preset construction, an `importCycles` factory option, and
+matching CommonJS, ESM, and TypeScript entry points. The default preset keeps
+its existing monorepo-aware TypeScript project discovery.
+
+For the fastest lint path, use `eslint-config-expo-magic/fast` directly or
+`createConfig({ preset: 'fast' })`. Add `typeChecked: true` or
+`importCycles: true` only when those checks are needed in that configuration.
+
 ## Upgrade to 3.0.1
 
 Upgrade to the current patch release, then run ESLint across the full repository:
@@ -393,7 +436,7 @@ Migration actions:
 6. **TypeScript unused bindings:** let `@typescript-eslint/no-unused-vars` own TypeScript diagnostics; remove local duplication with core `no-unused-vars` if present.
 7. **Module and test files:** review new findings in `.mts`, `.cts`, declaration variants, and `.test`/`.spec` MTS or CTS files.
 
-See the full [migration guide](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/docs/MIGRATING.md), [3.0.0 changelog](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/CHANGELOG.md#300), and [3.0.1 changelog](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/CHANGELOG.md#301).
+See the full [migration guide](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/docs/MIGRATING.md), [3.0.2 changelog](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/CHANGELOG.md#302), [3.0.1 changelog](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/CHANGELOG.md#301), and [3.0.0 changelog](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/CHANGELOG.md#300).
 
 ## Documentation
 

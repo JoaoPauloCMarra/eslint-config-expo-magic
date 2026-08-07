@@ -6,5 +6,6 @@ const config = require('./index.js');
 const noPrettier = config.noPrettier;
 
 export default noPrettier;
+export const fast = config.fast;
 export const strict = config.strictNoPrettier;
 export const typed = config.typedNoPrettier;

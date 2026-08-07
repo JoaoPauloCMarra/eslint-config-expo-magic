@@ -108,12 +108,13 @@ function loadReportInputs(projectRoot) {
 }
 
 function createPresetConfigs(magicConfig, expoFlatConfig) {
-	return {
+	const presetConfigs = {
 		expo: expoFlatConfig,
 		agent: magicConfig.agent,
 		agentGuardrails: magicConfig.agentGuardrails,
 		base: magicConfig.base,
 		default: magicConfig,
+		fast: magicConfig.fast,
 		noPrettier: magicConfig.noPrettier,
 		typed: magicConfig.typed,
 		strict: magicConfig.strict,
@@ -140,10 +141,16 @@ function createPresetConfigs(magicConfig, expoFlatConfig) {
 			worklets: true,
 		}),
 	};
+
+	if (!presetConfigs.fast) {
+		delete presetConfigs.fast;
+	}
+
+	return presetConfigs;
 }
 
 function createReportDeltas(presets) {
-	return {
+	const deltas = {
 		baseVsExpo: createRuleDiff(presets.expo.rules, presets.base.rules),
 		defaultVsExpo: createRuleDiff(presets.expo.rules, presets.default.rules),
 		noPrettierVsDefault: createRuleDiff(
@@ -160,6 +167,15 @@ function createReportDeltas(presets) {
 			presets.productionApp.rules,
 		),
 	};
+
+	if (presets.fast) {
+		deltas.fastVsDefault = createRuleDiff(
+			presets.default.rules,
+			presets.fast.rules,
+		);
+	}
+
+	return deltas;
 }
 
 function createAggregateConfigReport(options = {}) {
@@ -191,11 +207,14 @@ function selectEffectivePresetConfigs(presetConfigs) {
 			'agent',
 			'base',
 			'default',
+			'fast',
 			'noPrettier',
 			'typed',
 			'strict',
 			'productionApp',
-		].map((name) => [name, presetConfigs[name]]),
+		]
+			.filter((name) => presetConfigs[name])
+			.map((name) => [name, presetConfigs[name]]),
 	);
 }
 

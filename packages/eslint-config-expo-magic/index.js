@@ -10,34 +10,43 @@ const semanticColorsConfig = require('./utils/semantic-colors.js');
 const storybookConfig = require('./utils/storybook.js');
 const workletsConfig = require('./utils/worklets.js');
 const { createConfig } = require('./utils/create-config.js');
-
-const base = require('./base.js');
 const config = createConfig();
-const noPrettier = createConfig({ prettier: false });
-const typed = createConfig({ typeChecked: true });
-const typedNoPrettier = createConfig({
-	typeChecked: true,
-	prettier: false,
-});
-const strict = createConfig({ strict: true });
-const strictNoPrettier = createConfig({
-	strict: true,
-	prettier: false,
-});
-const agent = createConfig({ agent: true, prettier: false });
+
+function defineLazyPreset(name, factory) {
+	Object.defineProperty(config, name, {
+		configurable: true,
+		enumerable: true,
+		get() {
+			const value = factory();
+			Object.defineProperty(config, name, {
+				configurable: false,
+				enumerable: true,
+				value,
+				writable: false,
+			});
+			return value;
+		},
+	});
+}
+
+defineLazyPreset('agent', () => createConfig({ agent: true, prettier: false }));
+defineLazyPreset('base', () => require('./base.js'));
+defineLazyPreset('fast', () => require('./fast.js'));
+defineLazyPreset('strict', () => createConfig({ strict: true }));
+defineLazyPreset('strictNoPrettier', () =>
+	createConfig({ strict: true, prettier: false }),
+);
+defineLazyPreset('typed', () => createConfig({ typeChecked: true }));
+defineLazyPreset('typedNoPrettier', () =>
+	createConfig({ typeChecked: true, prettier: false }),
+);
+defineLazyPreset('noPrettier', () => createConfig({ prettier: false }));
 
 module.exports = config;
-module.exports.agent = agent;
 module.exports.agentGuardrails = agentGuardrailsConfig;
-module.exports.base = base;
 module.exports.createConfig = createConfig;
 module.exports.createAgentGuardrailsConfig =
 	agentGuardrailsConfig.createAgentGuardrailsConfig;
-module.exports.strict = strict;
-module.exports.typed = typed;
-module.exports.noPrettier = noPrettier;
-module.exports.strictNoPrettier = strictNoPrettier;
-module.exports.typedNoPrettier = typedNoPrettier;
 module.exports.appGuardrails = appGuardrailsConfig;
 module.exports.createAppGuardrailsConfig =
 	appGuardrailsConfig.createAppGuardrailsConfig;

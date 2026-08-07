@@ -18,6 +18,7 @@ const defaultTsconfigProjectGlobs = [
 	'./packages/*/tsconfig.json',
 	'./test-project/tsconfig.json',
 ];
+const fastTsconfigProjectGlobs = ['./tsconfig.json'];
 
 const defaultIgnorePatterns = [
 	'**/node_modules/**',
@@ -226,13 +227,20 @@ function createBasePreset(tsconfigProjects, extraIgnores) {
 
 function createDefaultPreset(
 	tsconfigProjects,
-	{ extraIgnores = [], testing = true } = {},
+	{
+		extraIgnores = [],
+		importCycles = true,
+		testing = true,
+		typeAware = true,
+	} = {},
 ) {
 	return [
 		...createBasePreset(tsconfigProjects, extraIgnores),
-		...require('./typescript.js'),
+		...require('./typescript.js').createTypeScriptConfig({
+			typeChecked: typeAware,
+		}),
 		...require('./react.js'),
-		...require('./imports.js'),
+		...require('./imports.js').createImportConfig({ noCycle: importCycles }),
 		...require('./app.js'),
 		...(testing ? require('./jest.js') : []),
 		{
@@ -255,6 +263,7 @@ module.exports = {
 	createDefaultPreset,
 	createTypeCheckedConfigs,
 	defaultTsconfigProjectGlobs,
+	fastTsconfigProjectGlobs,
 	normalizeOptionConfig,
 	strictTypeScriptRules,
 	typeScriptFiles,
