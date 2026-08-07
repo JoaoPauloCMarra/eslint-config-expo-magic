@@ -206,29 +206,28 @@ async function calculateScopedPresets({
 	projectRoot,
 }) {
 	const scopeEntries = Object.entries(fileScopes);
-	const presetEntries = await Promise.all(
-		Object.entries(presetConfigs).map(async ([name, configEntries]) => {
-			const eslint = new ESLintClass({
-				cwd: projectRoot,
-				overrideConfig: configEntries,
-				overrideConfigFile: true,
-			});
-			const summaries = await Promise.all(
-				scopeEntries.map(async ([scopeName, filePath]) => {
-					const config = await eslint.calculateConfigForFile(filePath);
-					if (!config) {
-						throw new Error(
-							`ESLint did not calculate ${name} config for ${filePath}`,
-						);
-					}
+	const presetEntries = [];
+	for (const [name, configEntries] of Object.entries(presetConfigs)) {
+		const eslint = new ESLintClass({
+			cwd: projectRoot,
+			overrideConfig: configEntries,
+			overrideConfigFile: true,
+		});
+		const summaries = await Promise.all(
+			scopeEntries.map(async ([scopeName, filePath]) => {
+				const config = await eslint.calculateConfigForFile(filePath);
+				if (!config) {
+					throw new Error(
+						`ESLint did not calculate ${name} config for ${filePath}`,
+					);
+				}
 
-					return [scopeName, createPresetSummary(name, config.rules ?? {})];
-				}),
-			);
+				return [scopeName, createPresetSummary(name, config.rules ?? {})];
+			}),
+		);
 
-			return [name, Object.fromEntries(summaries)];
-		}),
-	);
+		presetEntries.push([name, Object.fromEntries(summaries)]);
+	}
 	const summariesByPreset = Object.fromEntries(presetEntries);
 
 	return Object.fromEntries(

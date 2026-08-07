@@ -67,14 +67,6 @@
 				"GHSA-hmw2-7cc7-3qxx": "high"
 			}
 		},
-		"js-yaml": {
-			"classification": "shared-build-tooling",
-			"mayAppearInPublishedDependencyTree": true,
-			"advisories": {
-				"GHSA-52cp-r559-cp3m": "high",
-				"GHSA-h67p-54hq-rp68": "moderate"
-			}
-		},
 		"lodash": {
 			"classification": "shared-build-tooling",
 			"advisories": {
@@ -197,11 +189,6 @@
 		"form-data:GHSA-hmw2-7cc7-3qxx": {
 			"owner": "dependencies",
 			"remediation": "Fixture transitive only; not in published config tree. Track upgrades when Expo bumps its graph; re-review by policy expiry.",
-			"expiry": "2026-08-29"
-		},
-		"js-yaml:GHSA-52cp-r559-cp3m": {
-			"owner": "dependencies",
-			"remediation": "Published-tree transitive with no direct dependency. Upgrade owning lint/test tool when a fixed version enters the graph; re-review by policy expiry.",
 			"expiry": "2026-08-29"
 		},
 		"lodash:GHSA-r5fr-rjxr-66jc": {

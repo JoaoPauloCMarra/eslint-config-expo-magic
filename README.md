@@ -364,7 +364,7 @@ bun add --dev eslint-config-expo-magic@^3.0.1
 bunx eslint .
 ```
 
-This release keeps the 3.0.0 runtime behavior and improves the published package surface:
+This release includes the post-3.0.0 configuration and package-surface fixes, plus the TypeScript ESLint 8.66 update:
 
 - Shared TypeScript declarations now cover the root and focused exports, including PR guardrail inputs, results, presets, and React Compiler rule names.
 - CommonJS, ESM, and TypeScript entry points stay aligned after the configuration assembly refactor.
