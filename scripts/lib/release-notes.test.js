@@ -7,6 +7,8 @@ const {
 	loadReleaseComparison,
 } = require('./release-notes.js');
 
+const projectRoot = path.resolve(__dirname, '../..');
+
 function createReport(version, defaultRules, agentRules = {}) {
 	return {
 		packageVersion: version,
@@ -27,6 +29,14 @@ function createReport(version, defaultRules, agentRules = {}) {
 }
 
 describe('release notes', () => {
+	test('compares the current release candidate with the latest release tag', async () => {
+		const comparison = await loadReleaseComparison({ rootDir: projectRoot });
+
+		expect(comparison.previousRef).toBe('v3.0.2');
+		expect(comparison.previousManifest.version).toBe('3.0.2');
+		expect(comparison.currentManifest.version).toBe('4.0.0');
+	});
+
 	test('describes previous-to-current package changes only', () => {
 		const previousManifest = {
 			version: '2.8.0',

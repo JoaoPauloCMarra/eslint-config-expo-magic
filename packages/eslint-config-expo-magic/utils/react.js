@@ -33,33 +33,49 @@ function createExpoReactBaseConfig() {
 	};
 }
 
-module.exports = [
-	createExpoReactBaseConfig(),
-	{
-		plugins: {
-			'react-hooks': fixupPluginRules(pluginReactHooks),
-			'react-native': fixupPluginRules(pluginReactNative),
-			'react-19-upgrade': fixupPluginRules(pluginReact19Upgrade),
+function createReactConfig({ fast = false } = {}) {
+	const recommendedHooksRules = pluginReactHooks.configs.flat.recommended.rules;
+	const hooksRules = fast
+		? {
+				'react-hooks/rules-of-hooks':
+					recommendedHooksRules['react-hooks/rules-of-hooks'],
+				'react-hooks/exhaustive-deps': 'error',
+			}
+		: {
+				...recommendedHooksRules,
+				'react-hooks/exhaustive-deps': 'error',
+			};
+
+	return [
+		createExpoReactBaseConfig(),
+		{
+			plugins: {
+				'react-hooks': fixupPluginRules(pluginReactHooks),
+				'react-native': fixupPluginRules(pluginReactNative),
+				'react-19-upgrade': fixupPluginRules(pluginReact19Upgrade),
+			},
+			rules: {
+				...hooksRules,
+				'react-hooks/set-state-in-effect': 'off',
+				'react/jsx-no-leaked-render': 'error',
+				'react/jsx-no-useless-fragment': 'error',
+				'react/jsx-key': 'error',
+				'react/no-unstable-nested-components': 'off',
+				'react/self-closing-comp': 'error',
+				'react-native/no-unused-styles': 'error',
+				'react-native/no-inline-styles': 'off',
+				'react-native/split-platform-components': 'error',
+				'react-native/no-raw-text': 'off',
+				'react-native/no-single-element-style-arrays': 'error',
+				'react-19-upgrade/no-default-props': 'error',
+				'react-19-upgrade/no-prop-types': 'warn',
+				'react-19-upgrade/no-legacy-context': 'error',
+				'react-19-upgrade/no-string-refs': 'error',
+				'react-19-upgrade/no-factories': 'error',
+			},
 		},
-		rules: {
-			...pluginReactHooks.configs.flat.recommended.rules,
-			'react-hooks/exhaustive-deps': 'error',
-			'react-hooks/set-state-in-effect': 'off',
-			'react/jsx-no-leaked-render': 'error',
-			'react/jsx-no-useless-fragment': 'error',
-			'react/jsx-key': 'error',
-			'react/no-unstable-nested-components': 'off',
-			'react/self-closing-comp': 'error',
-			'react-native/no-unused-styles': 'error',
-			'react-native/no-inline-styles': 'off',
-			'react-native/split-platform-components': 'error',
-			'react-native/no-raw-text': 'off',
-			'react-native/no-single-element-style-arrays': 'error',
-			'react-19-upgrade/no-default-props': 'error',
-			'react-19-upgrade/no-prop-types': 'warn',
-			'react-19-upgrade/no-legacy-context': 'error',
-			'react-19-upgrade/no-string-refs': 'error',
-			'react-19-upgrade/no-factories': 'error',
-		},
-	},
-];
+	];
+}
+
+module.exports = createReactConfig();
+module.exports.createReactConfig = createReactConfig;

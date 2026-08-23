@@ -1,12 +1,12 @@
 // @ts-nocheck
-// Specific triggers for import rules
+// Specific triggers for import-x rules
 
-// ❌ import/named and import-x/named
+// ❌ import-x/named
 // Importing named export that doesn't exist
 import { NonExistentExport } from './no-default';
 console.log(NonExistentExport);
 
-// ❌ import/namespace and import-x/namespace
+// ❌ import-x/namespace
 // Namespace import accessing non-existent member
 import * as AllExports from './only-default';
 console.log(AllExports.doesNotExist); // This export doesn't exist

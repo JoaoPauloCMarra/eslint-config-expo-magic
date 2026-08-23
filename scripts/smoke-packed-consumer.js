@@ -39,9 +39,9 @@ const smokeLanes = [
 	},
 	{
 		name: 'sdk-57',
-		expo: '57.0.8',
+		expo: '57.0.15',
 		react: '19.2.3',
-		reactNative: '0.86.0',
+		reactNative: '0.86.2',
 		reactTestRenderer: '19.2.3',
 		typescript: '^6.0.3',
 	},
@@ -112,8 +112,15 @@ function createFixturePackageJson(tarballPath, lane) {
 		private: true,
 		type: 'commonjs',
 		devDependencies: {
-			eslint: '^10.0.0',
+			'@testing-library/react-native': '^14.0.1',
+			eslint: '^10.9.0',
+			'eslint-config-prettier': '^10.1.8',
 			expo: lane.expo,
+			'eslint-plugin-boundaries': '^7.2.0',
+			'eslint-plugin-jest': '^29.16.1',
+			'eslint-plugin-prettier': '^5.5.6',
+			'eslint-plugin-testing-library': '^7.16.2',
+			prettier: '^3.9.6',
 			react: lane.react,
 			'react-native': lane.reactNative,
 			'react-test-renderer': lane.reactTestRenderer,
@@ -130,9 +137,9 @@ function createNpmFixturePackageJson(tarballPath) {
 		private: true,
 		type: 'module',
 		dependencies: {
-			expo: '57.0.8',
+			eslint: '^10.9.0',
+			expo: '57.0.15',
 			react: '19.2.3',
-			'react-test-renderer': '19.2.3',
 			typescript: '6.0.3',
 			'eslint-config-expo-magic': `file:${tarballPath}`,
 		},
@@ -193,7 +200,10 @@ function collectTypeOnlyExportNames(typeScript, sourceFile) {
 	return [...names].sort();
 }
 
-function writeRuntimeContract(tempProjectDir) {
+function writeRuntimeContract(
+	tempProjectDir,
+	{ includeOptionalIntegrations = true } = {},
+) {
 	fs.writeFileSync(
 		path.join(tempProjectDir, 'package-runtime-contract.mjs'),
 		[
@@ -202,6 +212,7 @@ function writeRuntimeContract(tempProjectDir) {
 			'',
 			'const require = createRequire(import.meta.url);',
 			"const manifest = require('eslint-config-expo-magic/package.json');",
+			`const includeOptionalIntegrations = ${includeOptionalIntegrations};`,
 			'',
 			'function packageSpecifier(subpath) {',
 			"\treturn subpath === '.' ? manifest.name : `${manifest.name}${subpath.slice(1)}`;",
@@ -212,6 +223,7 @@ function writeRuntimeContract(tempProjectDir) {
 			'}',
 			'',
 			'for (const [subpath, exportValue] of Object.entries(manifest.exports)) {',
+			"\tif (!includeOptionalIntegrations && subpath === './feature-boundaries') continue;",
 			'\tconst specifier = packageSpecifier(subpath);',
 			'',
 			"\tif (typeof exportValue === 'string') {",
@@ -223,18 +235,18 @@ function writeRuntimeContract(tempProjectDir) {
 			'',
 			'\tassert.equal(typeof exportValue.types, "string");',
 			'\tassert.equal(typeof exportValue.require, "string");',
-			'\tassert.equal(typeof exportValue.import, "string");',
-			'\tconst commonJsModule = require(specifier);',
-			'\tconst esmModule = await import(specifier);',
-			'\tconst commonJsNamedExports = Object.keys(commonJsModule)',
-			'\t\t.filter(isRuntimeNamedExport)',
-			'\t\t.sort();',
-			'\tconst esmNamedExports = Object.keys(esmModule)',
-			"\t\t.filter((name) => name !== 'default')",
-			'\t\t.sort();',
-			'',
-			'\tassert.equal(esmModule.default, commonJsModule, `${subpath} default export`);',
-			'\tassert.deepEqual(esmNamedExports, commonJsNamedExports, `${subpath} named exports`);',
+		'\tassert.equal(typeof exportValue.import, "string");',
+		'\tconst commonJsModule = require(specifier);',
+		'\tconst esmModule = await import(specifier);',
+		'\tconst commonJsNamedExports = Object.keys(commonJsModule)',
+		'\t\t.filter(isRuntimeNamedExport)',
+		'\t\t.sort();',
+		'\tconst esmNamedExports = Object.keys(esmModule)',
+		"\t\t.filter((name) => name !== 'default')",
+		'\t\t.sort();',
+		'',
+		'\tassert.equal(esmModule.default, commonJsModule, `${subpath} default export`);',
+		'\tassert.deepEqual(esmNamedExports, commonJsNamedExports, `${subpath} named exports`);',
 			'}',
 			'',
 		].join('\n'),
@@ -365,7 +377,7 @@ function validateNpmConsumer(tarballPath) {
 				},
 			},
 		);
-		writeRuntimeContract(tempProjectDir);
+		writeRuntimeContract(tempProjectDir, { includeOptionalIntegrations: false });
 		run('node', ['package-runtime-contract.mjs'], { cwd: tempProjectDir });
 	});
 }
@@ -455,17 +467,6 @@ function writeFixtureFiles(tempProjectDir) {
 	);
 
 	fs.writeFileSync(
-		path.join(tempProjectDir, 'no-prettier-smoke.ts'),
-		[
-			"import localValue from '@/local-value';",
-			"import path from 'node:path';",
-			'',
-			'export const noPrettierValue = [localValue, path.sep];',
-			'',
-		].join('\n'),
-	);
-
-	fs.writeFileSync(
 		path.join(tempProjectDir, 'agent-smoke.test.ts'),
 		[
 			'// @ts-ignore agent smoke',
@@ -542,6 +543,18 @@ function writeFixtureFiles(tempProjectDir) {
 		].join('\n'),
 	);
 
+	fs.writeFileSync(
+		path.join(tempProjectDir, 'optional-integration.test.tsx'),
+		[
+			"import { screen } from '@testing-library/react-native';",
+			'',
+			"it.skip('optional integration smoke', async () => {",
+			"  screen.findByText('value');",
+			'});',
+			'',
+		].join('\n'),
+	);
+
 	fs.mkdirSync(path.join(tempProjectDir, 'features/people/screens'), {
 		recursive: true,
 	});
@@ -585,10 +598,6 @@ function writeFixtureFiles(tempProjectDir) {
 		"import typed from 'eslint-config-expo-magic/typed';\n\nexport default [...typed];\n",
 	);
 	fs.writeFileSync(
-		path.join(tempProjectDir, 'eslint.no-prettier.config.js'),
-		"const noPrettier = require('eslint-config-expo-magic/no-prettier');\n\nmodule.exports = [...noPrettier];\n",
-	);
-	fs.writeFileSync(
 		path.join(tempProjectDir, 'eslint.factory.config.js'),
 		[
 			"const { createConfig } = require('eslint-config-expo-magic');",
@@ -622,6 +631,19 @@ function writeFixtureFiles(tempProjectDir) {
 			'\tsemanticColors: true,',
 			'\tstorybook: true,',
 			'\tworklets: true,',
+			'});',
+			'',
+		].join('\n'),
+	);
+	fs.writeFileSync(
+		path.join(tempProjectDir, 'eslint.optional.config.js'),
+		[
+			"const { createConfig } = require('eslint-config-expo-magic');",
+			'',
+			'module.exports = createConfig({',
+			'\tprettier: true,',
+			'\ttesting: true,',
+			'\tfeatureBoundaries: true,',
 			'});',
 			'',
 		].join('\n'),
@@ -665,10 +687,10 @@ function validateLane(tempProjectDir) {
 		'import-x/order',
 		'Default preset did not report import-x/order.',
 	);
-	assertHasRule(
+	assertLacksRule(
 		defaultMessages,
 		'prettier/prettier',
-		'Default preset did not report prettier/prettier.',
+		'Default preset should not report prettier/prettier.',
 	);
 
 	const strictMessages = runLint(
@@ -733,22 +755,6 @@ function validateLane(tempProjectDir) {
 		typedEsmMessages,
 		'import-x/no-unresolved',
 		'ESM typed preset failed to resolve bun:test.',
-	);
-
-	const noPrettierMessages = runLint(
-		tempProjectDir,
-		'eslint.no-prettier.config.js',
-		'no-prettier-smoke.ts',
-	);
-	assertLacksRule(
-		noPrettierMessages,
-		'prettier/prettier',
-		'no-prettier preset reported prettier/prettier.',
-	);
-	assertHasRule(
-		noPrettierMessages,
-		'import-x/order',
-		'no-prettier preset did not report import-x/order.',
 	);
 
 	const factoryMessages = runLint(
@@ -860,6 +866,27 @@ function validateLane(tempProjectDir) {
 		boundaryMessages,
 		'boundaries/dependencies',
 		'Hardening config did not report feature boundary violations.',
+	);
+
+	const optionalMessages = runLint(
+		tempProjectDir,
+		'eslint.optional.config.js',
+		'optional-integration.test.tsx',
+	);
+	assertHasRule(
+		optionalMessages,
+		'prettier/prettier',
+		'Optional integration config did not load Prettier diagnostics.',
+	);
+	assertHasRule(
+		optionalMessages,
+		'jest/no-disabled-tests',
+		'Optional integration config did not load Jest diagnostics.',
+	);
+	assertHasRule(
+		optionalMessages,
+		'testing-library/await-async-queries',
+		'Optional integration config did not load Testing Library diagnostics.',
 	);
 }
 

@@ -2,6 +2,10 @@
 
 This document explains the reasoning behind the opinionated rules enforced by `eslint-config-expo-magic`.
 
+## v4 preset defaults
+
+The root and typed/strict presets keep core Expo, TypeScript, React Native, import, and application rules active. Formatting and test-plugin rules are optional integrations and are disabled unless `createConfig({ prettier: true, testing: true })` opts into them. The fast preset keeps the core React and React Native hooks but skips type-aware parsing, React Compiler diagnostics, and import-cycle traversal.
+
 ## 🔷 TypeScript
 
 ### `@typescript-eslint/consistent-type-definitions`
@@ -98,7 +102,7 @@ This document explains the reasoning behind the opinionated rules enforced by `e
 - **`react-hooks/set-state-in-render`**: Prevents calling setState during render (causes infinite loops).
 - **`react-hooks/preserve-manual-memoization`**: Ensures manual memoization doesn't conflict with compiler optimizations.
 
-**Rationale**: These rules work with React Compiler to catch performance issues and ensure components can be safely optimized. The default preset spreads `eslint-plugin-react-hooks` v7's recommended set, so these diagnostics ship on by default. The opt-in `reactCompiler` layer promotes `unsupported-syntax`, `incompatible-library`, `immutability`, `purity`, `preserve-manual-memoization`, `set-state-in-render`, and `static-components` to `error`. (This replaces the previous hand-rolled `no-restricted-syntax` heuristics, which falsely flagged any optional chaining or `throw` inside a `try` block.)
+**Rationale**: Core React Hooks checks remain part of the default and typed/strict presets; the fast preset keeps only the core hooks checks. The opt-in `reactCompiler` layer promotes `unsupported-syntax`, `incompatible-library`, `immutability`, `purity`, `preserve-manual-memoization`, `set-state-in-render`, and `static-components` to `error`. (This replaces the previous hand-rolled `no-restricted-syntax` heuristics, which falsely flagged any optional chaining or `throw` inside a `try` block.)
 
 ## 🛡️ Optional Hardening Layers
 
@@ -191,7 +195,13 @@ These layers are off by default and enabled per project via `createConfig({ ... 
 - **Rule**: Prevent importing named exports as default members.
 - **Rationale**: Ensures correct import syntax and prevents runtime errors.
 
+## ✨ Formatting
+
+The `prettier/prettier` rule is an optional integration in v4. Install `eslint-config-prettier`, `eslint-plugin-prettier`, and `prettier`, then enable it with `createConfig({ prettier: true })`. Keeping it out of the default runtime makes the root and fast packed-consumer paths usable without formatter peers.
+
 ## 🧪 Testing
+
+Jest and Testing Library rules are disabled in the root and fast presets by default because they require optional peer integrations. Install `eslint-plugin-jest` and `eslint-plugin-testing-library`, then enable them with `createConfig({ testing: true })` when the project has those test surfaces.
 
 ### `testing-library/await-async-queries`
 

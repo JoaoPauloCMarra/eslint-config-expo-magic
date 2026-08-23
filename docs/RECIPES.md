@@ -18,12 +18,22 @@ module.exports = [
 ];
 ```
 
-## Turn off lint-time Prettier
+## Enable formatting and testing integrations
+
+The v4 root preset leaves formatting and testing rules off. Install the optional peers before enabling either integration:
+
+```bash
+bun add --dev eslint-config-prettier eslint-plugin-prettier prettier
+bun add --dev eslint-plugin-jest eslint-plugin-testing-library
+```
 
 ```js
-const noPrettier = require('eslint-config-expo-magic/no-prettier');
+const { createConfig } = require('eslint-config-expo-magic');
 
-module.exports = [...noPrettier];
+module.exports = createConfig({
+	prettier: true,
+	testing: true,
+});
 ```
 
 ## Keep the default preset but disable one opinionated rule
@@ -56,7 +66,7 @@ module.exports = [
 ];
 ```
 
-## Disable Jest and Testing Library rules in a package
+## Keep testing disabled in a package
 
 ```js
 const { createConfig } = require('eslint-config-expo-magic');
@@ -132,7 +142,6 @@ module.exports = createConfig({
 		'targets/**',
 		'expo-env.d.ts',
 	],
-	prettier: false,
 	appGuardrails: true,
 	reactCompiler: true,
 	worklets: true,

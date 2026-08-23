@@ -9,7 +9,6 @@ const cwd = process.cwd();
 const eslintConfig = `const { createConfig } = require('eslint-config-expo-magic');
 
 module.exports = createConfig({
-\tprettier: false,
 \tagent: true,
 });
 `;

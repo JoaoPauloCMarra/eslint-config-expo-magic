@@ -5,7 +5,15 @@ Use this setup when a project is frequently edited by AI agents and needs guardr
 ## Install
 
 ```bash
-bun add --dev eslint-config-expo-magic
+bun add --dev eslint@^10.9.0 eslint-config-expo-magic typescript@^6.0.3
+```
+
+Formatting, testing, and feature-boundary integrations are optional peers. Install only the integrations selected by the config:
+
+```bash
+bun add --dev eslint-config-prettier eslint-plugin-prettier prettier
+bun add --dev eslint-plugin-jest eslint-plugin-testing-library
+bun add --dev eslint-plugin-boundaries
 ```
 
 ## ESLint config
@@ -14,7 +22,6 @@ bun add --dev eslint-config-expo-magic
 const { createConfig } = require('eslint-config-expo-magic');
 
 module.exports = createConfig({
-	prettier: false,
 	appGuardrails: true,
 	reactCompiler: true,
 	worklets: true,
@@ -28,7 +35,6 @@ Prefer the bundled agent preset for new projects:
 const { createConfig } = require('eslint-config-expo-magic');
 
 module.exports = createConfig({
-	prettier: false,
 	agent: true,
 });
 ```

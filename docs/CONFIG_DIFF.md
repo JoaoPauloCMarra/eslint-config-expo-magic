@@ -1,90 +1,82 @@
 # Config Diff
 
-Package version: `3.0.2`
+Package version: `4.0.0`
 Expo config version: `57.0.1`
 
 ## Effective Rule Counts
 
-| Scope | File | expo | agent | base | default | fast | noPrettier | typed | strict | productionApp |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| app | `apps/mobile/App.tsx` | 83 | 140 | 46 | 491 | 123 | 132 | 560 | 492 | 501 |
-| package | `packages/shared/src/index.ts` | 83 | 140 | 46 | 491 | 123 | 132 | 560 | 492 | 499 |
-| test | `apps/mobile/src/__tests__/App.test.tsx` | 83 | 165 | 46 | 516 | 148 | 157 | 585 | 517 | 526 |
-| story | `apps/mobile/src/components/Button.stories.tsx` | 83 | 140 | 46 | 491 | 123 | 132 | 560 | 492 | 501 |
-| config | `metro.config.js` | 72 | 106 | 34 | 463 | 104 | 104 | 463 | 463 | 465 |
-| web | `apps/mobile/src/App.web.tsx` | 83 | 140 | 46 | 491 | 123 | 132 | 560 | 492 | 501 |
+| Scope | File | expo | agent | base | default | fast | typed | strict | productionApp |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| app | `apps/mobile/App.tsx` | 83 | 130 | 36 | 122 | 100 | 191 | 123 | 132 |
+| package | `packages/shared/src/index.ts` | 83 | 130 | 36 | 122 | 100 | 191 | 123 | 130 |
+| test | `apps/mobile/src/__tests__/App.test.tsx` | 83 | 130 | 36 | 122 | 100 | 191 | 123 | 132 |
+| story | `apps/mobile/src/components/Button.stories.tsx` | 83 | 130 | 36 | 122 | 100 | 191 | 123 | 132 |
+| config | `metro.config.js` | 72 | 97 | 25 | 95 | 82 | 95 | 95 | 97 |
+| web | `apps/mobile/src/App.web.tsx` | 83 | 130 | 36 | 122 | 100 | 191 | 123 | 132 |
 
 ## Effective Delta Counts
 
 | Scope | Comparison | Added | Changed | Removed |
 | --- | --- | ---: | ---: | ---: |
-| app | baseVsExpo | 2 | 0 | 39 |
-| app | defaultVsExpo | 408 | 10 | 0 |
-| app | noPrettierVsDefault | 0 | 0 | 359 |
+| app | baseVsExpo | 1 | 0 | 48 |
+| app | defaultVsExpo | 48 | 3 | 9 |
 | app | typedVsDefault | 69 | 14 | 0 |
 | app | strictVsDefault | 1 | 2 | 0 |
 | app | productionAppVsDefault | 10 | 5 | 0 |
-| app | fastVsDefault | 0 | 1 | 368 |
-| package | baseVsExpo | 2 | 0 | 39 |
-| package | defaultVsExpo | 408 | 10 | 0 |
-| package | noPrettierVsDefault | 0 | 0 | 359 |
+| app | fastVsDefault | 0 | 1 | 22 |
+| package | baseVsExpo | 1 | 0 | 48 |
+| package | defaultVsExpo | 48 | 3 | 9 |
 | package | typedVsDefault | 69 | 14 | 0 |
 | package | strictVsDefault | 1 | 1 | 0 |
 | package | productionAppVsDefault | 8 | 4 | 0 |
-| package | fastVsDefault | 0 | 1 | 368 |
-| test | baseVsExpo | 2 | 0 | 39 |
-| test | defaultVsExpo | 433 | 10 | 0 |
-| test | noPrettierVsDefault | 0 | 0 | 359 |
+| package | fastVsDefault | 0 | 1 | 22 |
+| test | baseVsExpo | 1 | 0 | 48 |
+| test | defaultVsExpo | 48 | 3 | 9 |
 | test | typedVsDefault | 69 | 14 | 0 |
 | test | strictVsDefault | 1 | 2 | 0 |
 | test | productionAppVsDefault | 10 | 5 | 0 |
-| test | fastVsDefault | 0 | 1 | 368 |
-| story | baseVsExpo | 2 | 0 | 39 |
-| story | defaultVsExpo | 408 | 10 | 0 |
-| story | noPrettierVsDefault | 0 | 0 | 359 |
+| test | fastVsDefault | 0 | 1 | 22 |
+| story | baseVsExpo | 1 | 0 | 48 |
+| story | defaultVsExpo | 48 | 3 | 9 |
 | story | typedVsDefault | 69 | 14 | 0 |
 | story | strictVsDefault | 1 | 2 | 0 |
 | story | productionAppVsDefault | 10 | 6 | 0 |
-| story | fastVsDefault | 0 | 1 | 368 |
-| config | baseVsExpo | 1 | 0 | 39 |
-| config | defaultVsExpo | 391 | 10 | 0 |
-| config | noPrettierVsDefault | 0 | 0 | 359 |
+| story | fastVsDefault | 0 | 1 | 22 |
+| config | baseVsExpo | 1 | 0 | 48 |
+| config | defaultVsExpo | 32 | 3 | 9 |
 | config | typedVsDefault | 0 | 0 | 0 |
 | config | strictVsDefault | 0 | 1 | 0 |
 | config | productionAppVsDefault | 2 | 3 | 0 |
-| config | fastVsDefault | 0 | 1 | 359 |
-| web | baseVsExpo | 2 | 0 | 39 |
-| web | defaultVsExpo | 408 | 10 | 0 |
-| web | noPrettierVsDefault | 0 | 0 | 359 |
+| config | fastVsDefault | 0 | 1 | 13 |
+| web | baseVsExpo | 1 | 0 | 48 |
+| web | defaultVsExpo | 48 | 3 | 9 |
 | web | typedVsDefault | 69 | 14 | 0 |
 | web | strictVsDefault | 1 | 2 | 0 |
 | web | productionAppVsDefault | 10 | 5 | 0 |
-| web | fastVsDefault | 0 | 1 | 368 |
+| web | fastVsDefault | 0 | 1 | 22 |
 
 ## Aggregate Compatibility
 
 | Preset | Rule count |
 | --- | ---: |
 | expo | 84 |
-| agent | 165 |
+| agent | 130 |
 | agentGuardrails | 7 |
-| base | 46 |
-| default | 516 |
-| fast | 148 |
-| noPrettier | 157 |
-| typed | 585 |
-| strict | 517 |
+| base | 36 |
+| default | 122 |
+| fast | 100 |
+| typed | 191 |
+| strict | 123 |
 | appGuardrails | 4 |
 | componentStructure | 4 |
 | deprecatedApis | 2 |
-| featureBoundaries | 1 |
 | nativeUi | 1 |
 | reactCompiler | 7 |
 | reanimated | 2 |
 | semanticColors | 1 |
 | storybook | 1 |
 | worklets | 1 |
-| productionApp | 526 |
+| productionApp | 132 |
 
 ### baseVsExpo
 
@@ -98,6 +90,16 @@ Expo config version: `57.0.1`
 
 #### Removed
 
+- `import/default`
+- `import/export`
+- `import/first`
+- `import/named`
+- `import/namespace`
+- `import/no-duplicates`
+- `import/no-named-as-default`
+- `import/no-named-as-default-member`
+- `import/no-unresolved`
+- `import/order`
 - `react-hooks/config`
 - `react-hooks/error-boundaries`
 - `react-hooks/exhaustive-deps`
@@ -142,258 +144,23 @@ Expo config version: `57.0.1`
 
 #### Added
 
-- `@babel/object-curly-spacing`
-- `@babel/semi`
-- `@stylistic/array-bracket-newline`
-- `@stylistic/array-bracket-spacing`
-- `@stylistic/array-element-newline`
-- `@stylistic/arrow-parens`
-- `@stylistic/arrow-spacing`
-- `@stylistic/block-spacing`
-- `@stylistic/brace-style`
-- `@stylistic/comma-dangle`
-- `@stylistic/comma-spacing`
-- `@stylistic/comma-style`
-- `@stylistic/computed-property-spacing`
-- `@stylistic/dot-location`
-- `@stylistic/eol-last`
-- `@stylistic/func-call-spacing`
-- `@stylistic/function-call-argument-newline`
-- `@stylistic/function-call-spacing`
-- `@stylistic/function-paren-newline`
-- `@stylistic/generator-star-spacing`
-- `@stylistic/implicit-arrow-linebreak`
-- `@stylistic/indent`
-- `@stylistic/indent-binary-ops`
-- `@stylistic/js/array-bracket-newline`
-- `@stylistic/js/array-bracket-spacing`
-- `@stylistic/js/array-element-newline`
-- `@stylistic/js/arrow-parens`
-- `@stylistic/js/arrow-spacing`
-- `@stylistic/js/block-spacing`
-- `@stylistic/js/brace-style`
-- `@stylistic/js/comma-dangle`
-- `@stylistic/js/comma-spacing`
-- `@stylistic/js/comma-style`
-- `@stylistic/js/computed-property-spacing`
-- `@stylistic/js/dot-location`
-- `@stylistic/js/eol-last`
-- `@stylistic/js/func-call-spacing`
-- `@stylistic/js/function-call-argument-newline`
-- `@stylistic/js/function-call-spacing`
-- `@stylistic/js/function-paren-newline`
-- `@stylistic/js/generator-star-spacing`
-- `@stylistic/js/implicit-arrow-linebreak`
-- `@stylistic/js/indent`
-- `@stylistic/js/jsx-quotes`
-- `@stylistic/js/key-spacing`
-- `@stylistic/js/keyword-spacing`
-- `@stylistic/js/linebreak-style`
-- `@stylistic/js/lines-around-comment`
-- `@stylistic/js/max-len`
-- `@stylistic/js/max-statements-per-line`
-- `@stylistic/js/multiline-ternary`
-- `@stylistic/js/new-parens`
-- `@stylistic/js/newline-per-chained-call`
-- `@stylistic/js/no-confusing-arrow`
-- `@stylistic/js/no-extra-parens`
-- `@stylistic/js/no-extra-semi`
-- `@stylistic/js/no-floating-decimal`
-- `@stylistic/js/no-mixed-operators`
-- `@stylistic/js/no-mixed-spaces-and-tabs`
-- `@stylistic/js/no-multi-spaces`
-- `@stylistic/js/no-multiple-empty-lines`
-- `@stylistic/js/no-tabs`
-- `@stylistic/js/no-trailing-spaces`
-- `@stylistic/js/no-whitespace-before-property`
-- `@stylistic/js/nonblock-statement-body-position`
-- `@stylistic/js/object-curly-newline`
-- `@stylistic/js/object-curly-spacing`
-- `@stylistic/js/object-property-newline`
-- `@stylistic/js/one-var-declaration-per-line`
-- `@stylistic/js/operator-linebreak`
-- `@stylistic/js/padded-blocks`
-- `@stylistic/js/quote-props`
-- `@stylistic/js/quotes`
-- `@stylistic/js/rest-spread-spacing`
-- `@stylistic/js/semi`
-- `@stylistic/js/semi-spacing`
-- `@stylistic/js/semi-style`
-- `@stylistic/js/space-before-blocks`
-- `@stylistic/js/space-before-function-paren`
-- `@stylistic/js/space-in-parens`
-- `@stylistic/js/space-infix-ops`
-- `@stylistic/js/space-unary-ops`
-- `@stylistic/js/switch-colon-spacing`
-- `@stylistic/js/template-curly-spacing`
-- `@stylistic/js/template-tag-spacing`
-- `@stylistic/js/wrap-iife`
-- `@stylistic/js/wrap-regex`
-- `@stylistic/js/yield-star-spacing`
-- `@stylistic/jsx-child-element-spacing`
-- `@stylistic/jsx-closing-bracket-location`
-- `@stylistic/jsx-closing-tag-location`
-- `@stylistic/jsx-curly-newline`
-- `@stylistic/jsx-curly-spacing`
-- `@stylistic/jsx-equals-spacing`
-- `@stylistic/jsx-first-prop-new-line`
-- `@stylistic/jsx-indent`
-- `@stylistic/jsx-indent-props`
-- `@stylistic/jsx-max-props-per-line`
-- `@stylistic/jsx-newline`
-- `@stylistic/jsx-one-expression-per-line`
-- `@stylistic/jsx-props-no-multi-spaces`
-- `@stylistic/jsx-quotes`
-- `@stylistic/jsx-tag-spacing`
-- `@stylistic/jsx-wrap-multilines`
-- `@stylistic/jsx/jsx-child-element-spacing`
-- `@stylistic/jsx/jsx-closing-bracket-location`
-- `@stylistic/jsx/jsx-closing-tag-location`
-- `@stylistic/jsx/jsx-curly-newline`
-- `@stylistic/jsx/jsx-curly-spacing`
-- `@stylistic/jsx/jsx-equals-spacing`
-- `@stylistic/jsx/jsx-first-prop-new-line`
-- `@stylistic/jsx/jsx-indent`
-- `@stylistic/jsx/jsx-indent-props`
-- `@stylistic/jsx/jsx-max-props-per-line`
-- `@stylistic/key-spacing`
-- `@stylistic/keyword-spacing`
-- `@stylistic/linebreak-style`
-- `@stylistic/lines-around-comment`
-- `@stylistic/max-len`
-- `@stylistic/max-statements-per-line`
-- `@stylistic/member-delimiter-style`
-- `@stylistic/multiline-ternary`
-- `@stylistic/new-parens`
-- `@stylistic/newline-per-chained-call`
-- `@stylistic/no-confusing-arrow`
-- `@stylistic/no-extra-parens`
-- `@stylistic/no-extra-semi`
-- `@stylistic/no-floating-decimal`
-- `@stylistic/no-mixed-operators`
-- `@stylistic/no-mixed-spaces-and-tabs`
-- `@stylistic/no-multi-spaces`
-- `@stylistic/no-multiple-empty-lines`
-- `@stylistic/no-tabs`
-- `@stylistic/no-trailing-spaces`
-- `@stylistic/no-whitespace-before-property`
-- `@stylistic/nonblock-statement-body-position`
-- `@stylistic/object-curly-newline`
-- `@stylistic/object-curly-spacing`
-- `@stylistic/object-property-newline`
-- `@stylistic/one-var-declaration-per-line`
-- `@stylistic/operator-linebreak`
-- `@stylistic/padded-blocks`
-- `@stylistic/quote-props`
-- `@stylistic/quotes`
-- `@stylistic/rest-spread-spacing`
-- `@stylistic/semi`
-- `@stylistic/semi-spacing`
-- `@stylistic/semi-style`
-- `@stylistic/space-before-blocks`
-- `@stylistic/space-before-function-paren`
-- `@stylistic/space-in-parens`
-- `@stylistic/space-infix-ops`
-- `@stylistic/space-unary-ops`
-- `@stylistic/switch-colon-spacing`
-- `@stylistic/template-curly-spacing`
-- `@stylistic/template-tag-spacing`
-- `@stylistic/ts/block-spacing`
-- `@stylistic/ts/brace-style`
-- `@stylistic/ts/comma-dangle`
-- `@stylistic/ts/comma-spacing`
-- `@stylistic/ts/func-call-spacing`
-- `@stylistic/ts/function-call-spacing`
-- `@stylistic/ts/indent`
-- `@stylistic/ts/key-spacing`
-- `@stylistic/ts/keyword-spacing`
-- `@stylistic/ts/lines-around-comment`
-- `@stylistic/ts/member-delimiter-style`
-- `@stylistic/ts/no-extra-parens`
-- `@stylistic/ts/no-extra-semi`
-- `@stylistic/ts/object-curly-spacing`
-- `@stylistic/ts/quotes`
-- `@stylistic/ts/semi`
-- `@stylistic/ts/space-before-blocks`
-- `@stylistic/ts/space-before-function-paren`
-- `@stylistic/ts/space-infix-ops`
-- `@stylistic/ts/type-annotation-spacing`
-- `@stylistic/type-annotation-spacing`
-- `@stylistic/type-generic-spacing`
-- `@stylistic/type-named-tuple-spacing`
-- `@stylistic/wrap-iife`
-- `@stylistic/wrap-regex`
-- `@stylistic/yield-star-spacing`
 - `@typescript-eslint/await-thenable`
-- `@typescript-eslint/block-spacing`
-- `@typescript-eslint/brace-style`
-- `@typescript-eslint/comma-dangle`
-- `@typescript-eslint/comma-spacing`
 - `@typescript-eslint/consistent-type-definitions`
 - `@typescript-eslint/consistent-type-imports`
-- `@typescript-eslint/func-call-spacing`
-- `@typescript-eslint/indent`
-- `@typescript-eslint/key-spacing`
-- `@typescript-eslint/keyword-spacing`
-- `@typescript-eslint/lines-around-comment`
-- `@typescript-eslint/member-delimiter-style`
 - `@typescript-eslint/naming-convention`
 - `@typescript-eslint/no-confusing-void-expression`
 - `@typescript-eslint/no-explicit-any`
-- `@typescript-eslint/no-extra-parens`
-- `@typescript-eslint/no-extra-semi`
 - `@typescript-eslint/no-floating-promises`
 - `@typescript-eslint/no-import-type-side-effects`
 - `@typescript-eslint/no-meaningless-void-operator`
 - `@typescript-eslint/no-non-null-assertion`
 - `@typescript-eslint/no-unnecessary-type-assertion`
 - `@typescript-eslint/no-unnecessary-type-constraint`
-- `@typescript-eslint/object-curly-spacing`
 - `@typescript-eslint/prefer-nullish-coalescing`
 - `@typescript-eslint/prefer-optional-chain`
 - `@typescript-eslint/prefer-readonly`
-- `@typescript-eslint/quotes`
-- `@typescript-eslint/semi`
-- `@typescript-eslint/space-before-blocks`
-- `@typescript-eslint/space-before-function-paren`
-- `@typescript-eslint/space-infix-ops`
 - `@typescript-eslint/triple-slash-reference`
-- `@typescript-eslint/type-annotation-spacing`
-- `array-bracket-newline`
-- `array-bracket-spacing`
-- `array-element-newline`
-- `arrow-parens`
-- `arrow-spacing`
-- `babel/object-curly-spacing`
-- `babel/quotes`
-- `babel/semi`
-- `block-spacing`
-- `brace-style`
-- `comma-dangle`
-- `comma-spacing`
-- `comma-style`
-- `computed-property-spacing`
-- `curly`
-- `dot-location`
-- `eol-last`
 - `expo/prefer-box-shadow`
-- `flowtype/boolean-style`
-- `flowtype/delimiter-dangle`
-- `flowtype/generic-spacing`
-- `flowtype/object-type-curly-spacing`
-- `flowtype/object-type-delimiter`
-- `flowtype/quotes`
-- `flowtype/semi`
-- `flowtype/space-after-type-colon`
-- `flowtype/space-before-generic-bracket`
-- `flowtype/space-before-type-colon`
-- `flowtype/union-intersection-spacing`
-- `func-call-spacing`
-- `function-call-argument-newline`
-- `function-paren-newline`
-- `generator-star`
-- `generator-star-spacing`
-- `implicit-arrow-linebreak`
 - `import-x/default`
 - `import-x/export`
 - `import-x/first`
@@ -408,69 +175,8 @@ Expo config version: `57.0.1`
 - `import-x/no-unresolved`
 - `import-x/no-webpack-loader-syntax`
 - `import-x/order`
-- `indent`
-- `indent-legacy`
-- `jest/expect-expect`
-- `jest/no-alias-methods`
-- `jest/no-commented-out-tests`
-- `jest/no-conditional-expect`
-- `jest/no-deprecated-functions`
-- `jest/no-disabled-tests`
-- `jest/no-done-callback`
-- `jest/no-export`
-- `jest/no-focused-tests`
-- `jest/no-identical-title`
-- `jest/no-interpolation-in-snapshots`
-- `jest/no-jasmine-globals`
-- `jest/no-mocks-import`
-- `jest/no-standalone-expect`
-- `jest/no-test-prefixes`
-- `jest/prefer-hooks-on-top`
-- `jest/prefer-to-be`
-- `jest/valid-describe-callback`
-- `jest/valid-expect`
-- `jest/valid-expect-in-promise`
-- `jest/valid-title`
-- `jsx-quotes`
-- `key-spacing`
-- `keyword-spacing`
-- `linebreak-style`
-- `lines-around-comment`
-- `max-len`
-- `max-statements-per-line`
-- `multiline-ternary`
-- `new-parens`
-- `newline-per-chained-call`
-- `no-arrow-condition`
-- `no-comma-dangle`
-- `no-confusing-arrow`
 - `no-console`
-- `no-extra-parens`
-- `no-extra-semi`
-- `no-floating-decimal`
-- `no-mixed-operators`
-- `no-mixed-spaces-and-tabs`
-- `no-multi-spaces`
-- `no-multiple-empty-lines`
-- `no-reserved-keys`
 - `no-restricted-imports`
-- `no-space-before-semi`
-- `no-spaced-func`
-- `no-tabs`
-- `no-trailing-spaces`
-- `no-unexpected-multiline`
-- `no-whitespace-before-property`
-- `no-wrap-func`
-- `nonblock-statement-body-position`
-- `object-curly-newline`
-- `object-curly-spacing`
-- `object-property-newline`
-- `one-var-declaration-per-line`
-- `operator-linebreak`
-- `padded-blocks`
-- `prettier/prettier`
-- `quote-props`
-- `quotes`
 - `react-19-upgrade/no-default-props`
 - `react-19-upgrade/no-factories`
 - `react-19-upgrade/no-legacy-context`
@@ -481,112 +187,17 @@ Expo config version: `57.0.1`
 - `react-native/no-single-element-style-arrays`
 - `react-native/no-unused-styles`
 - `react-native/split-platform-components`
-- `react/jsx-child-element-spacing`
-- `react/jsx-closing-bracket-location`
-- `react/jsx-closing-tag-location`
-- `react/jsx-curly-newline`
-- `react/jsx-curly-spacing`
-- `react/jsx-equals-spacing`
-- `react/jsx-first-prop-new-line`
-- `react/jsx-indent`
-- `react/jsx-indent-props`
-- `react/jsx-max-props-per-line`
-- `react/jsx-newline`
 - `react/jsx-no-leaked-render`
 - `react/jsx-no-useless-fragment`
-- `react/jsx-one-expression-per-line`
-- `react/jsx-props-no-multi-spaces`
-- `react/jsx-space-before-closing`
-- `react/jsx-tag-spacing`
-- `react/jsx-wrap-multilines`
 - `react/no-unstable-nested-components`
 - `react/self-closing-comp`
-- `rest-spread-spacing`
-- `semi`
-- `semi-spacing`
-- `semi-style`
-- `space-after-function-name`
-- `space-after-keywords`
-- `space-before-blocks`
-- `space-before-function-paren`
-- `space-before-function-parentheses`
-- `space-before-keywords`
-- `space-in-brackets`
-- `space-in-parens`
-- `space-infix-ops`
-- `space-return-throw-case`
-- `space-unary-ops`
-- `space-unary-word-ops`
-- `standard/array-bracket-even-spacing`
-- `standard/computed-property-even-spacing`
-- `standard/object-curly-even-spacing`
-- `switch-colon-spacing`
-- `template-curly-spacing`
-- `template-tag-spacing`
-- `testing-library/await-async-queries`
-- `testing-library/no-await-sync-queries`
-- `testing-library/no-debugging-utils`
-- `testing-library/no-dom-import`
-- `unicorn/empty-brace-spaces`
-- `unicorn/no-nested-ternary`
-- `unicorn/number-literal-case`
-- `unicorn/template-indent`
 - `unused-imports/no-unused-imports`
-- `vue/array-bracket-newline`
-- `vue/array-bracket-spacing`
-- `vue/array-element-newline`
-- `vue/arrow-spacing`
-- `vue/block-spacing`
-- `vue/block-tag-newline`
-- `vue/brace-style`
-- `vue/comma-dangle`
-- `vue/comma-spacing`
-- `vue/comma-style`
-- `vue/dot-location`
-- `vue/func-call-spacing`
-- `vue/html-closing-bracket-newline`
-- `vue/html-closing-bracket-spacing`
-- `vue/html-end-tags`
-- `vue/html-indent`
-- `vue/html-quotes`
-- `vue/html-self-closing`
-- `vue/key-spacing`
-- `vue/keyword-spacing`
-- `vue/max-attributes-per-line`
-- `vue/max-len`
-- `vue/multiline-html-element-content-newline`
-- `vue/multiline-ternary`
-- `vue/mustache-interpolation-spacing`
-- `vue/no-extra-parens`
-- `vue/no-multi-spaces`
-- `vue/no-spaces-around-equal-signs-in-attribute`
-- `vue/object-curly-newline`
-- `vue/object-curly-spacing`
-- `vue/object-property-newline`
-- `vue/operator-linebreak`
-- `vue/quote-props`
-- `vue/script-indent`
-- `vue/singleline-html-element-content-newline`
-- `vue/space-in-parens`
-- `vue/space-infix-ops`
-- `vue/space-unary-ops`
-- `vue/template-curly-spacing`
-- `wrap-iife`
-- `wrap-regex`
-- `yield-star-spacing`
 
 #### Changed
 
 - `@typescript-eslint/array-type`
 - `@typescript-eslint/consistent-type-assertions`
 - `@typescript-eslint/no-unused-vars`
-- `import/export`
-- `import/first`
-- `import/namespace`
-- `import/no-duplicates`
-- `import/no-named-as-default`
-- `import/no-named-as-default-member`
-- `import/no-unresolved`
 - `no-unused-vars`
 - `react-hooks/exhaustive-deps`
 - `react-hooks/set-state-in-effect`
@@ -594,379 +205,16 @@ Expo config version: `57.0.1`
 
 #### Removed
 
-- None
-
-### noPrettierVsDefault
-
-#### Added
-
-- None
-
-#### Changed
-
-- None
-
-#### Removed
-
-- `@babel/object-curly-spacing`
-- `@babel/semi`
-- `@stylistic/array-bracket-newline`
-- `@stylistic/array-bracket-spacing`
-- `@stylistic/array-element-newline`
-- `@stylistic/arrow-parens`
-- `@stylistic/arrow-spacing`
-- `@stylistic/block-spacing`
-- `@stylistic/brace-style`
-- `@stylistic/comma-dangle`
-- `@stylistic/comma-spacing`
-- `@stylistic/comma-style`
-- `@stylistic/computed-property-spacing`
-- `@stylistic/dot-location`
-- `@stylistic/eol-last`
-- `@stylistic/func-call-spacing`
-- `@stylistic/function-call-argument-newline`
-- `@stylistic/function-call-spacing`
-- `@stylistic/function-paren-newline`
-- `@stylistic/generator-star-spacing`
-- `@stylistic/implicit-arrow-linebreak`
-- `@stylistic/indent`
-- `@stylistic/indent-binary-ops`
-- `@stylistic/js/array-bracket-newline`
-- `@stylistic/js/array-bracket-spacing`
-- `@stylistic/js/array-element-newline`
-- `@stylistic/js/arrow-parens`
-- `@stylistic/js/arrow-spacing`
-- `@stylistic/js/block-spacing`
-- `@stylistic/js/brace-style`
-- `@stylistic/js/comma-dangle`
-- `@stylistic/js/comma-spacing`
-- `@stylistic/js/comma-style`
-- `@stylistic/js/computed-property-spacing`
-- `@stylistic/js/dot-location`
-- `@stylistic/js/eol-last`
-- `@stylistic/js/func-call-spacing`
-- `@stylistic/js/function-call-argument-newline`
-- `@stylistic/js/function-call-spacing`
-- `@stylistic/js/function-paren-newline`
-- `@stylistic/js/generator-star-spacing`
-- `@stylistic/js/implicit-arrow-linebreak`
-- `@stylistic/js/indent`
-- `@stylistic/js/jsx-quotes`
-- `@stylistic/js/key-spacing`
-- `@stylistic/js/keyword-spacing`
-- `@stylistic/js/linebreak-style`
-- `@stylistic/js/lines-around-comment`
-- `@stylistic/js/max-len`
-- `@stylistic/js/max-statements-per-line`
-- `@stylistic/js/multiline-ternary`
-- `@stylistic/js/new-parens`
-- `@stylistic/js/newline-per-chained-call`
-- `@stylistic/js/no-confusing-arrow`
-- `@stylistic/js/no-extra-parens`
-- `@stylistic/js/no-extra-semi`
-- `@stylistic/js/no-floating-decimal`
-- `@stylistic/js/no-mixed-operators`
-- `@stylistic/js/no-mixed-spaces-and-tabs`
-- `@stylistic/js/no-multi-spaces`
-- `@stylistic/js/no-multiple-empty-lines`
-- `@stylistic/js/no-tabs`
-- `@stylistic/js/no-trailing-spaces`
-- `@stylistic/js/no-whitespace-before-property`
-- `@stylistic/js/nonblock-statement-body-position`
-- `@stylistic/js/object-curly-newline`
-- `@stylistic/js/object-curly-spacing`
-- `@stylistic/js/object-property-newline`
-- `@stylistic/js/one-var-declaration-per-line`
-- `@stylistic/js/operator-linebreak`
-- `@stylistic/js/padded-blocks`
-- `@stylistic/js/quote-props`
-- `@stylistic/js/quotes`
-- `@stylistic/js/rest-spread-spacing`
-- `@stylistic/js/semi`
-- `@stylistic/js/semi-spacing`
-- `@stylistic/js/semi-style`
-- `@stylistic/js/space-before-blocks`
-- `@stylistic/js/space-before-function-paren`
-- `@stylistic/js/space-in-parens`
-- `@stylistic/js/space-infix-ops`
-- `@stylistic/js/space-unary-ops`
-- `@stylistic/js/switch-colon-spacing`
-- `@stylistic/js/template-curly-spacing`
-- `@stylistic/js/template-tag-spacing`
-- `@stylistic/js/wrap-iife`
-- `@stylistic/js/wrap-regex`
-- `@stylistic/js/yield-star-spacing`
-- `@stylistic/jsx-child-element-spacing`
-- `@stylistic/jsx-closing-bracket-location`
-- `@stylistic/jsx-closing-tag-location`
-- `@stylistic/jsx-curly-newline`
-- `@stylistic/jsx-curly-spacing`
-- `@stylistic/jsx-equals-spacing`
-- `@stylistic/jsx-first-prop-new-line`
-- `@stylistic/jsx-indent`
-- `@stylistic/jsx-indent-props`
-- `@stylistic/jsx-max-props-per-line`
-- `@stylistic/jsx-newline`
-- `@stylistic/jsx-one-expression-per-line`
-- `@stylistic/jsx-props-no-multi-spaces`
-- `@stylistic/jsx-quotes`
-- `@stylistic/jsx-tag-spacing`
-- `@stylistic/jsx-wrap-multilines`
-- `@stylistic/jsx/jsx-child-element-spacing`
-- `@stylistic/jsx/jsx-closing-bracket-location`
-- `@stylistic/jsx/jsx-closing-tag-location`
-- `@stylistic/jsx/jsx-curly-newline`
-- `@stylistic/jsx/jsx-curly-spacing`
-- `@stylistic/jsx/jsx-equals-spacing`
-- `@stylistic/jsx/jsx-first-prop-new-line`
-- `@stylistic/jsx/jsx-indent`
-- `@stylistic/jsx/jsx-indent-props`
-- `@stylistic/jsx/jsx-max-props-per-line`
-- `@stylistic/key-spacing`
-- `@stylistic/keyword-spacing`
-- `@stylistic/linebreak-style`
-- `@stylistic/lines-around-comment`
-- `@stylistic/max-len`
-- `@stylistic/max-statements-per-line`
-- `@stylistic/member-delimiter-style`
-- `@stylistic/multiline-ternary`
-- `@stylistic/new-parens`
-- `@stylistic/newline-per-chained-call`
-- `@stylistic/no-confusing-arrow`
-- `@stylistic/no-extra-parens`
-- `@stylistic/no-extra-semi`
-- `@stylistic/no-floating-decimal`
-- `@stylistic/no-mixed-operators`
-- `@stylistic/no-mixed-spaces-and-tabs`
-- `@stylistic/no-multi-spaces`
-- `@stylistic/no-multiple-empty-lines`
-- `@stylistic/no-tabs`
-- `@stylistic/no-trailing-spaces`
-- `@stylistic/no-whitespace-before-property`
-- `@stylistic/nonblock-statement-body-position`
-- `@stylistic/object-curly-newline`
-- `@stylistic/object-curly-spacing`
-- `@stylistic/object-property-newline`
-- `@stylistic/one-var-declaration-per-line`
-- `@stylistic/operator-linebreak`
-- `@stylistic/padded-blocks`
-- `@stylistic/quote-props`
-- `@stylistic/quotes`
-- `@stylistic/rest-spread-spacing`
-- `@stylistic/semi`
-- `@stylistic/semi-spacing`
-- `@stylistic/semi-style`
-- `@stylistic/space-before-blocks`
-- `@stylistic/space-before-function-paren`
-- `@stylistic/space-in-parens`
-- `@stylistic/space-infix-ops`
-- `@stylistic/space-unary-ops`
-- `@stylistic/switch-colon-spacing`
-- `@stylistic/template-curly-spacing`
-- `@stylistic/template-tag-spacing`
-- `@stylistic/ts/block-spacing`
-- `@stylistic/ts/brace-style`
-- `@stylistic/ts/comma-dangle`
-- `@stylistic/ts/comma-spacing`
-- `@stylistic/ts/func-call-spacing`
-- `@stylistic/ts/function-call-spacing`
-- `@stylistic/ts/indent`
-- `@stylistic/ts/key-spacing`
-- `@stylistic/ts/keyword-spacing`
-- `@stylistic/ts/lines-around-comment`
-- `@stylistic/ts/member-delimiter-style`
-- `@stylistic/ts/no-extra-parens`
-- `@stylistic/ts/no-extra-semi`
-- `@stylistic/ts/object-curly-spacing`
-- `@stylistic/ts/quotes`
-- `@stylistic/ts/semi`
-- `@stylistic/ts/space-before-blocks`
-- `@stylistic/ts/space-before-function-paren`
-- `@stylistic/ts/space-infix-ops`
-- `@stylistic/ts/type-annotation-spacing`
-- `@stylistic/type-annotation-spacing`
-- `@stylistic/type-generic-spacing`
-- `@stylistic/type-named-tuple-spacing`
-- `@stylistic/wrap-iife`
-- `@stylistic/wrap-regex`
-- `@stylistic/yield-star-spacing`
-- `@typescript-eslint/block-spacing`
-- `@typescript-eslint/brace-style`
-- `@typescript-eslint/comma-dangle`
-- `@typescript-eslint/comma-spacing`
-- `@typescript-eslint/func-call-spacing`
-- `@typescript-eslint/indent`
-- `@typescript-eslint/key-spacing`
-- `@typescript-eslint/keyword-spacing`
-- `@typescript-eslint/lines-around-comment`
-- `@typescript-eslint/member-delimiter-style`
-- `@typescript-eslint/no-extra-parens`
-- `@typescript-eslint/no-extra-semi`
-- `@typescript-eslint/object-curly-spacing`
-- `@typescript-eslint/quotes`
-- `@typescript-eslint/semi`
-- `@typescript-eslint/space-before-blocks`
-- `@typescript-eslint/space-before-function-paren`
-- `@typescript-eslint/space-infix-ops`
-- `@typescript-eslint/type-annotation-spacing`
-- `array-bracket-newline`
-- `array-bracket-spacing`
-- `array-element-newline`
-- `arrow-parens`
-- `arrow-spacing`
-- `babel/object-curly-spacing`
-- `babel/quotes`
-- `babel/semi`
-- `block-spacing`
-- `brace-style`
-- `comma-dangle`
-- `comma-spacing`
-- `comma-style`
-- `computed-property-spacing`
-- `curly`
-- `dot-location`
-- `eol-last`
-- `flowtype/boolean-style`
-- `flowtype/delimiter-dangle`
-- `flowtype/generic-spacing`
-- `flowtype/object-type-curly-spacing`
-- `flowtype/object-type-delimiter`
-- `flowtype/quotes`
-- `flowtype/semi`
-- `flowtype/space-after-type-colon`
-- `flowtype/space-before-generic-bracket`
-- `flowtype/space-before-type-colon`
-- `flowtype/union-intersection-spacing`
-- `func-call-spacing`
-- `function-call-argument-newline`
-- `function-paren-newline`
-- `generator-star`
-- `generator-star-spacing`
-- `implicit-arrow-linebreak`
-- `indent`
-- `indent-legacy`
-- `jsx-quotes`
-- `key-spacing`
-- `keyword-spacing`
-- `linebreak-style`
-- `lines-around-comment`
-- `max-len`
-- `max-statements-per-line`
-- `multiline-ternary`
-- `new-parens`
-- `newline-per-chained-call`
-- `no-arrow-condition`
-- `no-comma-dangle`
-- `no-confusing-arrow`
-- `no-extra-parens`
-- `no-extra-semi`
-- `no-floating-decimal`
-- `no-mixed-operators`
-- `no-mixed-spaces-and-tabs`
-- `no-multi-spaces`
-- `no-multiple-empty-lines`
-- `no-reserved-keys`
-- `no-space-before-semi`
-- `no-spaced-func`
-- `no-tabs`
-- `no-trailing-spaces`
-- `no-unexpected-multiline`
-- `no-whitespace-before-property`
-- `no-wrap-func`
-- `nonblock-statement-body-position`
-- `object-curly-newline`
-- `object-curly-spacing`
-- `object-property-newline`
-- `one-var-declaration-per-line`
-- `operator-linebreak`
-- `padded-blocks`
-- `prettier/prettier`
-- `quote-props`
-- `quotes`
-- `react/jsx-child-element-spacing`
-- `react/jsx-closing-bracket-location`
-- `react/jsx-closing-tag-location`
-- `react/jsx-curly-newline`
-- `react/jsx-curly-spacing`
-- `react/jsx-equals-spacing`
-- `react/jsx-first-prop-new-line`
-- `react/jsx-indent`
-- `react/jsx-indent-props`
-- `react/jsx-max-props-per-line`
-- `react/jsx-newline`
-- `react/jsx-one-expression-per-line`
-- `react/jsx-props-no-multi-spaces`
-- `react/jsx-space-before-closing`
-- `react/jsx-tag-spacing`
-- `react/jsx-wrap-multilines`
-- `rest-spread-spacing`
-- `semi`
-- `semi-spacing`
-- `semi-style`
-- `space-after-function-name`
-- `space-after-keywords`
-- `space-before-blocks`
-- `space-before-function-paren`
-- `space-before-function-parentheses`
-- `space-before-keywords`
-- `space-in-brackets`
-- `space-in-parens`
-- `space-infix-ops`
-- `space-return-throw-case`
-- `space-unary-ops`
-- `space-unary-word-ops`
-- `standard/array-bracket-even-spacing`
-- `standard/computed-property-even-spacing`
-- `standard/object-curly-even-spacing`
-- `switch-colon-spacing`
-- `template-curly-spacing`
-- `template-tag-spacing`
-- `unicorn/empty-brace-spaces`
-- `unicorn/no-nested-ternary`
-- `unicorn/number-literal-case`
-- `unicorn/template-indent`
-- `vue/array-bracket-newline`
-- `vue/array-bracket-spacing`
-- `vue/array-element-newline`
-- `vue/arrow-spacing`
-- `vue/block-spacing`
-- `vue/block-tag-newline`
-- `vue/brace-style`
-- `vue/comma-dangle`
-- `vue/comma-spacing`
-- `vue/comma-style`
-- `vue/dot-location`
-- `vue/func-call-spacing`
-- `vue/html-closing-bracket-newline`
-- `vue/html-closing-bracket-spacing`
-- `vue/html-end-tags`
-- `vue/html-indent`
-- `vue/html-quotes`
-- `vue/html-self-closing`
-- `vue/key-spacing`
-- `vue/keyword-spacing`
-- `vue/max-attributes-per-line`
-- `vue/max-len`
-- `vue/multiline-html-element-content-newline`
-- `vue/multiline-ternary`
-- `vue/mustache-interpolation-spacing`
-- `vue/no-extra-parens`
-- `vue/no-multi-spaces`
-- `vue/no-spaces-around-equal-signs-in-attribute`
-- `vue/object-curly-newline`
-- `vue/object-curly-spacing`
-- `vue/object-property-newline`
-- `vue/operator-linebreak`
-- `vue/quote-props`
-- `vue/script-indent`
-- `vue/singleline-html-element-content-newline`
-- `vue/space-in-parens`
-- `vue/space-infix-ops`
-- `vue/space-unary-ops`
-- `vue/template-curly-spacing`
-- `wrap-iife`
-- `wrap-regex`
-- `yield-star-spacing`
+- `import/default`
+- `import/export`
+- `import/first`
+- `import/named`
+- `import/namespace`
+- `import/no-duplicates`
+- `import/no-named-as-default`
+- `import/no-named-as-default-member`
+- `import/no-unresolved`
+- `import/order`
 
 ### typedVsDefault
 
@@ -1120,371 +368,25 @@ Expo config version: `57.0.1`
 
 #### Removed
 
-- `@babel/object-curly-spacing`
-- `@babel/semi`
-- `@stylistic/array-bracket-newline`
-- `@stylistic/array-bracket-spacing`
-- `@stylistic/array-element-newline`
-- `@stylistic/arrow-parens`
-- `@stylistic/arrow-spacing`
-- `@stylistic/block-spacing`
-- `@stylistic/brace-style`
-- `@stylistic/comma-dangle`
-- `@stylistic/comma-spacing`
-- `@stylistic/comma-style`
-- `@stylistic/computed-property-spacing`
-- `@stylistic/dot-location`
-- `@stylistic/eol-last`
-- `@stylistic/func-call-spacing`
-- `@stylistic/function-call-argument-newline`
-- `@stylistic/function-call-spacing`
-- `@stylistic/function-paren-newline`
-- `@stylistic/generator-star-spacing`
-- `@stylistic/implicit-arrow-linebreak`
-- `@stylistic/indent`
-- `@stylistic/indent-binary-ops`
-- `@stylistic/js/array-bracket-newline`
-- `@stylistic/js/array-bracket-spacing`
-- `@stylistic/js/array-element-newline`
-- `@stylistic/js/arrow-parens`
-- `@stylistic/js/arrow-spacing`
-- `@stylistic/js/block-spacing`
-- `@stylistic/js/brace-style`
-- `@stylistic/js/comma-dangle`
-- `@stylistic/js/comma-spacing`
-- `@stylistic/js/comma-style`
-- `@stylistic/js/computed-property-spacing`
-- `@stylistic/js/dot-location`
-- `@stylistic/js/eol-last`
-- `@stylistic/js/func-call-spacing`
-- `@stylistic/js/function-call-argument-newline`
-- `@stylistic/js/function-call-spacing`
-- `@stylistic/js/function-paren-newline`
-- `@stylistic/js/generator-star-spacing`
-- `@stylistic/js/implicit-arrow-linebreak`
-- `@stylistic/js/indent`
-- `@stylistic/js/jsx-quotes`
-- `@stylistic/js/key-spacing`
-- `@stylistic/js/keyword-spacing`
-- `@stylistic/js/linebreak-style`
-- `@stylistic/js/lines-around-comment`
-- `@stylistic/js/max-len`
-- `@stylistic/js/max-statements-per-line`
-- `@stylistic/js/multiline-ternary`
-- `@stylistic/js/new-parens`
-- `@stylistic/js/newline-per-chained-call`
-- `@stylistic/js/no-confusing-arrow`
-- `@stylistic/js/no-extra-parens`
-- `@stylistic/js/no-extra-semi`
-- `@stylistic/js/no-floating-decimal`
-- `@stylistic/js/no-mixed-operators`
-- `@stylistic/js/no-mixed-spaces-and-tabs`
-- `@stylistic/js/no-multi-spaces`
-- `@stylistic/js/no-multiple-empty-lines`
-- `@stylistic/js/no-tabs`
-- `@stylistic/js/no-trailing-spaces`
-- `@stylistic/js/no-whitespace-before-property`
-- `@stylistic/js/nonblock-statement-body-position`
-- `@stylistic/js/object-curly-newline`
-- `@stylistic/js/object-curly-spacing`
-- `@stylistic/js/object-property-newline`
-- `@stylistic/js/one-var-declaration-per-line`
-- `@stylistic/js/operator-linebreak`
-- `@stylistic/js/padded-blocks`
-- `@stylistic/js/quote-props`
-- `@stylistic/js/quotes`
-- `@stylistic/js/rest-spread-spacing`
-- `@stylistic/js/semi`
-- `@stylistic/js/semi-spacing`
-- `@stylistic/js/semi-style`
-- `@stylistic/js/space-before-blocks`
-- `@stylistic/js/space-before-function-paren`
-- `@stylistic/js/space-in-parens`
-- `@stylistic/js/space-infix-ops`
-- `@stylistic/js/space-unary-ops`
-- `@stylistic/js/switch-colon-spacing`
-- `@stylistic/js/template-curly-spacing`
-- `@stylistic/js/template-tag-spacing`
-- `@stylistic/js/wrap-iife`
-- `@stylistic/js/wrap-regex`
-- `@stylistic/js/yield-star-spacing`
-- `@stylistic/jsx-child-element-spacing`
-- `@stylistic/jsx-closing-bracket-location`
-- `@stylistic/jsx-closing-tag-location`
-- `@stylistic/jsx-curly-newline`
-- `@stylistic/jsx-curly-spacing`
-- `@stylistic/jsx-equals-spacing`
-- `@stylistic/jsx-first-prop-new-line`
-- `@stylistic/jsx-indent`
-- `@stylistic/jsx-indent-props`
-- `@stylistic/jsx-max-props-per-line`
-- `@stylistic/jsx-newline`
-- `@stylistic/jsx-one-expression-per-line`
-- `@stylistic/jsx-props-no-multi-spaces`
-- `@stylistic/jsx-quotes`
-- `@stylistic/jsx-tag-spacing`
-- `@stylistic/jsx-wrap-multilines`
-- `@stylistic/jsx/jsx-child-element-spacing`
-- `@stylistic/jsx/jsx-closing-bracket-location`
-- `@stylistic/jsx/jsx-closing-tag-location`
-- `@stylistic/jsx/jsx-curly-newline`
-- `@stylistic/jsx/jsx-curly-spacing`
-- `@stylistic/jsx/jsx-equals-spacing`
-- `@stylistic/jsx/jsx-first-prop-new-line`
-- `@stylistic/jsx/jsx-indent`
-- `@stylistic/jsx/jsx-indent-props`
-- `@stylistic/jsx/jsx-max-props-per-line`
-- `@stylistic/key-spacing`
-- `@stylistic/keyword-spacing`
-- `@stylistic/linebreak-style`
-- `@stylistic/lines-around-comment`
-- `@stylistic/max-len`
-- `@stylistic/max-statements-per-line`
-- `@stylistic/member-delimiter-style`
-- `@stylistic/multiline-ternary`
-- `@stylistic/new-parens`
-- `@stylistic/newline-per-chained-call`
-- `@stylistic/no-confusing-arrow`
-- `@stylistic/no-extra-parens`
-- `@stylistic/no-extra-semi`
-- `@stylistic/no-floating-decimal`
-- `@stylistic/no-mixed-operators`
-- `@stylistic/no-mixed-spaces-and-tabs`
-- `@stylistic/no-multi-spaces`
-- `@stylistic/no-multiple-empty-lines`
-- `@stylistic/no-tabs`
-- `@stylistic/no-trailing-spaces`
-- `@stylistic/no-whitespace-before-property`
-- `@stylistic/nonblock-statement-body-position`
-- `@stylistic/object-curly-newline`
-- `@stylistic/object-curly-spacing`
-- `@stylistic/object-property-newline`
-- `@stylistic/one-var-declaration-per-line`
-- `@stylistic/operator-linebreak`
-- `@stylistic/padded-blocks`
-- `@stylistic/quote-props`
-- `@stylistic/quotes`
-- `@stylistic/rest-spread-spacing`
-- `@stylistic/semi`
-- `@stylistic/semi-spacing`
-- `@stylistic/semi-style`
-- `@stylistic/space-before-blocks`
-- `@stylistic/space-before-function-paren`
-- `@stylistic/space-in-parens`
-- `@stylistic/space-infix-ops`
-- `@stylistic/space-unary-ops`
-- `@stylistic/switch-colon-spacing`
-- `@stylistic/template-curly-spacing`
-- `@stylistic/template-tag-spacing`
-- `@stylistic/ts/block-spacing`
-- `@stylistic/ts/brace-style`
-- `@stylistic/ts/comma-dangle`
-- `@stylistic/ts/comma-spacing`
-- `@stylistic/ts/func-call-spacing`
-- `@stylistic/ts/function-call-spacing`
-- `@stylistic/ts/indent`
-- `@stylistic/ts/key-spacing`
-- `@stylistic/ts/keyword-spacing`
-- `@stylistic/ts/lines-around-comment`
-- `@stylistic/ts/member-delimiter-style`
-- `@stylistic/ts/no-extra-parens`
-- `@stylistic/ts/no-extra-semi`
-- `@stylistic/ts/object-curly-spacing`
-- `@stylistic/ts/quotes`
-- `@stylistic/ts/semi`
-- `@stylistic/ts/space-before-blocks`
-- `@stylistic/ts/space-before-function-paren`
-- `@stylistic/ts/space-infix-ops`
-- `@stylistic/ts/type-annotation-spacing`
-- `@stylistic/type-annotation-spacing`
-- `@stylistic/type-generic-spacing`
-- `@stylistic/type-named-tuple-spacing`
-- `@stylistic/wrap-iife`
-- `@stylistic/wrap-regex`
-- `@stylistic/yield-star-spacing`
 - `@typescript-eslint/await-thenable`
-- `@typescript-eslint/block-spacing`
-- `@typescript-eslint/brace-style`
-- `@typescript-eslint/comma-dangle`
-- `@typescript-eslint/comma-spacing`
-- `@typescript-eslint/func-call-spacing`
-- `@typescript-eslint/indent`
-- `@typescript-eslint/key-spacing`
-- `@typescript-eslint/keyword-spacing`
-- `@typescript-eslint/lines-around-comment`
-- `@typescript-eslint/member-delimiter-style`
 - `@typescript-eslint/naming-convention`
 - `@typescript-eslint/no-confusing-void-expression`
-- `@typescript-eslint/no-extra-parens`
-- `@typescript-eslint/no-extra-semi`
 - `@typescript-eslint/no-floating-promises`
 - `@typescript-eslint/no-meaningless-void-operator`
 - `@typescript-eslint/no-unnecessary-type-assertion`
-- `@typescript-eslint/object-curly-spacing`
 - `@typescript-eslint/prefer-nullish-coalescing`
 - `@typescript-eslint/prefer-optional-chain`
 - `@typescript-eslint/prefer-readonly`
-- `@typescript-eslint/quotes`
-- `@typescript-eslint/semi`
-- `@typescript-eslint/space-before-blocks`
-- `@typescript-eslint/space-before-function-paren`
-- `@typescript-eslint/space-infix-ops`
-- `@typescript-eslint/type-annotation-spacing`
-- `array-bracket-newline`
-- `array-bracket-spacing`
-- `array-element-newline`
-- `arrow-parens`
-- `arrow-spacing`
-- `babel/object-curly-spacing`
-- `babel/quotes`
-- `babel/semi`
-- `block-spacing`
-- `brace-style`
-- `comma-dangle`
-- `comma-spacing`
-- `comma-style`
-- `computed-property-spacing`
-- `curly`
-- `dot-location`
-- `eol-last`
-- `flowtype/boolean-style`
-- `flowtype/delimiter-dangle`
-- `flowtype/generic-spacing`
-- `flowtype/object-type-curly-spacing`
-- `flowtype/object-type-delimiter`
-- `flowtype/quotes`
-- `flowtype/semi`
-- `flowtype/space-after-type-colon`
-- `flowtype/space-before-generic-bracket`
-- `flowtype/space-before-type-colon`
-- `flowtype/union-intersection-spacing`
-- `func-call-spacing`
-- `function-call-argument-newline`
-- `function-paren-newline`
-- `generator-star`
-- `generator-star-spacing`
-- `implicit-arrow-linebreak`
-- `indent`
-- `indent-legacy`
-- `jsx-quotes`
-- `key-spacing`
-- `keyword-spacing`
-- `linebreak-style`
-- `lines-around-comment`
-- `max-len`
-- `max-statements-per-line`
-- `multiline-ternary`
-- `new-parens`
-- `newline-per-chained-call`
-- `no-arrow-condition`
-- `no-comma-dangle`
-- `no-confusing-arrow`
-- `no-extra-parens`
-- `no-extra-semi`
-- `no-floating-decimal`
-- `no-mixed-operators`
-- `no-mixed-spaces-and-tabs`
-- `no-multi-spaces`
-- `no-multiple-empty-lines`
-- `no-reserved-keys`
-- `no-space-before-semi`
-- `no-spaced-func`
-- `no-tabs`
-- `no-trailing-spaces`
-- `no-unexpected-multiline`
-- `no-whitespace-before-property`
-- `no-wrap-func`
-- `nonblock-statement-body-position`
-- `object-curly-newline`
-- `object-curly-spacing`
-- `object-property-newline`
-- `one-var-declaration-per-line`
-- `operator-linebreak`
-- `padded-blocks`
-- `prettier/prettier`
-- `quote-props`
-- `quotes`
-- `react/jsx-child-element-spacing`
-- `react/jsx-closing-bracket-location`
-- `react/jsx-closing-tag-location`
-- `react/jsx-curly-newline`
-- `react/jsx-curly-spacing`
-- `react/jsx-equals-spacing`
-- `react/jsx-first-prop-new-line`
-- `react/jsx-indent`
-- `react/jsx-indent-props`
-- `react/jsx-max-props-per-line`
-- `react/jsx-newline`
-- `react/jsx-one-expression-per-line`
-- `react/jsx-props-no-multi-spaces`
-- `react/jsx-space-before-closing`
-- `react/jsx-tag-spacing`
-- `react/jsx-wrap-multilines`
-- `rest-spread-spacing`
-- `semi`
-- `semi-spacing`
-- `semi-style`
-- `space-after-function-name`
-- `space-after-keywords`
-- `space-before-blocks`
-- `space-before-function-paren`
-- `space-before-function-parentheses`
-- `space-before-keywords`
-- `space-in-brackets`
-- `space-in-parens`
-- `space-infix-ops`
-- `space-return-throw-case`
-- `space-unary-ops`
-- `space-unary-word-ops`
-- `standard/array-bracket-even-spacing`
-- `standard/computed-property-even-spacing`
-- `standard/object-curly-even-spacing`
-- `switch-colon-spacing`
-- `template-curly-spacing`
-- `template-tag-spacing`
-- `unicorn/empty-brace-spaces`
-- `unicorn/no-nested-ternary`
-- `unicorn/number-literal-case`
-- `unicorn/template-indent`
-- `vue/array-bracket-newline`
-- `vue/array-bracket-spacing`
-- `vue/array-element-newline`
-- `vue/arrow-spacing`
-- `vue/block-spacing`
-- `vue/block-tag-newline`
-- `vue/brace-style`
-- `vue/comma-dangle`
-- `vue/comma-spacing`
-- `vue/comma-style`
-- `vue/dot-location`
-- `vue/func-call-spacing`
-- `vue/html-closing-bracket-newline`
-- `vue/html-closing-bracket-spacing`
-- `vue/html-end-tags`
-- `vue/html-indent`
-- `vue/html-quotes`
-- `vue/html-self-closing`
-- `vue/key-spacing`
-- `vue/keyword-spacing`
-- `vue/max-attributes-per-line`
-- `vue/max-len`
-- `vue/multiline-html-element-content-newline`
-- `vue/multiline-ternary`
-- `vue/mustache-interpolation-spacing`
-- `vue/no-extra-parens`
-- `vue/no-multi-spaces`
-- `vue/no-spaces-around-equal-signs-in-attribute`
-- `vue/object-curly-newline`
-- `vue/object-curly-spacing`
-- `vue/object-property-newline`
-- `vue/operator-linebreak`
-- `vue/quote-props`
-- `vue/script-indent`
-- `vue/singleline-html-element-content-newline`
-- `vue/space-in-parens`
-- `vue/space-infix-ops`
-- `vue/space-unary-ops`
-- `vue/template-curly-spacing`
-- `wrap-iife`
-- `wrap-regex`
-- `yield-star-spacing`
+- `react-hooks/config`
+- `react-hooks/error-boundaries`
+- `react-hooks/gating`
+- `react-hooks/globals`
+- `react-hooks/immutability`
+- `react-hooks/incompatible-library`
+- `react-hooks/preserve-manual-memoization`
+- `react-hooks/purity`
+- `react-hooks/refs`
+- `react-hooks/set-state-in-render`
+- `react-hooks/static-components`
+- `react-hooks/unsupported-syntax`
+- `react-hooks/use-memo`

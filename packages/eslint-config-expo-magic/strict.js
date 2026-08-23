@@ -1,3 +1,3 @@
-const config = require('./index.js');
+const { createConfig } = require('./utils/create-config.js');
 
-module.exports = config.strict;
+module.exports = createConfig({ strict: true });

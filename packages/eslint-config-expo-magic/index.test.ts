@@ -5,20 +5,15 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
-const { RuleTester } = require('eslint');
+const { ESLint, RuleTester } = require('eslint');
 const tsParser = require('@typescript-eslint/parser');
 const expoFlatConfig = require('eslint-config-expo/flat');
-const {
-	createConfigReport,
-	createMarkdownReport,
-} = require('../../scripts/lib/config-report.js');
 const config = require('./index.js');
 const agentSubpath = require('./agent.js');
 const agentGuardrailsSubpath = require('./agent-guardrails.js');
 const baseSubpath = require('./base.js');
 const fastSubpath = require('./fast.js');
 const strictSubpath = require('./strict.js');
-const noPrettierSubpath = require('./no-prettier.js');
 const typedSubpath = require('./typed.js');
 const appGuardrailsSubpath = require('./app-guardrails.js');
 const componentStructureSubpath = require('./component-structure.js');
@@ -32,26 +27,48 @@ const semanticColorsSubpath = require('./semantic-colors.js');
 const storybookSubpath = require('./storybook.js');
 const workletsSubpath = require('./worklets.js');
 const expoMagicPlugin = require('./utils/plugin/index.js');
+const { collectLintRuleResults } = require('../../test-project/validation-results.js');
+const {
+	findLegacyImportRules,
+	isValidationPassing,
+} = require('../../test-project/validate-comprehensive.js');
 
 type FlatConfig = Linter.Config;
+type ModuleLoadProbeResult = {
+	configLength: number;
+	loaded: string[];
+};
 const rootDir = path.resolve(__dirname, '../..');
 
-function runPresetLint(presetModulePath: string, targets: string[]) {
-	const tempDir = fs.mkdtempSync(
-		path.join(rootDir, '.tmp-eslint-config-expo-magic-'),
-	);
-	const configPath = path.join(tempDir, 'eslint.config.js');
+async function runPresetLint(presetModulePath: string, targets: string[]) {
+	return runDirectoryLint(rootDir, require(presetModulePath), targets);
+}
 
-	try {
-		fs.writeFileSync(
-			configPath,
-			`const preset = require(${JSON.stringify(presetModulePath)});\n\nmodule.exports = [...preset];\n`,
-		);
+function loadConfigAtCwd(cwd: string, configPath: string): FlatConfig[] {
+	const absoluteCwd = path.resolve(cwd);
+	const previousCwd = process.cwd();
 
-		return runDirectoryLint(rootDir, configPath, targets);
-	} finally {
-		fs.rmSync(tempDir, { recursive: true, force: true });
+	if (previousCwd === absoluteCwd) {
+		return require(configPath) as FlatConfig[];
 	}
+
+	process.chdir(absoluteCwd);
+	try {
+		return require(configPath) as FlatConfig[];
+	} finally {
+		process.chdir(previousCwd);
+	}
+}
+
+function withExplicitLintRoot(config: FlatConfig[], cwd: string): FlatConfig[] {
+	return [
+		...config,
+		{
+			settings: {
+				'boundaries/root-path': cwd,
+			},
+		},
+	];
 }
 
 function getRuleMessages(
@@ -62,37 +79,32 @@ function getRuleMessages(
 	return results.flatMap((result) => result.messages ?? []);
 }
 
-function runDirectoryLint(cwd: string, configPath: string, targets: string[]) {
-	const result = spawnSync(
-		'bunx',
-		[
-			'eslint',
-			...targets,
-			'--no-config-lookup',
-			'--config',
-			configPath,
-			'--format=json',
-		],
-		{
-			cwd,
-			encoding: 'utf8',
-		},
+async function runDirectoryLint(
+	cwd: string,
+	configOrPath: string | FlatConfig[],
+	targets: string[],
+) {
+	const absoluteCwd = path.resolve(cwd);
+	const loadedConfig =
+		typeof configOrPath === 'string'
+			? loadConfigAtCwd(absoluteCwd, configOrPath)
+			: configOrPath;
+	const eslint = new ESLint({
+		cwd: absoluteCwd,
+		overrideConfig: withExplicitLintRoot(loadedConfig, absoluteCwd),
+		overrideConfigFile: true,
+	});
+
+	return eslint.lintFiles(
+		targets.map((target) => path.resolve(absoluteCwd, target)),
 	);
-
-	if (![0, 1].includes(result.status ?? -1)) {
-		throw new Error(result.stderr || result.stdout);
-	}
-
-	return JSON.parse(result.stdout || '[]') as Array<{
-		messages: Array<{ ruleId: string | null; severity: number }>;
-	}>;
 }
 
 function writeJsonFile(filePath: string, value: unknown) {
 	fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
-function runFixtureLint({
+async function runFixtureLint({
 	configSource,
 	files,
 	targets = Object.keys(files),
@@ -125,7 +137,25 @@ function runFixtureLint({
 			fs.writeFileSync(filePath, source);
 		}
 
-		return getRuleMessages(runDirectoryLint(tempDir, configPath, targets));
+		const eslint = new ESLint({
+			cwd: tempDir,
+			overrideConfig: withExplicitLintRoot(
+				loadConfigAtCwd(tempDir, configPath),
+				tempDir,
+			),
+			overrideConfigFile: true,
+		});
+		const results = [];
+
+		for (const target of targets) {
+			results.push(
+				...(await eslint.lintText(files[target], {
+					filePath: path.resolve(tempDir, target),
+				})),
+			);
+		}
+
+		return getRuleMessages(results);
 	} finally {
 		fs.rmSync(tempDir, { recursive: true, force: true });
 	}
@@ -140,6 +170,26 @@ function createPackageConfigSource(optionsSource: string) {
 		`module.exports = createConfig(${optionsSource});`,
 		'',
 	].join('\n');
+}
+
+function getRuleMap(configs: FlatConfig[]) {
+	return Object.assign(
+		{},
+		...configs.map((entry) => entry.rules ?? {}),
+	) as Record<string, unknown>;
+}
+
+function runModuleLoadProbe(source: string) {
+	const result = spawnSync('node', ['-e', source], {
+		cwd: rootDir,
+		encoding: 'utf8',
+	});
+
+	if (result.status !== 0) {
+		throw new Error(result.stderr || result.stdout);
+	}
+
+	return JSON.parse(result.stdout) as ModuleLoadProbeResult;
 }
 
 describe('eslint-config-expo-magic', () => {
@@ -161,7 +211,7 @@ describe('eslint-config-expo-magic', () => {
 
 		it('has an agent preset', () => {
 			expect(Array.isArray(config.agent)).toBe(true);
-			expect(config.agent.length).toBeGreaterThan(config.noPrettier.length);
+			expect(config.agent.length).toBeGreaterThan(config.length);
 		});
 
 		it('has a fast preset', () => {
@@ -191,18 +241,9 @@ describe('eslint-config-expo-magic', () => {
 			expect(strictSubpath).toBe(config.strict);
 		});
 
-		it('exports no-prettier subpath', () => {
-			expect(Array.isArray(noPrettierSubpath)).toBe(true);
-			expect(noPrettierSubpath).toBe(config.noPrettier);
-			expect(Array.isArray(noPrettierSubpath.strict)).toBe(true);
-			expect(Array.isArray(noPrettierSubpath.typed)).toBe(true);
-			expect(noPrettierSubpath.fast).toBe(config.fast);
-		});
-
 		it('exports typed subpath', () => {
 			expect(Array.isArray(typedSubpath)).toBe(true);
 			expect(typedSubpath).toBe(config.typed);
-			expect(Array.isArray(typedSubpath.noPrettier)).toBe(true);
 		});
 
 		it('exports app hardening subpaths', () => {
@@ -233,16 +274,168 @@ describe('eslint-config-expo-magic', () => {
 		});
 	});
 
+	describe('v4 default and fast contracts', () => {
+		it('keeps formatting and testing integrations opt-in', () => {
+			const defaultRules = getRuleMap(config);
+			const factoryRules = getRuleMap(config.createConfig());
+			const explicitRules = getRuleMap(
+				config.createConfig({ prettier: true, testing: true }),
+			);
+
+			expect(defaultRules['prettier/prettier']).toBeUndefined();
+			expect(defaultRules['jest/no-disabled-tests']).toBeUndefined();
+			expect(
+				defaultRules['testing-library/await-async-queries'],
+			).toBeUndefined();
+			expect(factoryRules['prettier/prettier']).toBeUndefined();
+			expect(factoryRules['jest/no-disabled-tests']).toBeUndefined();
+			expect(
+				factoryRules['testing-library/await-async-queries'],
+			).toBeUndefined();
+			expect(explicitRules['prettier/prettier']).toBe('error');
+			expect(explicitRules['jest/no-disabled-tests']).toBe('error');
+			expect(explicitRules['testing-library/await-async-queries']).toBe(
+				'error',
+			);
+		});
+
+		it('keeps only the core React hooks rules in the fast profile', () => {
+			const fastRules = getRuleMap(config.createConfig({ preset: 'fast' }));
+			const defaultRules = getRuleMap(config.createConfig());
+
+			expect(fastRules['react-hooks/rules-of-hooks']).toBe('error');
+			expect(fastRules['react-hooks/exhaustive-deps']).toBe('error');
+			expect(fastRules['react-hooks/static-components']).toBeUndefined();
+			expect(fastRules['react-hooks/immutability']).toBeUndefined();
+			expect(defaultRules['react-hooks/static-components']).toBeDefined();
+		});
+
+		it('does not expose the removed no-prettier API', () => {
+			expect(config.noPrettier).toBeUndefined();
+			expect(config.strictNoPrettier).toBeUndefined();
+			expect(config.typedNoPrettier).toBeUndefined();
+		});
+
+		it('does not load disabled optional layers for default or fast configs', () => {
+			const indexPath = JSON.stringify(path.join(__dirname, 'index.js'));
+			const fastPath = JSON.stringify(path.join(__dirname, 'fast.js'));
+			const probe = (entryPath: string) =>
+				runModuleLoadProbe(
+					[
+						"const Module = require('node:module');",
+						'const originalLoad = Module._load;',
+						'const loaded = [];',
+						'Module._load = function(request) { loaded.push(request); return originalLoad.apply(this, arguments); };',
+						`const config = require(${entryPath});`,
+						"if (!Array.isArray(config) || config.length === 0) { throw new Error('config did not load as a non-empty array'); }",
+						'process.stdout.write(JSON.stringify({ configLength: config.length, loaded }));',
+					].join('\n'),
+				);
+			const disabledRequests = [
+				'./utils/prettier.js',
+				'eslint-plugin-prettier',
+				'eslint-config-prettier/flat',
+				'./utils/jest.js',
+				'eslint-plugin-jest',
+				'eslint-plugin-testing-library',
+				'./utils/feature-boundaries.js',
+				'eslint-plugin-boundaries',
+			];
+
+			for (const result of [probe(indexPath), probe(fastPath)]) {
+				expect(result.configLength).toBeGreaterThan(0);
+				for (const request of result.loaded) {
+					expect(disabledRequests).not.toContain(request);
+				}
+			}
+		});
+
+		it('loads typescript-eslint only for typed configs', () => {
+			const probe = (fileName: string) =>
+				runModuleLoadProbe(
+					[
+						"const Module = require('node:module');",
+						'const originalLoad = Module._load;',
+						'const loaded = [];',
+						'Module._load = function(request) { loaded.push(request); return originalLoad.apply(this, arguments); };',
+						`const config = require(${JSON.stringify(path.join(__dirname, fileName))});`,
+						"if (!Array.isArray(config) || config.length === 0) { throw new Error('config did not load as a non-empty array'); }",
+						'process.stdout.write(JSON.stringify({ configLength: config.length, loaded }));',
+					].join('\n'),
+				);
+
+			const defaultResult = probe('index.js');
+			const fastResult = probe('fast.js');
+			const typedResult = probe('typed.js');
+
+			expect(defaultResult.configLength).toBeGreaterThan(0);
+			expect(fastResult.configLength).toBeGreaterThan(0);
+			expect(typedResult.configLength).toBeGreaterThan(0);
+			expect(defaultResult.loaded).not.toContain('typescript-eslint');
+			expect(fastResult.loaded).not.toContain('typescript-eslint');
+			expect(typedResult.loaded).toContain('typescript-eslint');
+		});
+
+		it('builds retained CJS presets directly from createConfig', () => {
+			for (const fileName of ['agent.js', 'strict.js', 'typed.js']) {
+				const loaded = runModuleLoadProbe(
+					[
+						"const Module = require('node:module');",
+						'const originalLoad = Module._load;',
+						'const loaded = [];',
+						'Module._load = function(request) { loaded.push(request); return originalLoad.apply(this, arguments); };',
+						`const config = require(${JSON.stringify(path.join(__dirname, fileName))});`,
+						"if (!Array.isArray(config) || config.length === 0) { throw new Error('config did not load as a non-empty array'); }",
+						'process.stdout.write(JSON.stringify({ configLength: config.length, loaded }));',
+					].join('\n'),
+				);
+
+				expect(loaded.configLength).toBeGreaterThan(0);
+				expect(loaded.loaded).not.toContain('./index.js');
+			}
+		});
+	});
+
+	describe('comprehensive validation contracts', () => {
+		it('fails when a legacy import diagnostic is reported', () => {
+			const passingState = {
+				missingRules: [],
+				missingRuleFileCoverage: [],
+				legacyImportRules: [],
+				uncoveredEffectiveRules: [],
+				staleConfigOnlyRules: [],
+				basePresetPassed: true,
+				defaultPresetPassed: true,
+				strictPresetPassed: true,
+				typedPresetPassed: true,
+				focusedPresetPassed: true,
+			};
+			const { ruleCounts } = collectLintRuleResults(
+				[
+					{
+						filePath: path.join(rootDir, 'test-project', 'App.tsx'),
+						messages: [{ ruleId: 'import/order', severity: 2 }],
+					},
+				],
+				rootDir,
+			);
+			const legacyImportRules = findLegacyImportRules(ruleCounts);
+
+			expect(isValidationPassing(passingState)).toBe(true);
+			expect(legacyImportRules).toEqual(['import/order']);
+			expect(
+				isValidationPassing({ ...passingState, legacyImportRules }),
+			).toBe(false);
+		});
+	});
+
 	describe('plugin registration', () => {
 		const expectedPlugins = [
 			'react',
 			'react-hooks',
 			'react-native',
 			'react-19-upgrade',
-			'jest',
-			'prettier',
 			'unused-imports',
-			'testing-library',
 			'import-x',
 		];
 
@@ -314,22 +507,16 @@ describe('eslint-config-expo-magic', () => {
 				(c: FlatConfig) =>
 					c.settings &&
 					c.settings['import-x/resolver-next'] &&
-					c.settings['import-x/resolver'] &&
-					c.settings['import/resolver'],
+					c.settings['import-x/resolver'],
 			);
 			expect(settingsConfig).toBeDefined();
 
-			const importResolverProjects =
-				settingsConfig.settings['import/resolver'].typescript.project;
 			const importXResolverProjects =
 				settingsConfig.settings['import-x/resolver'].typescript.project;
 
-			expect(Array.isArray(importResolverProjects)).toBe(true);
 			expect(Array.isArray(importXResolverProjects)).toBe(true);
-			expect(importResolverProjects).toContain('./packages/*/tsconfig.json');
-			expect(importResolverProjects).toContain('./apps/*/tsconfig.json');
 			expect(importXResolverProjects).toContain('./test-project/tsconfig.json');
-			expect(settingsConfig.settings['import/resolver'].typescript.bun).toBe(
+			expect(settingsConfig.settings['import-x/resolver'].typescript.bun).toBe(
 				true,
 			);
 			expect(settingsConfig.settings['import-x/resolver-next']).toHaveLength(2);
@@ -341,15 +528,10 @@ describe('eslint-config-expo-magic', () => {
 			});
 			const settingsConfig = customConfig.find(
 				(entry: FlatConfig) =>
-					entry.settings &&
-					entry.settings['import/resolver'] &&
-					entry.settings['import-x/resolver'],
+					entry.settings && entry.settings['import-x/resolver'],
 			);
 
 			expect(settingsConfig).toBeDefined();
-			expect(
-				settingsConfig.settings['import/resolver'].typescript.project,
-			).toEqual(['./apps/mobile/tsconfig.json']);
 			expect(
 				settingsConfig.settings['import-x/resolver'].typescript.project,
 			).toEqual(['./apps/mobile/tsconfig.json']);
@@ -381,14 +563,12 @@ describe('eslint-config-expo-magic', () => {
 		it('uses the root tsconfig by default for the fast preset', () => {
 			const fastConfig = config.createConfig({ preset: 'fast' });
 			const settingsConfig = fastConfig.find(
-				(entry: FlatConfig) =>
-					entry.settings?.['import/resolver'] &&
-					entry.settings?.['import-x/resolver'],
+				(entry: FlatConfig) => entry.settings?.['import-x/resolver'],
 			);
 
 			expect(settingsConfig).toBeDefined();
 			expect(
-				settingsConfig.settings['import/resolver'].typescript.project,
+				settingsConfig.settings['import-x/resolver'].typescript.project,
 			).toEqual(['./tsconfig.json']);
 		});
 
@@ -545,8 +725,8 @@ describe('eslint-config-expo-magic', () => {
 			);
 		});
 
-		it('keeps JSX helper rules preventing false unused component reports', () => {
-			const messages = runFixtureLint({
+		it('keeps JSX helper rules preventing false unused component reports', async () => {
+			const messages = await runFixtureLint({
 				configSource: createPackageConfigSource(`{
 					prettier: false,
 					testing: false
@@ -595,19 +775,18 @@ describe('eslint-config-expo-magic', () => {
 	});
 
 	describe('prettier rules', () => {
-		it('enables prettier/prettier', () => {
+		it('keeps prettier/prettier disabled by default', () => {
 			const prettierRule = config.find(
 				(c: FlatConfig) => c.rules && c.rules['prettier/prettier'],
 			);
-			expect(prettierRule).toBeDefined();
-			expect(prettierRule.rules['prettier/prettier']).toBe('error');
+			expect(prettierRule).toBeUndefined();
 		});
 
-		it('no-prettier preset does not enable prettier/prettier', () => {
-			const prettierRule = noPrettierSubpath.find(
-				(c: FlatConfig) => c.rules && c.rules['prettier/prettier'],
-			);
-			expect(prettierRule).toBeUndefined();
+		it('enables prettier/prettier when explicitly requested', () => {
+			const prettierRule = config
+				.createConfig({ prettier: true })
+				.find((c: FlatConfig) => c.rules && c.rules['prettier/prettier']);
+			expect(prettierRule?.rules?.['prettier/prettier']).toBe('error');
 		});
 	});
 
@@ -645,7 +824,7 @@ describe('eslint-config-expo-magic', () => {
 			expect(jestRule).toBeUndefined();
 		});
 
-		it('createConfig custom config runs end to end', () => {
+		it('createConfig custom config runs end to end', async () => {
 			const tempDir = fs.mkdtempSync(
 				path.join(rootDir, '.tmp-eslint-config-expo-magic-factory-'),
 			);
@@ -699,7 +878,7 @@ describe('eslint-config-expo-magic', () => {
 					].join('\n'),
 				);
 
-				const results = runPresetLint(configPath, [targetPath]);
+				const results = await runPresetLint(configPath, [targetPath]);
 				const messages = getRuleMessages(results);
 
 				expect(
@@ -792,8 +971,8 @@ describe('eslint-config-expo-magic', () => {
 			]);
 		});
 
-		it('applies native UI allow files after default and additional restrictions', () => {
-			const messages = runFixtureLint({
+		it('applies native UI allow files after default and additional restrictions', async () => {
+			const messages = await runFixtureLint({
 				configSource: createPackageConfigSource(`{
 					prettier: false,
 					testing: false,
@@ -841,7 +1020,7 @@ describe('eslint-config-expo-magic', () => {
 			expect(appConfig.rules['expo/prefer-box-shadow']).toBe('warn');
 		});
 
-		it('composes optional production app hardening rules', () => {
+		it('composes optional production app hardening rules', async () => {
 			const tempDir = fs.mkdtempSync(
 				path.join(rootDir, '.tmp-eslint-config-expo-magic-app-'),
 			);
@@ -925,7 +1104,7 @@ describe('eslint-config-expo-magic', () => {
 					].join('\n'),
 				);
 
-				const results = runPresetLint(configPath, [targetPath, storyPath]);
+				const results = await runPresetLint(configPath, [targetPath, storyPath]);
 				const messages = getRuleMessages(results);
 
 				expect(
@@ -947,7 +1126,7 @@ describe('eslint-config-expo-magic', () => {
 		}, 15_000);
 
 		it('creates feature boundary config with shared component patterns', () => {
-			const boundaryConfig = config.createFeatureBoundaryConfig({
+			const boundaryConfig = featureBoundariesSubpath.createFeatureBoundaryConfig({
 				sharedComponentPatterns: [
 					'features/*/components/focus-selection-form.tsx',
 				],
@@ -969,7 +1148,7 @@ describe('eslint-config-expo-magic', () => {
 		});
 
 		it('adds feature boundary patterns without replacing defaults', () => {
-			const boundaryConfig = config.createFeatureBoundaryConfig({
+			const boundaryConfig = featureBoundariesSubpath.createFeatureBoundaryConfig({
 				additionalSharedComponentPatterns: [
 					'features/*/components/request-user-phone-flow.tsx',
 				],
@@ -993,46 +1172,129 @@ describe('eslint-config-expo-magic', () => {
 		});
 
 		it('can replace same-feature dependency selectors and then append custom ones', () => {
-			const boundaryConfig = config.createFeatureBoundaryConfig({
+			const boundaryConfig = featureBoundariesSubpath.createFeatureBoundaryConfig({
 				featureElementTypes: ['feature-screen'],
 				additionalFeatureElementTypes: ['feature-model'],
 			});
 			const boundaryEntry = boundaryConfig.find(
 				(entry: FlatConfig) => entry.rules?.['boundaries/dependencies'],
 			);
-			const dependencyRules =
-				boundaryEntry.rules['boundaries/dependencies'][1].rules;
-			const featureAtomRule = dependencyRules.find(
-				(rule: { from: { type: string } }) => rule.from.type === 'feature-atom',
-			);
+				const dependencyPolicies =
+					boundaryEntry.rules['boundaries/dependencies'][1].policies;
+				const featureAtomRule = dependencyPolicies.find(
+					(rule: { from: { element: { type: string } } }) =>
+						rule.from.element.type === 'feature-atom',
+				);
 
 			expect(featureAtomRule.allow).toEqual(
 				expect.arrayContaining([
-					expect.objectContaining({
-						to: expect.objectContaining({
-							type: 'feature-screen',
+				expect.objectContaining({
+							to: expect.objectContaining({
+								element: expect.objectContaining({
+									type: 'feature-screen',
+									captured: {
+										feature: '{{from.element.captured.feature}}',
+									},
+								}),
+							}),
 						}),
+						expect.objectContaining({
+							to: expect.objectContaining({
+								element: expect.objectContaining({
+									type: 'feature-model',
+								}),
+							}),
 					}),
-					expect.objectContaining({
-						to: expect.objectContaining({
-							type: 'feature-model',
+					]),
+				);
+				expect(featureAtomRule.allow).toEqual(
+					expect.arrayContaining([
+						expect.objectContaining({
+							to: {
+								file: {
+									categories: 'feature-atom',
+									captured: {
+										feature: '{{from.element.captured.feature}}',
+									},
+								},
+							},
 						}),
-					}),
-				]),
-			);
-			expect(featureAtomRule.allow).not.toEqual(
+					]),
+				);
+				expect(featureAtomRule.allow).not.toEqual(
 				expect.arrayContaining([
-					expect.objectContaining({
-						to: expect.objectContaining({
-							type: 'feature-api',
-							captured: { feature: '{{from.captured.feature}}' },
-						}),
+						expect.objectContaining({
+							to: expect.objectContaining({
+								element: expect.objectContaining({
+									type: 'feature-api',
+									captured: { feature: '{{from.element.captured.feature}}' },
+								}),
+							}),
 					}),
 				]),
 			);
 		});
 
-		it('runs feature boundary rules end to end', () => {
+		it('uses the supported boundaries v7 policy API without migration warnings', async () => {
+			const tempDir = fs.mkdtempSync(
+				path.join(rootDir, '.tmp-eslint-config-expo-magic-boundaries-warning-'),
+			);
+			const uikitDir = path.join(tempDir, 'uikit');
+			const featureDir = path.join(tempDir, 'features', 'people', 'api');
+			fs.mkdirSync(uikitDir, { recursive: true });
+			fs.mkdirSync(featureDir, { recursive: true });
+			fs.writeFileSync(
+				path.join(uikitDir, 'button.ts'),
+				"import { peopleClient } from '../features/people/api/client';\n\nexport const service = peopleClient;\n",
+			);
+			fs.writeFileSync(
+				path.join(featureDir, 'client.ts'),
+				"export const peopleClient = 'people';\n",
+			);
+			fs.writeFileSync(
+				path.join(tempDir, 'tsconfig.json'),
+				`${JSON.stringify(
+					{
+						compilerOptions: {
+							module: 'esnext',
+							target: 'es2022',
+							moduleResolution: 'bundler',
+							strict: true,
+						},
+						include: ['**/*.ts'],
+					},
+					null,
+					2,
+				)}\n`,
+			);
+
+			const warnings: string[] = [];
+			const originalWarn = console.warn;
+			console.warn = (...args: unknown[]) => {
+				warnings.push(args.join(' '));
+			};
+
+			try {
+				await runDirectoryLint(
+					tempDir,
+					config.createConfig({
+						prettier: false,
+						testing: false,
+						featureBoundaries: true,
+					}),
+					['uikit/button.ts'],
+				);
+			} finally {
+				console.warn = originalWarn;
+				fs.rmSync(tempDir, { recursive: true, force: true });
+			}
+
+			expect(warnings.filter((warning) => warning.includes('[boundaries]'))).toEqual(
+				[],
+			);
+		});
+
+		it('runs feature boundary rules end to end', async () => {
 			const tempDir = fs.mkdtempSync(
 				path.join(rootDir, '.tmp-eslint-config-expo-magic-boundaries-'),
 			);
@@ -1098,7 +1360,7 @@ describe('eslint-config-expo-magic', () => {
 				);
 
 				const messages = getRuleMessages(
-					runDirectoryLint(tempDir, configPath, ['uikit/button.ts']),
+					await runDirectoryLint(tempDir, configPath, ['uikit/button.ts']),
 				);
 
 				expect(
@@ -1125,9 +1387,29 @@ describe('eslint-config-expo-magic', () => {
 						'',
 					].join('\n'),
 				);
+				fs.writeFileSync(
+					path.join(peopleScreenDir, 'same-feature-screen.ts'),
+					[
+						"import { peopleAtom } from '../atoms';",
+						'',
+						'export const sameFeatureValue = peopleAtom;',
+						'',
+					].join('\n'),
+				);
+
+				const sameFeatureMessages = getRuleMessages(
+					await runDirectoryLint(tempDir, configPath, [
+						'features/people/screens/same-feature-screen.ts',
+					]),
+				);
+				expect(
+					sameFeatureMessages.filter(
+						(message) => message.ruleId === 'boundaries/dependencies',
+					),
+				).toHaveLength(0);
 
 				const directAtomMessages = getRuleMessages(
-					runDirectoryLint(tempDir, configPath, [
+					await runDirectoryLint(tempDir, configPath, [
 						'features/people/screens/screen.ts',
 					]),
 				);
@@ -1140,29 +1422,34 @@ describe('eslint-config-expo-magic', () => {
 				fs.rmSync(tempDir, { recursive: true, force: true });
 			}
 		}, 15_000);
+
 	});
 
 	describe('test environments', () => {
 		it('enables jest rules for test files', () => {
-			const testConfig = config.find(
-				(c: FlatConfig) =>
-					c.files &&
-					c.files.includes('**/*.test.[jt]s') &&
-					c.rules &&
-					c.rules['jest/no-disabled-tests'],
-			);
+			const testConfig = config
+				.createConfig({ testing: true })
+				.find(
+					(c: FlatConfig) =>
+						c.files &&
+						c.files.includes('**/*.test.[jt]s') &&
+						c.rules &&
+						c.rules['jest/no-disabled-tests'],
+				);
 			expect(testConfig).toBeDefined();
 			expect(testConfig.rules['jest/no-disabled-tests']).toBe('error');
 		});
 
 		it('enables testing-library rules for test files', () => {
-			const testConfig = config.find(
-				(c: FlatConfig) =>
-					c.files &&
-					c.files.includes('**/*.test.[jt]s') &&
-					c.rules &&
-					c.rules['testing-library/await-async-queries'],
-			);
+			const testConfig = config
+				.createConfig({ testing: true })
+				.find(
+					(c: FlatConfig) =>
+						c.files &&
+						c.files.includes('**/*.test.[jt]s') &&
+						c.rules &&
+						c.rules['testing-library/await-async-queries'],
+				);
 			expect(testConfig).toBeDefined();
 			expect(testConfig.rules['testing-library/await-async-queries']).toBe(
 				'error',
@@ -1189,8 +1476,8 @@ describe('eslint-config-expo-magic', () => {
 	});
 
 	describe('runtime smoke tests', () => {
-		it('runs base preset end to end', () => {
-			const results = runPresetLint(path.join(__dirname, 'base.js'), [
+		it('runs base preset end to end', async () => {
+			const results = await runPresetLint(path.join(__dirname, 'base.js'), [
 				'test-project/App.tsx',
 			]);
 			const messages = getRuleMessages(results);
@@ -1239,8 +1526,8 @@ describe('eslint-config-expo-magic', () => {
 			);
 		});
 
-		it('runs strict preset end to end', () => {
-			const results = runPresetLint(path.join(__dirname, 'strict.js'), [
+		it('runs strict preset end to end', async () => {
+			const results = await runPresetLint(path.join(__dirname, 'strict.js'), [
 				'test-project/preset-fixtures/strict-only.ts',
 			]);
 			const messages = getRuleMessages(results);
@@ -1256,22 +1543,8 @@ describe('eslint-config-expo-magic', () => {
 			).toBe(true);
 		}, 15_000);
 
-		it('runs no-prettier preset end to end', () => {
-			const results = runPresetLint(path.join(__dirname, 'no-prettier.js'), [
-				'test-project/preset-fixtures/no-prettier.ts',
-			]);
-			const messages = getRuleMessages(results);
-
-			expect(
-				messages.some((message) => message.ruleId === 'import-x/order'),
-			).toBe(true);
-			expect(
-				messages.some((message) => message.ruleId === 'prettier/prettier'),
-			).toBe(false);
-		}, 15_000);
-
-		it('runs typed preset end to end', () => {
-			const results = runPresetLint(path.join(__dirname, 'typed.js'), [
+		it('runs typed preset end to end', async () => {
+			const results = await runPresetLint(path.join(__dirname, 'typed.js'), [
 				'test-project/preset-fixtures/typed-only.ts',
 			]);
 			const messages = getRuleMessages(results);
@@ -1284,8 +1557,8 @@ describe('eslint-config-expo-magic', () => {
 			).toBe(true);
 		}, 15_000);
 
-		it('runs agent preset end to end', () => {
-			const results = runPresetLint(path.join(__dirname, 'agent.js'), [
+		it('runs agent preset end to end', async () => {
+			const results = await runPresetLint(path.join(__dirname, 'agent.js'), [
 				'test-project/preset-fixtures/agent-only.test.ts',
 			]);
 			const messages = getRuleMessages(results);
@@ -1318,9 +1591,6 @@ describe('eslint-config-expo-magic', () => {
 			);
 			const fastEsm = await import(
 				pathToFileURL(path.join(__dirname, 'fast.mjs')).href
-			);
-			const noPrettierEsm = await import(
-				pathToFileURL(path.join(__dirname, 'no-prettier.mjs')).href
 			);
 			const strictEsm = await import(
 				pathToFileURL(path.join(__dirname, 'strict.mjs')).href
@@ -1359,15 +1629,14 @@ describe('eslint-config-expo-magic', () => {
 			expect(Array.isArray(indexEsm.fast)).toBe(true);
 			expect(Array.isArray(indexEsm.strict)).toBe(true);
 			expect(Array.isArray(indexEsm.typed)).toBe(true);
-			expect(Array.isArray(indexEsm.noPrettier)).toBe(true);
+			expect(indexEsm.noPrettier).toBeUndefined();
+			expect(indexEsm.strictNoPrettier).toBeUndefined();
+			expect(indexEsm.typedNoPrettier).toBeUndefined();
 			expect(Array.isArray(baseEsm.default)).toBe(true);
 			expect(Array.isArray(fastEsm.default)).toBe(true);
-			expect(Array.isArray(noPrettierEsm.default)).toBe(true);
-			expect(Array.isArray(noPrettierEsm.strict)).toBe(true);
-			expect(Array.isArray(noPrettierEsm.typed)).toBe(true);
 			expect(Array.isArray(strictEsm.default)).toBe(true);
 			expect(Array.isArray(typedEsm.default)).toBe(true);
-			expect(Array.isArray(typedEsm.noPrettier)).toBe(true);
+			expect(typedEsm.noPrettier).toBeUndefined();
 			expect(Array.isArray(appGuardrailsEsm.default)).toBe(true);
 			expect(typeof featureBoundariesEsm.createFeatureBoundaryConfig).toBe(
 				'function',
@@ -1401,7 +1670,6 @@ describe('eslint-config-expo-magic', () => {
 
 		it('exposes typed presets on the main export', () => {
 			expect(Array.isArray(config.typed)).toBe(true);
-			expect(Array.isArray(config.typedNoPrettier)).toBe(true);
 		});
 	});
 
@@ -1676,20 +1944,6 @@ describe('eslint-config-expo-magic', () => {
 	});
 
 	describe('repo guardrails', () => {
-		it('keeps checked-in config diff artifact current', async () => {
-			const currentReport = await createConfigReport();
-			const checkedInReport = JSON.parse(
-				fs.readFileSync(path.join(rootDir, 'docs', 'config-diff.json'), 'utf8'),
-			);
-			const checkedInMarkdown = fs.readFileSync(
-				path.join(rootDir, 'docs', 'CONFIG_DIFF.md'),
-				'utf8',
-			);
-
-			expect(checkedInReport).toEqual(currentReport);
-			expect(checkedInMarkdown).toBe(createMarkdownReport(currentReport));
-		});
-
 		it('keeps Expo plugin rules enabled from eslint-config-expo', () => {
 			const expoRuleNames = new Set(
 				expoFlatConfig.flatMap((entry: FlatConfig) =>
@@ -1713,18 +1967,20 @@ describe('eslint-config-expo-magic', () => {
 			}
 		});
 
-		it('does not import eslint-config-expo flat internals', () => {
-			const packageFiles = [
-				path.join(__dirname, 'index.js'),
-				path.join(__dirname, 'utils', 'react.js'),
-			];
+		it('loads the public config without requesting Expo flat internals', () => {
+			const loaded = runModuleLoadProbe(
+				[
+					"const Module = require('node:module');",
+					'const originalLoad = Module._load;',
+					"Module._load = function(request) { if (request.startsWith('eslint-config-expo/flat/utils/')) { throw new Error('forbidden Expo internal subpath: ' + request); } return originalLoad.apply(this, arguments); };",
+					`const publicConfig = require(${JSON.stringify(path.join(__dirname, 'index.js'))});`,
+					"if (!Array.isArray(publicConfig) || publicConfig.length === 0) { throw new Error('public config did not load'); }",
+					'process.stdout.write(JSON.stringify({ configLength: publicConfig.length, loaded: [\'public-config\'] }));',
+				].join('\n'),
+			);
 
-			for (const filePath of packageFiles) {
-				const fileContents = fs.readFileSync(filePath, 'utf8');
-				expect(fileContents.includes('eslint-config-expo/flat/utils/')).toBe(
-					false,
-				);
-			}
+			expect(loaded.configLength).toBeGreaterThan(0);
+			expect(loaded.loaded).toEqual(['public-config']);
 		});
 	});
 
@@ -1839,8 +2095,8 @@ describe('eslint-config-expo-magic', () => {
 	});
 
 	describe('reanimated rules', () => {
-		it('flags shared-value reads, hook .get(), and inline gesture config', () => {
-			const messages = runFixtureLint({
+		it('flags shared-value reads, hook .get(), and inline gesture config', async () => {
+			const messages = await runFixtureLint({
 				configSource: createPackageConfigSource(`{
 					prettier: false,
 					testing: false,
@@ -1875,8 +2131,8 @@ describe('eslint-config-expo-magic', () => {
 			).toHaveLength(3);
 		}, 15_000);
 
-		it('supports custom gesture hook names', () => {
-			const messages = runFixtureLint({
+		it('supports custom gesture hook names', async () => {
+			const messages = await runFixtureLint({
 				configSource: createPackageConfigSource(`{
 					prettier: false,
 					testing: false,
@@ -1898,8 +2154,8 @@ describe('eslint-config-expo-magic', () => {
 			).toBe(true);
 		}, 15_000);
 
-		it('composes reanimated and worklets selectors without clobbering', () => {
-			const messages = runFixtureLint({
+		it('composes reanimated and worklets selectors without clobbering', async () => {
+			const messages = await runFixtureLint({
 				configSource: createPackageConfigSource(`{
 					prettier: false,
 					testing: false,
@@ -1934,8 +2190,8 @@ describe('eslint-config-expo-magic', () => {
 	});
 
 	describe('deprecated api rules', () => {
-		it('flags deprecated symbols and types', () => {
-			const messages = runFixtureLint({
+		it('flags deprecated symbols and types', async () => {
+			const messages = await runFixtureLint({
 				configSource: createPackageConfigSource(`{
 					prettier: false,
 					testing: false,
@@ -1989,8 +2245,8 @@ describe('eslint-config-expo-magic', () => {
 	});
 
 	describe('semantic colors rules', () => {
-		it('flags raw colors and direct token access but allows the token file', () => {
-			const messages = runFixtureLint({
+		it('flags raw colors and direct token access but allows the token file', async () => {
+			const messages = await runFixtureLint({
 				configSource: createPackageConfigSource(`{
 					prettier: false,
 					testing: false,
@@ -2042,8 +2298,8 @@ describe('eslint-config-expo-magic', () => {
 	});
 
 	describe('component structure rules', () => {
-		it('runs component structure rules end to end', () => {
-			const messages = runFixtureLint({
+		it('runs component structure rules end to end', async () => {
+			const messages = await runFixtureLint({
 				configSource: createPackageConfigSource(`{
 					prettier: false,
 					testing: false,

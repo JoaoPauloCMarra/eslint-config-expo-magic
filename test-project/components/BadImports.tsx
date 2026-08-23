@@ -1,10 +1,10 @@
-// ❌ Bad import order (should trigger import/order)
+// ❌ Bad import order (should trigger import-x/order)
 import React from "react"; // React should be first
 import { View, Text } from "react-native";
 
 // ❌ Unused import (should trigger no-unused-vars or unused-imports)
 
-// ❌ Anonymous default export (should trigger import/no-anonymous-default-export)
+// ❌ Anonymous default export (should trigger import-x/no-anonymous-default-export)
 export default () => {
   return (
     <View>

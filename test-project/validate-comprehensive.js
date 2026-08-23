@@ -13,9 +13,6 @@ const {
 	findUnexpectedFileRuleFailures,
 } = require('./validation-results.js');
 
-console.log('🚀 ESLint Config Expo Magic - Comprehensive Validation Suite');
-console.log('===========================================================\n');
-
 // Expected rules that should trigger
 const expectedRules = {
 	// TypeScript rules
@@ -282,7 +279,6 @@ function resolvePresetModulePath(presetModule) {
 		'eslint-config-expo-magic/feature-boundaries': 'feature-boundaries.js',
 		'eslint-config-expo-magic/native-ui': 'native-ui.js',
 		'eslint-config-expo-magic/strict': 'strict.js',
-		'eslint-config-expo-magic/no-prettier': 'no-prettier.js',
 		'eslint-config-expo-magic/typed': 'typed.js',
 		'eslint-config-expo-magic/react-compiler': 'react-compiler.js',
 		'eslint-config-expo-magic/reanimated': 'reanimated.js',
@@ -495,7 +491,41 @@ function sortRuleIds(ruleIds) {
 	return [...ruleIds].sort((a, b) => a.localeCompare(b));
 }
 
+function findLegacyImportRules(ruleCounts) {
+	return Object.keys(ruleCounts)
+		.filter((ruleId) => ruleId.startsWith('import/'))
+		.sort();
+}
+
+function isValidationPassing({
+	missingRules,
+	missingRuleFileCoverage,
+	legacyImportRules,
+	uncoveredEffectiveRules,
+	staleConfigOnlyRules,
+	basePresetPassed,
+	defaultPresetPassed,
+	strictPresetPassed,
+	typedPresetPassed,
+	focusedPresetPassed,
+}) {
+	return (
+		missingRules.length === 0 &&
+		missingRuleFileCoverage.length === 0 &&
+		legacyImportRules.length === 0 &&
+		uncoveredEffectiveRules.length === 0 &&
+		staleConfigOnlyRules.length === 0 &&
+		basePresetPassed &&
+		defaultPresetPassed &&
+		strictPresetPassed &&
+		typedPresetPassed &&
+		focusedPresetPassed
+	);
+}
+
 async function runValidation() {
+	console.log('🚀 ESLint Config Expo Magic - Comprehensive Validation Suite');
+	console.log('===========================================================\n');
 	console.log('📋 Running ESLint...');
 
 	const result = runCommand('bunx', ['eslint', '.', '--format=json']);
@@ -503,6 +533,7 @@ async function runValidation() {
 	const results = JSON.parse(eslintOutput);
 	const { ruleCounts, ruleFiles, totalErrors, totalWarnings } =
 		collectLintRuleResults(results, repoRoot);
+	const legacyImportRules = findLegacyImportRules(ruleCounts);
 
 	console.log('\n📊 Analysis Results:');
 	console.log('===================');
@@ -561,6 +592,11 @@ async function runValidation() {
 		extraRules.forEach((rule) => console.log(`   - ${rule}`));
 	}
 
+	if (legacyImportRules.length > 0) {
+		console.log('\n❌ Unexpected Legacy Import Diagnostics:');
+		legacyImportRules.forEach((ruleId) => console.log(`   - ${ruleId}`));
+	}
+
 	if (uncoveredEffectiveRules.length > 0) {
 		console.log('\n❌ Effective Rules Without Fixture Coverage:');
 		uncoveredEffectiveRules.forEach((rule) => console.log(`   - ${rule}`));
@@ -607,15 +643,7 @@ async function runValidation() {
 		[
 			{ ruleId: 'no-console', severity: 1 },
 			{ ruleId: 'import-x/order', severity: 2 },
-			{ ruleId: 'prettier/prettier', severity: 2 },
 		],
-	);
-
-	const noPrettierPresetPassed = validatePreset(
-		'no-prettier',
-		'eslint-config-expo-magic/no-prettier',
-		['preset-fixtures/no-prettier.ts'],
-		[{ ruleId: 'import-x/order', severity: 2 }],
 		['prettier/prettier'],
 	);
 
@@ -729,16 +757,18 @@ async function runValidation() {
 	console.log('===================');
 
 	if (
-		missingRules.length === 0 &&
-		missingRuleFileCoverage.length === 0 &&
-		uncoveredEffectiveRules.length === 0 &&
-		staleConfigOnlyRules.length === 0 &&
-		basePresetPassed &&
-		defaultPresetPassed &&
-		strictPresetPassed &&
-		noPrettierPresetPassed &&
-		typedPresetPassed &&
-		focusedPresetPassed
+		isValidationPassing({
+			missingRules,
+			missingRuleFileCoverage,
+			legacyImportRules,
+			uncoveredEffectiveRules,
+			staleConfigOnlyRules,
+			basePresetPassed,
+			defaultPresetPassed,
+			strictPresetPassed,
+			typedPresetPassed,
+			focusedPresetPassed,
+		})
 	) {
 		console.log('🎉 All expected rules and file coverage checks passed!');
 		console.log('🚀 Ready for publishing!');
@@ -750,11 +780,18 @@ async function runValidation() {
 	return false;
 }
 
-runValidation()
-	.then((success) => {
-		process.exit(success ? 0 : 1);
-	})
-	.catch((error) => {
-		console.error('❌ Error running validation:', error.message);
-		process.exit(1);
-	});
+module.exports = {
+	findLegacyImportRules,
+	isValidationPassing,
+};
+
+if (require.main === module) {
+	runValidation()
+		.then((success) => {
+			process.exit(success ? 0 : 1);
+		})
+		.catch((error) => {
+			console.error('❌ Error running validation:', error.message);
+			process.exit(1);
+		});
+}

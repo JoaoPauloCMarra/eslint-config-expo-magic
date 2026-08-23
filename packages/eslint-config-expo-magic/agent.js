@@ -1,1 +1,3 @@
-module.exports = require('./index.js').agent;
+const { createConfig } = require('./utils/create-config.js');
+
+module.exports = createConfig({ agent: true });
