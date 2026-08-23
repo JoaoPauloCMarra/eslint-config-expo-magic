@@ -1,4 +1,3 @@
-const config = require('./index.js');
+const { createConfig } = require('./utils/create-config.js');
 
-module.exports = config.typed;
-module.exports.noPrettier = config.typedNoPrettier;
+module.exports = createConfig({ typeChecked: true });

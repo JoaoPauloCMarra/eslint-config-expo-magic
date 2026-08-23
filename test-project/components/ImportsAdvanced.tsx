@@ -28,14 +28,14 @@ import 'style-loader!css-loader!styles.css';
 import z from 'z';
 import a from 'a';
 
-// import/first
+// import-x/first
 import b from 'b';
 
-// import/no-duplicates
+// import-x/no-duplicates
 import { Text as T1 } from 'react-native';
 import { Text as T2 } from 'react-native';
 
-// import/no-unresolved
+// import-x/no-unresolved
 import nonexistent from 'nonexistent';
 
 export const ImportsAdvanced = () => {

@@ -9,7 +9,6 @@ import type {
 	DeprecatedApiOptions,
 	DeprecatedApiRestrictedProperty,
 	DeprecatedApiRestrictedType,
-	FeatureBoundaryOptions,
 	FlatConfig,
 	GuardrailInput,
 	GuardrailOptions,
@@ -30,7 +29,6 @@ import type {
 	SemanticColorsConfig,
 	SemanticColorsOptions,
 	TypedConfig,
-	NoPrettierConfig,
 } from './types';
 
 declare const config: FlatConfig[] & {
@@ -42,9 +40,6 @@ declare const config: FlatConfig[] & {
 	createAgentGuardrailsConfig(): FlatConfig[];
 	strict: FlatConfig[];
 	typed: TypedConfig;
-	noPrettier: NoPrettierConfig;
-	strictNoPrettier: FlatConfig[];
-	typedNoPrettier: FlatConfig[];
 	appGuardrails: AppGuardrailsConfig;
 	createAppGuardrailsConfig(options?: AppGuardrailsOptions): FlatConfig[];
 	componentStructure: FlatConfig[];
@@ -53,9 +48,7 @@ declare const config: FlatConfig[] & {
 	): FlatConfig[];
 	deprecatedApis: FlatConfig[];
 	createDeprecatedApiConfig(options?: DeprecatedApiOptions): FlatConfig[];
-	createFeatureBoundaryConfig(options?: FeatureBoundaryOptions): FlatConfig[];
 	createNativeUiConfig(options?: NativeUiOptions): FlatConfig[];
-	featureBoundaries: FlatConfig[];
 	nativeUi: FlatConfig[];
 	reactCompiler: ReactCompilerConfig;
 	reanimated: ReanimatedConfig;
@@ -96,7 +89,6 @@ declare namespace config {
 	export type ResolvedGuardrailOptions = import('./types').ResolvedGuardrailOptions;
 	export type SemanticColorsConfig = import('./types').SemanticColorsConfig;
 	export type SemanticColorsOptions = import('./types').SemanticColorsOptions;
-	export type NoPrettierConfig = import('./types').NoPrettierConfig;
 	export type TypedConfig = import('./types').TypedConfig;
 }
 

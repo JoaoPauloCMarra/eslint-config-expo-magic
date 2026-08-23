@@ -2,15 +2,15 @@
 import React, { useMemo } from 'react';
 import { View, Text } from 'react-native';
 
-// ❌ This should trigger import/named
+// ❌ This should trigger import-x/named
 import { ThisDoesNotExist } from './only-default';
 console.log(ThisDoesNotExist);
 
-// ❌ This should trigger import/default (no-default has no default)
+// ❌ This should trigger import-x/default (no-default has no default)
 import DefaultImport from './no-default';
 console.log(DefaultImport);
 
-// ❌ This should trigger import/named
+// ❌ This should trigger import-x/named
 import { b } from './mixed-exports';
 console.log(b);
 

@@ -1,7 +1,7 @@
-const expoMagic = require('eslint-config-expo-magic');
+const { createConfig } = require('eslint-config-expo-magic');
 
 module.exports = [
-	...expoMagic,
+	...createConfig({ prettier: true, testing: true }),
 	// Add any custom overrides for testing here
 	{
 		ignores: [

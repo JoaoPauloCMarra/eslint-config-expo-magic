@@ -14,7 +14,8 @@ const defaultFeatureElementTypes = [
 const defaultSharedComponentPatterns = [];
 
 function elementSelector(type, captured) {
-	return captured ? { type, captured } : { type };
+	const element = captured ? { type, captured } : { type };
+	return { element };
 }
 
 function dependencySelector(type, captured) {
@@ -33,7 +34,9 @@ function dependencyFileSelector(category, captured) {
 
 function createSameFeatureSelectors(featureElementTypes) {
 	return featureElementTypes.map((type) =>
-		dependencySelector(type, { feature: '{{from.captured.feature}}' }),
+		dependencySelector(type, {
+			feature: '{{from.element.captured.feature}}',
+		}),
 	);
 }
 
@@ -112,7 +115,7 @@ function createDependencyRules(featureElementTypes) {
 	const sameFeatureSelectors = createSameFeatureSelectors(featureElementTypes);
 	const sameFeatureAtomFileSelector = dependencyFileSelector(
 		'feature-atom',
-		{ feature: '{{from.captured.feature}}' },
+		{ feature: '{{from.element.captured.feature}}' },
 	);
 	const anyFeatureAtomFileSelector = dependencyFileSelector('feature-atom');
 
@@ -246,7 +249,7 @@ function createFeatureBoundaryConfig(options = {}) {
 					'error',
 					{
 						default: 'disallow',
-						rules: createDependencyRules(featureElementTypes),
+						policies: createDependencyRules(featureElementTypes),
 					},
 				],
 			},

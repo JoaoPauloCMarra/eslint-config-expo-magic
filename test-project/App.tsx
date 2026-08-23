@@ -36,7 +36,7 @@ console.log(DefaultObj.namedExport);
 import { nonExistentMember } from './types';
 console.log(nonExistentMember);
 
-// ❌ This should trigger import/named
+// ❌ This should trigger import-x/named
 import { AlsoNonExistent } from './types';
 console.log(AlsoNonExistent);
 

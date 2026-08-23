@@ -152,15 +152,7 @@ export type SemanticColorsConfig = FlatConfig[] & {
 	restrictedSyntaxGroups: readonly RestrictedSyntaxGroup[];
 };
 
-export type NoPrettierConfig = FlatConfig[] & {
-	fast: FlatConfig[];
-	strict: FlatConfig[];
-	typed: FlatConfig[];
-};
-
-export type TypedConfig = FlatConfig[] & {
-	noPrettier: FlatConfig[];
-};
+export type TypedConfig = FlatConfig[];
 
 export type GuardrailInput = Readonly<{
 	eventName: string;

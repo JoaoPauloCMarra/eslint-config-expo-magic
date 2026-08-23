@@ -5,7 +5,6 @@ const {
 } = require('eslint-import-resolver-typescript');
 const expoConfig = require('eslint-config-expo/flat');
 const { createNodeResolver } = require('eslint-plugin-import-x');
-const tseslint = require('typescript-eslint');
 
 const allExtensions = require('./extensions.js');
 const { typeScriptFiles } = require('./file-patterns.js');
@@ -59,14 +58,38 @@ function widenTypeScriptFiles(files) {
 function createExpoBaseConfig() {
 	return expoConfig
 		.map((config) => {
-			if (!Array.isArray(config.files)) {
-				return config;
+			const widenedConfig = {
+				...config,
+				...(Array.isArray(config.files)
+					? { files: widenTypeScriptFiles(config.files) }
+					: {}),
+			};
+
+			if (widenedConfig.plugins) {
+				widenedConfig.plugins = Object.fromEntries(
+					Object.entries(widenedConfig.plugins).filter(
+						([pluginName]) => pluginName !== 'import',
+					),
+				);
 			}
 
-			return {
-				...config,
-				files: widenTypeScriptFiles(config.files),
-			};
+			if (widenedConfig.rules) {
+				widenedConfig.rules = Object.fromEntries(
+					Object.entries(widenedConfig.rules).filter(
+						([ruleName]) => !ruleName.startsWith('import/'),
+					),
+				);
+			}
+
+			if (widenedConfig.settings) {
+				widenedConfig.settings = Object.fromEntries(
+					Object.entries(widenedConfig.settings).filter(
+						([settingName]) => !settingName.startsWith('import/'),
+					),
+				);
+			}
+
+			return widenedConfig;
 		})
 		.filter((config) => !config.plugins || !config.plugins['react-hooks']);
 }
@@ -74,6 +97,7 @@ function createExpoBaseConfig() {
 function createTypeCheckedConfigs(
 	tsconfigProjects = defaultTsconfigProjectGlobs,
 ) {
+	const tseslint = require('typescript-eslint');
 	const seenConfigNames = new Set();
 	const usesDefaultProjects =
 		tsconfigProjects === defaultTsconfigProjectGlobs ||
@@ -139,12 +163,6 @@ function createSharedConfig(tsconfigProjects, extraIgnores = []) {
 		{
 			name: 'import-ignores',
 			settings: {
-				'import/ignore': [
-					'node_modules',
-					'\\.json$',
-					'\\.(scss|sass|css|less|styl)$',
-					'\\.(svg|png|jpg|jpeg|gif|webp)$',
-				],
 				'import-x/ignore': [
 					'node_modules',
 					'\\.json$',
@@ -156,10 +174,6 @@ function createSharedConfig(tsconfigProjects, extraIgnores = []) {
 		...filteredExpoConfig,
 		{
 			settings: {
-				'import/resolver': {
-					node: { extensions: allExtensions },
-					typescript: typescriptImportResolver,
-				},
 				'import-x/extensions': allExtensions,
 				'import-x/resolver': {
 					node: { extensions: allExtensions },
@@ -232,14 +246,20 @@ function createDefaultPreset(
 		importCycles = true,
 		testing = true,
 		typeAware = true,
+		fast = false,
 	} = {},
 ) {
+	const reactConfig = require('./react.js');
+	const reactPreset = fast
+		? reactConfig.createReactConfig({ fast: true })
+		: reactConfig;
+
 	return [
 		...createBasePreset(tsconfigProjects, extraIgnores),
 		...require('./typescript.js').createTypeScriptConfig({
 			typeChecked: typeAware,
 		}),
-		...require('./react.js'),
+		...reactPreset,
 		...require('./imports.js').createImportConfig({ noCycle: importCycles }),
 		...require('./app.js'),
 		...(testing ? require('./jest.js') : []),

@@ -480,3 +480,79 @@ describe('optional layer composition', () => {
 		}
 	});
 });
+
+describe('import-x-only diagnostics', () => {
+	it('keeps the feature-boundaries resolver compatibility setting when enabled', () => {
+		const configs = config.createConfig({ featureBoundaries: true });
+		const resolverConfig = configs.find(
+			(entry: FlatConfig) => entry.settings?.['import/resolver'],
+		);
+
+		expect(resolverConfig).toBeDefined();
+		expect(resolverConfig?.settings?.['import/resolver']).toEqual(
+			expect.objectContaining({
+			node: expect.objectContaining({ extensions: expect.any(Array) }),
+			typescript: expect.objectContaining({
+				project: expect.arrayContaining(['./test-project/tsconfig.json']),
+			}),
+		}),
+	);
+	});
+
+	it('keeps import-x settings without legacy import state in fast', () => {
+		const configs = config.createConfig({ preset: 'fast' });
+		const settingNames = configs.flatMap((entry: FlatConfig) =>
+			Object.keys(entry.settings ?? {}),
+		);
+
+		for (const entry of configs) {
+			expect(entry.plugins?.import).toBeUndefined();
+			for (const ruleId of Object.keys(entry.rules ?? {})) {
+				expect(ruleId.startsWith('import/')).toBe(false);
+			}
+			expect(entry.settings?.['import/ignore']).toBeUndefined();
+			expect(entry.settings?.['import/resolver']).toBeUndefined();
+		}
+
+		expect(settingNames).toContain('import-x/ignore');
+		expect(settingNames).toContain('import-x/extensions');
+		expect(settingNames).toContain('import-x/resolver');
+		expect(settingNames).toContain('import-x/resolver-next');
+	});
+
+	it('filters inherited legacy import plugin state', () => {
+		const configs = config.createConfig({ prettier: false, testing: false });
+
+		for (const entry of configs) {
+			expect(entry.plugins?.import).toBeUndefined();
+			for (const ruleId of Object.keys(entry.rules ?? {})) {
+				expect(ruleId.startsWith('import/')).toBe(false);
+			}
+			for (const settingName of Object.keys(entry.settings ?? {})) {
+				expect(settingName.startsWith('import/')).toBe(false);
+			}
+		}
+	});
+
+	it.each(['src/value.js', 'src/value.ts'])(
+		'keeps equivalent import diagnostics for %s without legacy import rules',
+		async (filePath) => {
+			const messages = await lint(
+				{ prettier: false, testing: false },
+				filePath,
+				[
+					"import local from './local';",
+					"import fs from 'node:fs';",
+					'export { local, fs };',
+				].join('\n'),
+			);
+
+			expect(
+				messages.some((message) => message.ruleId === 'import-x/order'),
+			).toBe(true);
+			expect(
+				messages.some((message) => message.ruleId?.startsWith('import/')),
+			).toBe(false);
+		},
+	);
+});

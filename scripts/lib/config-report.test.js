@@ -21,13 +21,51 @@ describe('config report', () => {
 			'config',
 			'web',
 		]);
+		expect(Object.keys(report.presets)).toEqual([
+			'expo',
+			'agent',
+			'agentGuardrails',
+			'base',
+			'default',
+			'fast',
+			'typed',
+			'strict',
+			'appGuardrails',
+			'componentStructure',
+			'deprecatedApis',
+			'nativeUi',
+			'reactCompiler',
+			'reanimated',
+			'semanticColors',
+			'storybook',
+			'worklets',
+			'productionApp',
+		]);
+		expect(Object.keys(report.deltas)).toEqual([
+			'baseVsExpo',
+			'defaultVsExpo',
+			'typedVsDefault',
+			'strictVsDefault',
+			'productionAppVsDefault',
+			'fastVsDefault',
+		]);
 		expect(report.scopes.app.filePath).toBe('apps/mobile/App.tsx');
 		expect(
 			report.scopes.test.presets.default.rules['jest/expect-expect'],
-		).toBeDefined();
+		).toBeUndefined();
 		expect(
 			report.scopes.app.presets.default.rules['jest/expect-expect'],
 		).toBeUndefined();
+		expect(report.presets.default.rules['prettier/prettier']).toBeUndefined();
+		expect(
+			report.presets.default.rules['testing-library/await-async-queries'],
+		).toBeUndefined();
+		expect(
+			Object.keys(report.presets.default.rules).some((ruleId) =>
+				ruleId.startsWith('import/'),
+			),
+		).toBe(false);
+		expect(report.presets.default.rules['import-x/order']).toBeDefined();
 		expect(report.presets.default.rules).toEqual(
 			createAggregateConfigReport().presets.default.rules,
 		);

@@ -8,7 +8,6 @@ import {
 	createNativeUiConfig,
 	createReanimatedConfig,
 	fast,
-	noPrettier,
 	reanimated,
 	strict,
 	typed,
@@ -64,12 +63,10 @@ declare const structure: StructureModule;
 declare const colors: ColorsModule;
 declare const nativeUiModule: NativeUiModule;
 declare const typedModule: typeof import('./typed');
-declare const noPrettierModule: typeof import('./no-prettier');
 declare const strictModule: typeof import('./strict');
 
 const defaultImport = indexDefault;
 const strictSubpath = strict;
-const noPrettierSubpath = noPrettier;
 const fastSubpath = fast;
 const typedSubpath = typed;
 
@@ -123,7 +120,6 @@ const rootSemanticColorsGroups =
 
 const strictFromMagic = magic.strict;
 const typedFromMagic = magic.typed;
-const noPrettierFromMagic = magic.noPrettier;
 
 const createConfigWithDefaults = createConfig({ preset: 'default' });
 const createAppGuardrailsWithDefaults = createAppGuardrailsConfig({
@@ -136,11 +132,6 @@ const createReanimatedWithDefaults = createReanimatedConfig({
 
 const strictResult: Linter.Config[] = strictModule;
 const typedModuleResult: typeof typedModule = typedModule;
-const noPrettierResult: Linter.Config[] = noPrettierModule;
-const noPrettierStrictResult: Linter.Config[] = noPrettierModule.strict;
-const noPrettierTypedResult: Linter.Config[] = noPrettierModule.typed;
-const typedNoPrettierFromMagic = typedFromMagic.noPrettier;
-const strictNoPrettierFromMagic = noPrettierFromMagic.strict;
 
 const appGuardrailsFromMagic: AppGuardrailsConfig = appGuardrails;
 const appGuardrailsOptions: AppGuardrailsOptions = {
@@ -203,10 +194,8 @@ const prGuardrailsNamespaceNamed: ResolvedGuardrailOptions =
 void defaultImport;
 void fastResult;
 void strictSubpath;
-void noPrettierSubpath;
 void fastSubpath;
 void typedSubpath;
-void noPrettier;
 void strict;
 void typed;
 void reanimated;
@@ -234,13 +223,7 @@ void rootSemanticColorsGroups;
 void strictResult;
 void strictFromMagic;
 void typedFromMagic;
-void noPrettierFromMagic;
-void noPrettierResult;
-void noPrettierStrictResult;
-void noPrettierTypedResult;
 void typedModuleResult;
-void typedNoPrettierFromMagic;
-void strictNoPrettierFromMagic;
 void appGuardrailsOptions;
 void nativeUiOptions;
 void reanimatedOptions;

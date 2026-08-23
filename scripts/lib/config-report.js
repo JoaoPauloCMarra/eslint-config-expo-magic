@@ -115,13 +115,11 @@ function createPresetConfigs(magicConfig, expoFlatConfig) {
 		base: magicConfig.base,
 		default: magicConfig,
 		fast: magicConfig.fast,
-		noPrettier: magicConfig.noPrettier,
 		typed: magicConfig.typed,
 		strict: magicConfig.strict,
 		appGuardrails: magicConfig.appGuardrails,
 		componentStructure: magicConfig.componentStructure,
 		deprecatedApis: magicConfig.deprecatedApis,
-		featureBoundaries: magicConfig.featureBoundaries,
 		nativeUi: magicConfig.nativeUi,
 		reactCompiler: magicConfig.reactCompiler,
 		reanimated: magicConfig.reanimated,
@@ -153,10 +151,6 @@ function createReportDeltas(presets) {
 	const deltas = {
 		baseVsExpo: createRuleDiff(presets.expo.rules, presets.base.rules),
 		defaultVsExpo: createRuleDiff(presets.expo.rules, presets.default.rules),
-		noPrettierVsDefault: createRuleDiff(
-			presets.default.rules,
-			presets.noPrettier.rules,
-		),
 		typedVsDefault: createRuleDiff(presets.default.rules, presets.typed.rules),
 		strictVsDefault: createRuleDiff(
 			presets.default.rules,
@@ -208,7 +202,6 @@ function selectEffectivePresetConfigs(presetConfigs) {
 			'base',
 			'default',
 			'fast',
-			'noPrettier',
 			'typed',
 			'strict',
 			'productionApp',

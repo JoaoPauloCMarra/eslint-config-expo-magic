@@ -1,15 +1,3 @@
-const agentGuardrailsConfig = require('./agent-guardrails.js');
-const appGuardrailsConfig = require('./app-guardrails.js');
-const componentStructureConfig = require('./component-structure.js');
-const deprecatedApisConfig = require('./deprecated-apis.js');
-const featureBoundaryConfig = require('./feature-boundaries.js');
-const nativeUiConfig = require('./native-ui.js');
-const prettierConfig = require('./prettier.js');
-const reactCompilerConfig = require('./react-compiler.js');
-const reanimatedConfig = require('./reanimated.js');
-const semanticColorsConfig = require('./semantic-colors.js');
-const storybookConfig = require('./storybook.js');
-const workletsConfig = require('./worklets.js');
 const {
 	createBasePreset,
 	createDefaultPreset,
@@ -156,8 +144,8 @@ function createConfig(options = {}) {
 
 	const {
 		preset = 'default',
-		prettier = preset === 'default',
-		testing = preset !== 'base',
+		prettier = false,
+		testing = false,
 		typeChecked = false,
 		strict = false,
 		tsconfigProjects = preset === 'fast'
@@ -239,10 +227,12 @@ function createConfig(options = {}) {
 					importCycles,
 					testing,
 					typeAware,
+					fast: preset === 'fast',
 				});
 	const finalConfig = [...presetConfig];
 
 	if (effectiveAppGuardrails) {
+		const appGuardrailsConfig = require('./app-guardrails.js');
 		const appGuardrailsOptions =
 			effectiveAppGuardrails === true ? undefined : effectiveAppGuardrails;
 		finalConfig.push(...appGuardrailsConfig.base);
@@ -252,6 +242,7 @@ function createConfig(options = {}) {
 	}
 
 	if (agentEnabled) {
+		const agentGuardrailsConfig = require('./agent-guardrails.js');
 		finalConfig.push(
 			...(typeAware
 				? agentGuardrailsConfig.base
@@ -263,6 +254,7 @@ function createConfig(options = {}) {
 	}
 
 	if (componentStructure) {
+		const componentStructureConfig = require('./component-structure.js');
 		finalConfig.push(
 			...normalizeOptionConfig(
 				componentStructure,
@@ -272,6 +264,7 @@ function createConfig(options = {}) {
 	}
 
 	if (effectiveDeprecatedApis) {
+		const deprecatedApisConfig = require('./deprecated-apis.js');
 		finalConfig.push(
 			...normalizeOptionConfig(
 				effectiveDeprecatedApis,
@@ -281,11 +274,27 @@ function createConfig(options = {}) {
 	}
 
 	if (featureBoundaries) {
+		const featureBoundaryConfig = require('./feature-boundaries.js');
+		const allExtensions = require('./extensions.js');
 		finalConfig.push(
 			...normalizeOptionConfig(
 				featureBoundaries,
 				featureBoundaryConfig.createFeatureBoundaryConfig,
 			),
+			{
+				settings: {
+					'import/resolver': {
+						node: { extensions: allExtensions },
+						typescript: {
+							alwaysTryTypes: true,
+							bun: true,
+							noWarnOnMultipleProjects: true,
+							project: tsconfigProjects,
+							tsconfigRootDir: process.cwd(),
+						},
+					},
+				},
+			},
 		);
 	}
 
@@ -300,16 +309,19 @@ function createConfig(options = {}) {
 	}
 
 	if (nativeUi) {
+		const nativeUiConfig = require('./native-ui.js');
 		finalConfig.push(
 			...normalizeOptionConfig(nativeUi, nativeUiConfig.createNativeUiConfig),
 		);
 	}
 
 	if (effectiveReactCompiler) {
+		const reactCompilerConfig = require('./react-compiler.js');
 		finalConfig.push({ rules: { ...reactCompilerConfig.rules } });
 	}
 
 	if (effectiveReanimated) {
+		const reanimatedConfig = require('./reanimated.js');
 		const reanimatedOptions =
 			effectiveReanimated === true ? undefined : effectiveReanimated;
 		finalConfig.push(...reanimatedConfig.createSharedValueUsageConfig());
@@ -319,6 +331,7 @@ function createConfig(options = {}) {
 	}
 
 	if (effectiveSemanticColors) {
+		const semanticColorsConfig = require('./semantic-colors.js');
 		const semanticColorsOptions =
 			effectiveSemanticColors === true ? undefined : effectiveSemanticColors;
 		restrictedSyntaxGroups.push(
@@ -329,10 +342,12 @@ function createConfig(options = {}) {
 	}
 
 	if (storybook) {
+		const storybookConfig = require('./storybook.js');
 		finalConfig.push(...storybookConfig);
 	}
 
 	if (effectiveWorklets) {
+		const workletsConfig = require('./worklets.js');
 		restrictedSyntaxGroups.push(...workletsConfig.restrictedSyntaxGroups);
 	}
 
@@ -347,6 +362,7 @@ function createConfig(options = {}) {
 	}
 
 	if (prettier) {
+		const prettierConfig = require('./prettier.js');
 		finalConfig.push(...prettierConfig);
 	}
 

@@ -5,9 +5,9 @@ const { spawnSync } = require('child_process');
 
 const rootDir = path.resolve(__dirname, '..');
 
-function run(command, args) {
+function run(command, args, cwd = rootDir) {
 	const result = spawnSync(command, args, {
-		cwd: rootDir,
+		cwd,
 		stdio: 'inherit',
 	});
 
@@ -19,6 +19,7 @@ function run(command, args) {
 const checks = [
 	'check-pm',
 	'report:config',
+	'report:release-notes',
 	'audit:deps',
 	'test',
 	'typecheck',
@@ -30,3 +31,9 @@ const checks = [
 for (const script of checks) {
 	run('bun', ['run', script]);
 }
+
+run(
+	'bun',
+	['pm', 'pack', '--dry-run'],
+	path.join(rootDir, 'packages/eslint-config-expo-magic'),
+);

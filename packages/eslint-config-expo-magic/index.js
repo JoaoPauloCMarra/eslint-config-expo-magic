@@ -1,18 +1,7 @@
-const agentGuardrailsConfig = require('./utils/agent-guardrails.js');
-const appGuardrailsConfig = require('./utils/app-guardrails.js');
-const componentStructureConfig = require('./utils/component-structure.js');
-const deprecatedApisConfig = require('./utils/deprecated-apis.js');
-const featureBoundaryConfig = require('./utils/feature-boundaries.js');
-const nativeUiConfig = require('./utils/native-ui.js');
-const reactCompilerConfig = require('./utils/react-compiler.js');
-const reanimatedConfig = require('./utils/reanimated.js');
-const semanticColorsConfig = require('./utils/semantic-colors.js');
-const storybookConfig = require('./utils/storybook.js');
-const workletsConfig = require('./utils/worklets.js');
 const { createConfig } = require('./utils/create-config.js');
 const config = createConfig();
 
-function defineLazyPreset(name, factory) {
+function defineLazyExport(name, factory) {
 	Object.defineProperty(config, name, {
 		configurable: true,
 		enumerable: true,
@@ -29,43 +18,55 @@ function defineLazyPreset(name, factory) {
 	});
 }
 
-defineLazyPreset('agent', () => createConfig({ agent: true, prettier: false }));
-defineLazyPreset('base', () => require('./base.js'));
-defineLazyPreset('fast', () => require('./fast.js'));
-defineLazyPreset('strict', () => createConfig({ strict: true }));
-defineLazyPreset('strictNoPrettier', () =>
-	createConfig({ strict: true, prettier: false }),
-);
-defineLazyPreset('typed', () => createConfig({ typeChecked: true }));
-defineLazyPreset('typedNoPrettier', () =>
-	createConfig({ typeChecked: true, prettier: false }),
-);
-defineLazyPreset('noPrettier', () => createConfig({ prettier: false }));
+defineLazyExport('agent', () => require('./agent.js'));
+defineLazyExport('base', () => require('./base.js'));
+defineLazyExport('fast', () => require('./fast.js'));
+defineLazyExport('strict', () => require('./strict.js'));
+defineLazyExport('typed', () => require('./typed.js'));
 
 module.exports = config;
-module.exports.agentGuardrails = agentGuardrailsConfig;
 module.exports.createConfig = createConfig;
-module.exports.createAgentGuardrailsConfig =
-	agentGuardrailsConfig.createAgentGuardrailsConfig;
-module.exports.appGuardrails = appGuardrailsConfig;
-module.exports.createAppGuardrailsConfig =
-	appGuardrailsConfig.createAppGuardrailsConfig;
-module.exports.componentStructure = componentStructureConfig.recommended;
-module.exports.createComponentStructureConfig =
-	componentStructureConfig.createComponentStructureConfig;
-module.exports.deprecatedApis = deprecatedApisConfig.recommended;
-module.exports.createDeprecatedApiConfig =
-	deprecatedApisConfig.createDeprecatedApiConfig;
-module.exports.createFeatureBoundaryConfig =
-	featureBoundaryConfig.createFeatureBoundaryConfig;
-module.exports.createNativeUiConfig = nativeUiConfig.createNativeUiConfig;
-module.exports.featureBoundaries = featureBoundaryConfig.recommended;
-module.exports.nativeUi = nativeUiConfig.recommended;
-module.exports.reactCompiler = reactCompilerConfig;
-module.exports.reanimated = reanimatedConfig;
-module.exports.createReanimatedConfig = reanimatedConfig.createReanimatedConfig;
-module.exports.semanticColors = semanticColorsConfig;
-module.exports.createSemanticColorsConfig =
-	semanticColorsConfig.createSemanticColorsConfig;
-module.exports.storybook = storybookConfig;
-module.exports.worklets = workletsConfig;
+defineLazyExport('agentGuardrails', () => require('./agent-guardrails.js'));
+defineLazyExport(
+	'createAgentGuardrailsConfig',
+	() => require('./agent-guardrails.js').createAgentGuardrailsConfig,
+);
+defineLazyExport('appGuardrails', () => require('./app-guardrails.js'));
+defineLazyExport(
+	'createAppGuardrailsConfig',
+	() => require('./app-guardrails.js').createAppGuardrailsConfig,
+);
+defineLazyExport(
+	'componentStructure',
+	() => require('./component-structure.js').recommended,
+);
+defineLazyExport(
+	'createComponentStructureConfig',
+	() => require('./component-structure.js').createComponentStructureConfig,
+);
+defineLazyExport(
+	'deprecatedApis',
+	() => require('./deprecated-apis.js').recommended,
+);
+defineLazyExport(
+	'createDeprecatedApiConfig',
+	() => require('./deprecated-apis.js').createDeprecatedApiConfig,
+);
+defineLazyExport(
+	'createNativeUiConfig',
+	() => require('./native-ui.js').createNativeUiConfig,
+);
+defineLazyExport('nativeUi', () => require('./native-ui.js').recommended);
+defineLazyExport('reactCompiler', () => require('./react-compiler.js'));
+defineLazyExport('reanimated', () => require('./reanimated.js'));
+defineLazyExport(
+	'createReanimatedConfig',
+	() => require('./reanimated.js').createReanimatedConfig,
+);
+defineLazyExport('semanticColors', () => require('./semantic-colors.js'));
+defineLazyExport(
+	'createSemanticColorsConfig',
+	() => require('./semantic-colors.js').createSemanticColorsConfig,
+);
+defineLazyExport('storybook', () => require('./storybook.js'));
+defineLazyExport('worklets', () => require('./worklets.js'));
