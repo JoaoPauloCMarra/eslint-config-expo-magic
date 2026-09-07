@@ -2,6 +2,24 @@
 
 These are common override patterns for teams adopting `eslint-config-expo-magic`.
 
+## Adopt the opinionated mobile-app profile
+
+```js
+module.exports = require('eslint-config-expo-magic/mobile-app');
+```
+
+Use the factory only when the app needs extra project globs:
+
+```js
+const {
+	createMobileAppConfig,
+} = require('eslint-config-expo-magic/mobile-app');
+
+module.exports = createMobileAppConfig({
+	extraIgnores: ['generated/**'],
+});
+```
+
 ## Allow `console` in app code but keep it strict in packages
 
 ```js
@@ -20,12 +38,7 @@ module.exports = [
 
 ## Enable formatting and testing integrations
 
-The v4 root preset leaves formatting and testing rules off. Install the optional peers before enabling either integration:
-
-```bash
-bun add --dev eslint-config-prettier eslint-plugin-prettier prettier
-bun add --dev eslint-plugin-jest eslint-plugin-testing-library
-```
+The v4 root preset leaves formatting and testing rules off. Their dependencies ship with the package, so enable either integration directly:
 
 ```js
 const { createConfig } = require('eslint-config-expo-magic');

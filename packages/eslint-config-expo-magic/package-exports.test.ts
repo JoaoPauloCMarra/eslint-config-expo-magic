@@ -11,6 +11,7 @@ type ConditionalExport = {
 };
 
 type PackageManifest = {
+	bin: Record<string, string>;
 	dependencies: Record<string, string>;
 	exports: Record<string, ConditionalExport | string>;
 	files: string[];
@@ -34,37 +35,48 @@ describe('package exports', () => {
 		expect(packageManifest.files).not.toContain('no-prettier.d.ts');
 	});
 
-	it('keeps required runtime ownership lean and optional integrations peer-only', () => {
+	it('exports the package Prettier configuration', () => {
+		expect(packageManifest.exports['./prettier']).toEqual({
+			types: './prettier.d.ts',
+			require: './prettier.js',
+			import: './prettier.mjs',
+		});
+	});
+
+	it('owns the complete ESLint and Prettier toolchain', () => {
 		expect(Object.keys(packageManifest.dependencies).sort()).toEqual([
 			'@eslint/compat',
+			'eslint',
 			'eslint-config-expo',
+			'eslint-config-prettier',
 			'eslint-import-resolver-typescript',
+			'eslint-plugin-boundaries',
 			'eslint-plugin-import-x',
+			'eslint-plugin-jest',
+			'eslint-plugin-prettier',
 			'eslint-plugin-react-19-upgrade',
 			'eslint-plugin-react-hooks',
 			'eslint-plugin-react-native',
+			'eslint-plugin-testing-library',
 			'eslint-plugin-unused-imports',
 			'globals',
+			'prettier',
 			'typescript-eslint',
 		]);
-		expect(packageManifest.peerDependencies).toMatchObject({
-			eslint: '^10.9.0',
+		expect(packageManifest.peerDependencies).toEqual({
+			expo: '^54.0.33 || ^55.0.0 || ^56.0.0 || ^57.0.0',
+			react: '^19.1.0 || ^19.2.0',
 			typescript: '>=5.9.3 <6.1.0',
 		});
-		expect(packageManifest.peerDependencies['react-test-renderer']).toBeUndefined();
+		expect(
+			packageManifest.peerDependencies['react-test-renderer'],
+		).toBeUndefined();
 		expect(packageManifest.peerDependenciesMeta).toEqual({
-			'eslint-config-prettier': { optional: true },
-			'eslint-plugin-boundaries': { optional: true },
-			'eslint-plugin-jest': { optional: true },
-			'eslint-plugin-prettier': { optional: true },
-			'eslint-plugin-testing-library': { optional: true },
 			expo: { optional: true },
-			prettier: { optional: true },
 			react: { optional: true },
 		});
 		expect(packageManifest.installPeers).toBeUndefined();
 		for (const redundantDependency of [
-			'eslint',
 			'@typescript-eslint/eslint-plugin',
 			'@typescript-eslint/parser',
 			'@typescript-eslint/utils',
@@ -73,6 +85,14 @@ describe('package exports', () => {
 			expect(packageManifest.dependencies).not.toHaveProperty(
 				redundantDependency,
 			);
+		}
+		expect(packageManifest.bin).toMatchObject({
+			eslint: 'bin/eslint.js',
+			'expo-magic-init': 'bin/init-agent.js',
+			prettier: 'bin/prettier.js',
+		});
+		for (const relativePath of Object.values(packageManifest.bin)) {
+			expect(fs.existsSync(path.join(packageDir, relativePath))).toBe(true);
 		}
 	});
 
@@ -100,10 +120,7 @@ describe('package exports', () => {
 			`${pathToFileURL(path.join(packageDir, rootManifest.import)).href}?root-optional-peer-contract`
 		);
 
-		for (const name of [
-			'createFeatureBoundaryConfig',
-			'featureBoundaries',
-		]) {
+		for (const name of ['createFeatureBoundaryConfig', 'featureBoundaries']) {
 			expect(Object.prototype.hasOwnProperty.call(commonJsModule, name)).toBe(
 				false,
 			);

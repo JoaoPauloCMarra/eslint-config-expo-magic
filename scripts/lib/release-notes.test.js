@@ -32,9 +32,9 @@ describe('release notes', () => {
 	test('compares the current release candidate with the latest release tag', async () => {
 		const comparison = await loadReleaseComparison({ rootDir: projectRoot });
 
-		expect(comparison.previousRef).toBe('v3.0.2');
-		expect(comparison.previousManifest.version).toBe('3.0.2');
-		expect(comparison.currentManifest.version).toBe('4.0.0');
+		expect(comparison.previousRef).toBe('v4.0.0');
+		expect(comparison.previousManifest.version).toBe('4.0.0');
+		expect(comparison.currentManifest.version).toBe('5.0.0');
 	});
 
 	test('describes previous-to-current package changes only', () => {
@@ -86,7 +86,9 @@ describe('release notes', () => {
 
 		expect(notes).toContain('`2.8.0` → `3.0.0`');
 		expect(notes).toContain('`./recommended`');
-		expect(notes).toContain('Omitted: rule diff unavailable because dependency graphs differ.');
+		expect(notes).toContain(
+			'Omitted: rule diff unavailable because dependency graphs differ.',
+		);
 		expect(notes).not.toContain('`eqeqeq`');
 		expect(notes).toContain('`eslint-plugin-jest`: `^29.15.4` → `^29.16.0`');
 		expect(notes).toContain('`eslint`: `>=10` → `>=10 <11`');

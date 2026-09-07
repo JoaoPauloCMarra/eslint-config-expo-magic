@@ -6,12 +6,8 @@ const path = require('node:path');
 const shouldWrite = process.argv.includes('--write');
 const cwd = process.cwd();
 
-const eslintConfig = `const { createConfig } = require('eslint-config-expo-magic');
-
-module.exports = createConfig({
-\tagent: true,
-});
-`;
+const eslintConfig =
+	"module.exports = require('eslint-config-expo-magic/mobile-app');\n";
 
 const prGuardrailsConfig = `module.exports = {
 \tpreset: 'agentMobileApp',
@@ -29,6 +25,7 @@ function readPackageJson() {
 function withRecommendedScripts(packageJson) {
 	return {
 		...packageJson,
+		prettier: packageJson.prettier ?? 'eslint-config-expo-magic/prettier',
 		scripts: {
 			...(packageJson.scripts ?? {}),
 			lint: packageJson.scripts?.lint ?? 'eslint .',
@@ -48,7 +45,9 @@ function printPlan() {
 	console.log(prGuardrailsConfig);
 	console.log('Recommended package.json scripts:\n');
 	console.log(JSON.stringify(packageJson.scripts ?? {}, null, 2));
-	console.log('\nRun `expo-magic-init-agent --write` to write missing files/scripts.');
+	console.log(
+		'\nRun `expo-magic-init-agent --write` to write missing files/scripts.',
+	);
 }
 
 function writeIfMissing(fileName, contents) {
@@ -66,7 +65,10 @@ function writePlan() {
 	writeIfMissing('expo-magic.pr-guardrails.cjs', prGuardrailsConfig);
 	const packageJsonPath = path.join(cwd, 'package.json');
 	const packageJson = withRecommendedScripts(readPackageJson());
-	fs.writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`);
+	fs.writeFileSync(
+		packageJsonPath,
+		`${JSON.stringify(packageJson, null, 2)}\n`,
+	);
 	console.log('Updated package.json scripts');
 }
 

@@ -1,6 +1,6 @@
 {
-  "packageVersion": "4.0.0",
-  "expoConfigVersion": "57.0.1",
+  "packageVersion": "5.0.0",
+  "expoConfigVersion": "57.0.2",
   "presets": {
     "expo": {
       "name": "expo",
