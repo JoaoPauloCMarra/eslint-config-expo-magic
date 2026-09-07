@@ -2,6 +2,31 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
+## 5.0.0
+
+Released: 2026-09-07
+
+### Breaking Changes
+
+- ESLint, Prettier, their shared configs, and integration plugins are package dependencies instead of consumer peer dependencies. Consumers can remove direct copies and use the package-owned executable shims.
+- The initializer now targets the opinionated mobile-app profile and shared Prettier config. The previous `expo-magic-init-agent` command remains available as an alias.
+
+### Added
+
+- Adds `eslint-config-expo-magic/mobile-app`, an opinionated profile with formatting, semantic-color, native-UI, feature-architecture, persistence, naming, and focused console policies.
+- Adds `createMobileAppConfig` and `createMobileAppRestrictedImportsConfig` for small application-specific extensions.
+- Adds the public `eslint-config-expo-magic/prettier` configuration and the shorter `expo-magic-init` command.
+- Adds package-owned `eslint` and `prettier` executable shims and packed-consumer coverage for the complete setup.
+
+### Changed
+
+- Updates ESLint to 10.10.0, TypeScript ESLint to 8.69.0, `eslint-config-expo` to 57.0.2, Jest to 30.5.1, and related compatible dependencies.
+- Keeps the generic root and fast profiles lightweight while making production mobile-app adoption one import.
+
+### Compatibility
+
+- Expo SDK 54 / 55 / 56 / 57, React 19.1–19.2, ESLint 10.10, and TypeScript `>=5.9.3 <6.1.0`.
+
 ## 4.0.0
 
 Released: 2026-08-23

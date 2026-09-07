@@ -1,26 +1,63 @@
 # Migration Guide
 
-This guide covers the v4 adoption path and the supported Expo, React Native, and TypeScript upgrade lanes.
+This guide covers the v5 mobile-app migration, the v4 adoption path, and the supported Expo, React Native, and TypeScript upgrade lanes.
+
+## From 4.x to 5.0.0
+
+Version 5 can own the complete lint and formatting integration for an Expo mobile app. The generic root preset remains lightweight and compatible with v4 configuration behavior.
+
+1. Upgrade `eslint-config-expo-magic` and keep the application's TypeScript peer.
+2. Replace the large local ESLint composition with the mobile-app profile.
+3. Point the package manifest at the shared Prettier config.
+4. Remove direct ESLint, Prettier, config, resolver, and plugin dependencies that the package now owns.
+
+```js
+module.exports = require('eslint-config-expo-magic/mobile-app');
+```
+
+```json
+{
+	"prettier": "eslint-config-expo-magic/prettier"
+}
+```
+
+Use `createMobileAppConfig` when the app needs additional ignore or TypeScript project globs. Use `createMobileAppRestrictedImportsConfig` for narrowly scoped application-specific import restrictions:
+
+```js
+const {
+	createMobileAppConfig,
+	createMobileAppRestrictedImportsConfig,
+} = require('eslint-config-expo-magic/mobile-app');
+
+module.exports = [
+	...createMobileAppConfig(),
+	...createMobileAppRestrictedImportsConfig({
+		files: ['features/payments/**/*.{ts,tsx}'],
+		additionalPaths: [
+			{
+				name: '@/uikit/components/pressables',
+				message: 'Use the payment button.',
+			},
+		],
+	}),
+];
+```
+
+The `expo-magic-init` command generates the shared mobile ESLint and Prettier wiring for new consumers. The old `expo-magic-init-agent` name remains as an alias.
 
 ## From 3.x to 4.0.0
 
 Version 4 changes the package's ownership and root defaults. Make the migration in this order:
 
-1. Install the required peers and the new package.
+1. Install the TypeScript peer and the new package.
 2. Replace removed exports and opt into integrations explicitly.
 3. Run the full lint and typecheck commands before enabling autofix in CI.
 
 ```bash
-bun add --dev eslint@^10.9.0 eslint-config-expo-magic typescript@^6.0.3
+bun add --dev eslint-config-expo-magic typescript@^6.0.3
 ```
 
-ESLint and TypeScript are required peers. Expo and React are optional peers because an Expo application normally owns them. Formatting, testing, and feature-boundary packages are also optional peers; install them only when the matching option is enabled. Only `featureBoundaries` requires the optional `eslint-plugin-boundaries` peer; `reactCompiler`, `nativeUi`, and `storybook` do not require extra integration peers:
-
-```bash
-bun add --dev eslint-config-prettier eslint-plugin-prettier prettier
-bun add --dev eslint-plugin-jest eslint-plugin-testing-library
-bun add --dev eslint-plugin-boundaries
-```
+TypeScript is the required toolchain peer. Expo and React are optional peers because an Expo application normally owns them. ESLint, Prettier, and all formatting, testing, and feature-boundary plugins ship with this package.
 
 ### Root default behavior
 
@@ -45,11 +82,11 @@ The `no-prettier` export and subpath were removed. The `strictNoPrettier` and `t
 
 - Node.js `^20.19.0 || ^22.13.0 || >=24`
 - Bun `>=1.4.0`; this repository uses `bun@1.4.0`
-- ESLint `^10.9.0`
+- ESLint `^10.10.0`
 - TypeScript `>=5.9.3 <6.1.0`
-- TypeScript ESLint `^8.67.0`
+- TypeScript ESLint `^8.69.0`
 
-TypeScript 7 and the React Native/Jest preset 0.87 line remain intentional holds until the matching compatibility proof is available. Expo SDK 54 through 57 remain the supported smoke lanes, with SDK 57.0.15 coupled to React 19.2.3, React Native 0.86.2, React Test Renderer 19.2.3, `jest-expo` 57.0.4, and `@react-native/jest-preset` 0.86.2.
+TypeScript 7 and the React Native/Jest preset 0.87 line remain intentional holds until the matching compatibility proof is available. Expo SDK 54 through 57 remain the supported smoke lanes, with SDK 57.0.20 coupled to React 19.2.3, React Native 0.86.3, React Test Renderer 19.2.3, `jest-expo` 57.0.5, and `@react-native/jest-preset` 0.86.3.
 
 ### v4 verification
 
@@ -59,7 +96,7 @@ bunx eslint .
 bunx tsc --noEmit
 ```
 
-If an optional integration is enabled, verify that its peer is installed in the consumer project. The package does not depend on package-manager auto-installation of optional peers.
+If an integration is enabled, its lint dependency is already owned by this package.
 
 ## From `eslint-config-expo` to `eslint-config-expo-magic`
 
@@ -97,7 +134,7 @@ The default preset adds the package's core TypeScript, React Native, import, and
 module.exports = require('eslint-config-expo-magic');
 ```
 
-Typical new diagnostics include `import-x/order`, `unused-imports/no-unused-imports`, `no-console`, and `no-restricted-imports`. If the project wants formatting or test rules, install their optional peers and set `prettier: true` or `testing: true`.
+Typical new diagnostics include `import-x/order`, `unused-imports/no-unused-imports`, `no-console`, and `no-restricted-imports`. If the project wants formatting or test rules, set `prettier: true` or `testing: true`.
 
 ## From default to `typed`
 
@@ -148,7 +185,7 @@ Enable `reactCompiler`, `nativeUi`, and `storybook` directly. Install `eslint-pl
 
 ## Expo SDK lanes
 
-Version 4 validates SDK 54, 55, 56, and 57 through packed-consumer smoke lanes. The clean SDK57 consumer follows Expo Doctor's SDK 57.0.15 tuple: React 19.2.3, React Native 0.86.2, React Test Renderer 19.2.3, `jest-expo` 57.0.4, and `@react-native/jest-preset` 0.86.2. Keep the SDK and React Native versions coupled to the Expo lane; do not advertise an independent React Native 0.87 support line until Expo publishes a matching stable lane.
+Version 4 validates SDK 54, 55, 56, and 57 through packed-consumer smoke lanes. The clean SDK57 consumer follows Expo Doctor's SDK 57.0.20 tuple: React 19.2.3, React Native 0.86.3, React Test Renderer 19.2.3, `jest-expo` 57.0.5, and `@react-native/jest-preset` 0.86.3. Keep the SDK and React Native versions coupled to the Expo lane; do not advertise an independent React Native 0.87 support line until Expo publishes a matching stable lane.
 
 The repo keeps the fixture in the root Bun workspace. Use the root `bun.lock` and the packed-consumer smoke tests rather than a nested fixture lockfile.
 
@@ -156,6 +193,6 @@ The repo keeps the fixture in the root Bun workspace. Use the root `bun.lock` an
 
 1. Read the generated [configuration diff](CONFIG_DIFF.md).
 2. Read [release notes](RELEASE_NOTES.next.md) for new or stricter rules.
-3. Install required peers and only the optional integrations selected in the config.
+3. Install the required TypeScript peer and enable only the integrations selected in the config.
 4. Run the full lint and typecheck commands in CI before enabling autofix.
 5. Use `base`, `fast`, or explicit `createConfig` options to stage adoption when a project needs a smaller first step.

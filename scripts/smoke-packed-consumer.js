@@ -11,7 +11,8 @@ const {
 	writeJson,
 } = require('./lib/packed-consumer.js');
 const NO_RESTRICTED_SYNTAX_RULE_ID = 'no-restricted-syntax';
-const REANIMATED_SHARED_VALUE_RULE_ID = 'expo-magic-reanimated/no-shared-value-misuse';
+const REANIMATED_SHARED_VALUE_RULE_ID =
+	'expo-magic-reanimated/no-shared-value-misuse';
 
 const smokeLanes = [
 	{
@@ -39,9 +40,9 @@ const smokeLanes = [
 	},
 	{
 		name: 'sdk-57',
-		expo: '57.0.15',
+		expo: '57.0.20',
 		react: '19.2.3',
-		reactNative: '0.86.2',
+		reactNative: '0.86.3',
 		reactTestRenderer: '19.2.3',
 		typescript: '^6.0.3',
 	},
@@ -98,8 +99,7 @@ function assertLacksRule(messages, ruleId, message) {
 function assertMessageForRule(messages, ruleId, messageText, errorMessage) {
 	const hasMatch = messages.some(
 		(message) =>
-			message.ruleId === ruleId &&
-			message.message.includes(messageText),
+			message.ruleId === ruleId && message.message.includes(messageText),
 	);
 	if (!hasMatch) {
 		throw new Error(errorMessage);
@@ -113,20 +113,13 @@ function createFixturePackageJson(tarballPath, lane) {
 		type: 'commonjs',
 		devDependencies: {
 			'@testing-library/react-native': '^14.0.1',
-			eslint: '^10.9.0',
-			'eslint-config-prettier': '^10.1.8',
 			expo: lane.expo,
-			'eslint-plugin-boundaries': '^7.2.0',
-			'eslint-plugin-jest': '^29.16.1',
-			'eslint-plugin-prettier': '^5.5.6',
-			'eslint-plugin-testing-library': '^7.16.2',
-			prettier: '^3.9.6',
 			react: lane.react,
 			'react-native': lane.reactNative,
 			'react-test-renderer': lane.reactTestRenderer,
 			typescript: lane.typescript ?? '^5.9.3',
 			'eslint-config-expo-magic': `file:${tarballPath}`,
-			jest: '^30.4.2',
+			jest: '^30.5.1',
 		},
 	};
 }
@@ -137,8 +130,7 @@ function createNpmFixturePackageJson(tarballPath) {
 		private: true,
 		type: 'module',
 		dependencies: {
-			eslint: '^10.9.0',
-			expo: '57.0.15',
+			expo: '57.0.20',
 			react: '19.2.3',
 			typescript: '6.0.3',
 			'eslint-config-expo-magic': `file:${tarballPath}`,
@@ -235,18 +227,18 @@ function writeRuntimeContract(
 			'',
 			'\tassert.equal(typeof exportValue.types, "string");',
 			'\tassert.equal(typeof exportValue.require, "string");',
-		'\tassert.equal(typeof exportValue.import, "string");',
-		'\tconst commonJsModule = require(specifier);',
-		'\tconst esmModule = await import(specifier);',
-		'\tconst commonJsNamedExports = Object.keys(commonJsModule)',
-		'\t\t.filter(isRuntimeNamedExport)',
-		'\t\t.sort();',
-		'\tconst esmNamedExports = Object.keys(esmModule)',
-		"\t\t.filter((name) => name !== 'default')",
-		'\t\t.sort();',
-		'',
-		'\tassert.equal(esmModule.default, commonJsModule, `${subpath} default export`);',
-		'\tassert.deepEqual(esmNamedExports, commonJsNamedExports, `${subpath} named exports`);',
+			'\tassert.equal(typeof exportValue.import, "string");',
+			'\tconst commonJsModule = require(specifier);',
+			'\tconst esmModule = await import(specifier);',
+			'\tconst commonJsNamedExports = Object.keys(commonJsModule)',
+			'\t\t.filter(isRuntimeNamedExport)',
+			'\t\t.sort();',
+			'\tconst esmNamedExports = Object.keys(esmModule)',
+			"\t\t.filter((name) => name !== 'default')",
+			'\t\t.sort();',
+			'',
+			'\tassert.equal(esmModule.default, commonJsModule, `${subpath} default export`);',
+			'\tassert.deepEqual(esmNamedExports, commonJsNamedExports, `${subpath} named exports`);',
 			'}',
 			'',
 		].join('\n'),
@@ -354,6 +346,26 @@ function validatePackageContract(tempProjectDir) {
 	});
 }
 
+function validatePackageExecutables(tempProjectDir) {
+	run('bunx', ['eslint', '--version'], { cwd: tempProjectDir });
+	run('bunx', ['prettier', '--version'], { cwd: tempProjectDir });
+
+	const formatSmokePath = path.join(tempProjectDir, 'format-smoke.js');
+	fs.writeFileSync(formatSmokePath, 'const value={answer:42}\n');
+	run('bunx', ['prettier', '--write', 'format-smoke.js'], {
+		cwd: tempProjectDir,
+	});
+	if (
+		fs.readFileSync(formatSmokePath, 'utf8') !==
+		'const value = { answer: 42 };\n'
+	) {
+		throw new Error('Package-owned Prettier did not format the smoke fixture.');
+	}
+	run('bunx', ['prettier', '--check', 'format-smoke.js'], {
+		cwd: tempProjectDir,
+	});
+}
+
 function validateNpmConsumer(tarballPath) {
 	withTempConsumer('npm-consumer', (tempProjectDir) => {
 		writeJson(
@@ -377,8 +389,16 @@ function validateNpmConsumer(tarballPath) {
 				},
 			},
 		);
-		writeRuntimeContract(tempProjectDir, { includeOptionalIntegrations: false });
+		writeRuntimeContract(tempProjectDir, {
+			includeOptionalIntegrations: false,
+		});
 		run('node', ['package-runtime-contract.mjs'], { cwd: tempProjectDir });
+		run('npx', ['--no-install', 'eslint', '--version'], {
+			cwd: tempProjectDir,
+		});
+		run('npx', ['--no-install', 'prettier', '--version'], {
+			cwd: tempProjectDir,
+		});
 	});
 }
 
@@ -906,6 +926,7 @@ function main() {
 					);
 					run('bun', ['install'], { cwd: tempProjectDir });
 					validatePackageContract(tempProjectDir);
+					validatePackageExecutables(tempProjectDir);
 					if (!contractsOnly) {
 						writeFixtureFiles(tempProjectDir);
 						validateLane(tempProjectDir);

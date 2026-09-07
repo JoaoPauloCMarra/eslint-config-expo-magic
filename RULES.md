@@ -197,11 +197,11 @@ These layers are off by default and enabled per project via `createConfig({ ... 
 
 ## ✨ Formatting
 
-The `prettier/prettier` rule is an optional integration in v4. Install `eslint-config-prettier`, `eslint-plugin-prettier`, and `prettier`, then enable it with `createConfig({ prettier: true })`. Keeping it out of the default runtime makes the root and fast packed-consumer paths usable without formatter peers.
+The `prettier/prettier` rule is optional in the generic root preset and enabled in the v5 mobile-app profile. The package owns `eslint-config-prettier`, `eslint-plugin-prettier`, and Prettier; consumers do not install them separately.
 
 ## 🧪 Testing
 
-Jest and Testing Library rules are disabled in the root and fast presets by default because they require optional peer integrations. Install `eslint-plugin-jest` and `eslint-plugin-testing-library`, then enable them with `createConfig({ testing: true })` when the project has those test surfaces.
+Jest and Testing Library rules are disabled in the root and fast presets by default. Their plugins ship with the package; enable them with `createConfig({ testing: true })` when the project has those test surfaces.
 
 ### `testing-library/await-async-queries`
 

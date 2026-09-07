@@ -5,18 +5,20 @@ Use this setup when a project is frequently edited by AI agents and needs guardr
 ## Install
 
 ```bash
-bun add --dev eslint@^10.9.0 eslint-config-expo-magic typescript@^6.0.3
+bun add --dev eslint-config-expo-magic typescript@^6.0.3
 ```
 
-Formatting, testing, and feature-boundary integrations are optional peers. Install only the integrations selected by the config:
-
-```bash
-bun add --dev eslint-config-prettier eslint-plugin-prettier prettier
-bun add --dev eslint-plugin-jest eslint-plugin-testing-library
-bun add --dev eslint-plugin-boundaries
-```
+ESLint, Prettier, and the formatting, testing, and feature-boundary plugins ship with the package. Enable only the integrations selected by the config.
 
 ## ESLint config
+
+For a production Expo app, use the shared mobile profile:
+
+```js
+module.exports = require('eslint-config-expo-magic/mobile-app');
+```
+
+For a library or gradual rollout, compose focused options:
 
 ```js
 const { createConfig } = require('eslint-config-expo-magic');
@@ -76,11 +78,11 @@ The `agentMobileApp` preset expects PR text to include checkboxes for lint, type
 Preview recommended files:
 
 ```bash
-bunx expo-magic-init-agent
+bunx expo-magic-init
 ```
 
 Write missing setup files and package scripts:
 
 ```bash
-bunx expo-magic-init-agent --write
+bunx expo-magic-init --write
 ```
