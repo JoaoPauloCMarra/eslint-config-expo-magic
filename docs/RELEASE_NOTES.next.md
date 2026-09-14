@@ -1,7 +1,7 @@
 # Changes
 
-Compared `v5.1.0` package `5.1.0` with current package `5.1.1`.
+Compared `v5.1.1` package `5.1.1` with current package `5.1.2`.
 
 ## Package
 
-- Version: `5.1.0` → `5.1.1`
+- Version: `5.1.1` → `5.1.2`

@@ -2,6 +2,18 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
+## 5.1.2
+
+Released: 2026-09-14
+
+### Breaking Changes
+
+- None.
+
+### Fixed
+
+- `createArchitectureConfig()` banned native-library imports inside `src/services/native/`, the directory its own message points callers to. The owned native wrapper directory is now always exempt, in addition to any `nativeWrappers` the caller passes.
+
 ## 5.1.1
 
 Released: 2026-09-14

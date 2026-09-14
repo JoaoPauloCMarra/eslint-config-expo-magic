@@ -277,6 +277,15 @@ describe('createArchitectureConfig', () => {
 				expect(ruleIds).not.toContain('expo-magic/no-cross-feature-imports');
 			});
 
+			it('allows the owned native wrapper to import its library', async () => {
+				const ruleIds = await lint(
+					lane.layers,
+					'src/services/native/nitro-storage.ts',
+					"import { createStorageItem } from 'react-native-nitro-storage';\nexport default createStorageItem;\n",
+				);
+				expect(ruleIds).not.toContain('no-restricted-imports');
+			});
+
 			it('allows fetch inside services', async () => {
 				const ruleIds = await lint(
 					lane.layers,
