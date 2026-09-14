@@ -155,10 +155,34 @@ function createArchitectureConfig(options = {}) {
 	const featureGlob = `${src}/features/**/*.{ts,tsx}`;
 	const featureViewGlob = `${src}/features/**/*.{tsx,jsx}`;
 
-	const globalBypassSelectors = [
-		...globalMemberSelectors(['fetch', 'XMLHttpRequest'], HTTP_MESSAGE),
-		...globalMemberSelectors(['console'], CONSOLE_MESSAGE),
+	const viewSelectors = [
+		{
+			selector:
+				'CallExpression[callee.type="MemberExpression"][callee.property.name=/^(map|filter|reduce|sort|flatMap)$/] > MemberExpression[property.name=/^(map|filter|reduce|sort|flatMap)$/]',
+			message:
+				'Business logic belongs in a `use-*.ts` hook or a pure `.ts` module, not in a view.',
+		},
+		{
+			selector: 'CallExpression[callee.name="useEffect"]',
+			message:
+				'No effects in views. Move orchestration into the feature hook.',
+		},
 	];
+
+	const httpBypassSelectors = globalMemberSelectors(
+		['fetch', 'XMLHttpRequest'],
+		HTTP_MESSAGE,
+	);
+	const consoleBypassSelectors = globalMemberSelectors(
+		['console'],
+		CONSOLE_MESSAGE,
+	);
+	const globalBypassSelectors = [
+		...httpBypassSelectors,
+		...consoleBypassSelectors,
+	];
+
+	viewSelectors.unshift(...globalBypassSelectors);
 
 	return [
 		// Owned primitives + native libraries, everywhere under src.
@@ -280,18 +304,47 @@ function createArchitectureConfig(options = {}) {
 			files: [featureViewGlob],
 			ignores: testGlobs,
 			rules: {
+				'no-restricted-syntax': restrictedSyntax(
+					baseColorSelectors,
+					viewSelectors,
+				),
+			},
+		},
+		// Views and routes never reach for the data layer; hooks and services own it.
+		{
+			name: 'architecture/no-state-modules-in-views',
+			files: [`${src}/**/*.{tsx,jsx}`],
+			ignores: [`${src}/services/**`, ...testGlobs, ...nativeWrappers],
+			rules: {
+				'no-restricted-imports': restrictedImports(basePaths, [], [
+					...nativeLibPatterns,
+					{
+						group: [
+							`@/services/query/**`,
+							`@/services/client-state/**`,
+						],
+						message:
+							'Views and routes do not import query or client-state modules. A `use-*.ts` hook owns that.',
+					},
+				]),
+			},
+		},
+		// `*-view.tsx` and feature components receive props; screen hosts call hooks.
+		{
+			name: 'architecture/views-receive-props',
+			files: [
+				`${src}/features/**/*-view.{tsx,jsx}`,
+				`${src}/features/*/components/**/*.{tsx,jsx}`,
+			],
+			ignores: testGlobs,
+			rules: {
 				'no-restricted-syntax': restrictedSyntax(baseColorSelectors, [
-					...globalBypassSelectors,
+					...viewSelectors,
 					{
 						selector:
-							'CallExpression[callee.type="MemberExpression"][callee.property.name=/^(map|filter|reduce|sort|flatMap)$/] > MemberExpression[property.name=/^(map|filter|reduce|sort|flatMap)$/]',
+							'ImportDeclaration[importKind!="type"][source.value=/\\/hooks\\//]',
 						message:
-							'Business logic belongs in a `use-*.ts` hook or a pure `.ts` module, not in a view.',
-					},
-					{
-						selector: 'CallExpression[callee.name="useEffect"]',
-						message:
-							'No effects in views. Move orchestration into the feature hook.',
+							'Views receive props. Only a screen host may call a feature hook.',
 					},
 				]),
 			},
@@ -320,15 +373,29 @@ function createArchitectureConfig(options = {}) {
 				],
 			},
 		},
+		// The owned logger is the one module allowed to reach the console, in
+		// either the bare or the `globalThis.` form. Every other rule still applies.
 		{
 			name: 'architecture/logger',
 			files: [`${src}/${loggerModule}.{ts,tsx}`],
-			rules: { 'no-console': 'off' },
+			rules: {
+				'no-console': 'off',
+				'no-restricted-syntax': restrictedSyntax(
+					baseColorSelectors,
+					httpBypassSelectors,
+				),
+			},
 		},
 		{
 			name: 'architecture/services-may-fetch',
 			files: [`${src}/services/**/*.{ts,tsx}`],
 			rules: { 'no-restricted-globals': 'off' },
+		},
+		// The token module is the one place raw colour literals belong.
+		{
+			name: 'architecture/token-module',
+			files: [`${src}/${tokenModule}/colors.{ts,tsx}`],
+			rules: { 'no-restricted-syntax': 'off' },
 		},
 		...createFeatureIsolationConfig(src, aliasPrefix),
 		{
@@ -337,6 +404,9 @@ function createArchitectureConfig(options = {}) {
 			rules: {
 				'no-restricted-imports': 'off',
 				'no-restricted-globals': 'off',
+				'no-console': 'off',
+				// Jest mocks are hoisted, so factories legitimately use require().
+				'@typescript-eslint/no-require-imports': 'off',
 				'expo-magic/kebab-case-filenames': 'off',
 				'expo-magic/no-cross-feature-imports': 'off',
 			},

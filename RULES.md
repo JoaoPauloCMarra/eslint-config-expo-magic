@@ -307,6 +307,9 @@ pure modules sit at the feature root. Import-pattern bans cannot express this:
 they cannot tell "another feature" from "this feature", and a denylist of known
 subfolders misses root-level files entirely.
 
+The rule resolves relative specifiers against the importing file, so
+`../../billing/total` is caught as readily as `@/features/billing/total`.
+
 ### `expo-magic/kebab-case-filenames`
 
 Authored file names are lowercase kebab-case. Extensions and router prefixes

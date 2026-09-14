@@ -15,6 +15,7 @@ Released: 2026-09-14
 - `eslint-config-expo-magic/architecture` exports `createArchitectureConfig()`, which enforces a layered `src/` application (routes, features, services, UI) on top of any preset. Layer names are explicit, so a project that calls its route host `core` and its UI layer `shared` passes those names instead of a lane enum.
 - `expo-magic/no-cross-feature-imports` restricts cross-feature access to `contracts/`. It compares the feature segment of the importing file with the feature segment of the specifier, so it works on flat feature folders and needs no import resolver.
 - `expo-magic/kebab-case-filenames` requires lowercase kebab-case file names, ignoring extensions and router prefixes such as `+not-found` and `[id]`.
+- Views and routes are kept out of the data layer: `@/services/query/**` and `@/services/client-state/**` are not importable from `.tsx`, and `*-view` files and feature components may not import a feature hook. Together with the `importCycles` option this covers the layer-direction and cycle checks that usually need a separate dependency-graph tool.
 
 ### Fixed
 

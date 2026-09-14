@@ -30,8 +30,8 @@ function featureOfFile(filePath, options) {
 	return segment && segment.length > 0 ? segment : null;
 }
 
-/** Parses `@/features/<name>/<rest...>` from an import specifier. */
-function parseSpecifier(source, options) {
+/** Parses `@/features/<name>/<rest...>` from an aliased import specifier. */
+function parseAliased(source, options) {
 	const prefix = `${options.aliasPrefix}/${options.featuresSegment}/`;
 	if (!source.startsWith(prefix)) {
 		return null;
@@ -44,6 +44,57 @@ function parseSpecifier(source, options) {
 	}
 
 	return { feature, isContract: rest[0] === options.contractsSegment };
+}
+
+/** Collapses `.` and `..` without touching the filesystem. */
+function normalizeSegments(segments) {
+	const out = [];
+	for (const segment of segments) {
+		if (segment === '' || segment === '.') {
+			continue;
+		}
+		if (segment === '..') {
+			out.pop();
+			continue;
+		}
+		out.push(segment);
+	}
+	return out;
+}
+
+/**
+ * Resolves a relative specifier against the importing file so that
+ * `../../billing/total` is caught as readily as `@/features/billing/total`.
+ */
+function parseRelative(source, filePath, options) {
+	if (!source.startsWith('.')) {
+		return null;
+	}
+
+	const normalized = filePath.split('\\').join('/');
+	const fromDir = normalized.split('/').slice(0, -1);
+	const resolved = normalizeSegments([...fromDir, ...source.split('/')]);
+
+	const index = resolved.lastIndexOf(options.featuresSegment);
+	if (index === -1) {
+		return null;
+	}
+
+	const feature = resolved[index + 1];
+	if (!feature) {
+		return null;
+	}
+
+	return {
+		feature,
+		isContract: resolved[index + 2] === options.contractsSegment,
+	};
+}
+
+function parseSpecifier(source, filePath, options) {
+	return (
+		parseAliased(source, options) ?? parseRelative(source, filePath, options)
+	);
 }
 
 module.exports = {
@@ -84,7 +135,7 @@ module.exports = {
 				return;
 			}
 
-			const parsed = parseSpecifier(source, options);
+			const parsed = parseSpecifier(source, filePath, options);
 			if (!parsed || parsed.isContract || parsed.feature === fromFeature) {
 				return;
 			}

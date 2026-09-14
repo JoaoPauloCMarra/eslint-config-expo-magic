@@ -192,7 +192,8 @@ route host `core` and its UI layer `shared` passes those names instead.
 What it enforces:
 
 - Cross-feature imports are contracts-only, matched on the feature segment of
-  both paths. Works with flat feature folders and needs no import resolver.
+  both paths. Catches aliased and relative specifiers alike, works with flat
+  feature folders, and needs no import resolver.
 - Owned primitives: raw React Native `Button`, `Image`, `Pressable`,
   `ScrollView`, `FlatList` and `Modal` stay inside the wrapper files listed in
   `nativeWrappers`.
@@ -204,7 +205,9 @@ What it enforces:
 - `console.*` belongs to the owned logger, including `globalThis.console`.
 - No barrels at any depth, and no `domain/` / `application/` / `ui/` trees
   inside a feature.
-- Views render and wire only: no effects and no collection pipelines.
+- Views render and wire only: no effects, no collection pipelines, and no
+  query or client-state imports. `*-view` files and feature components receive
+  props; only a screen host may call a feature hook.
 - File names are lowercase kebab-case, with router conventions such as
   `+not-found` and `[id]` exempt.
 
@@ -216,6 +219,10 @@ both active.
 
 Options: `layers`, `srcRoot`, `aliasPrefix`, `tokenModule`, `loggerModule`,
 `nativeWrappers`, `extraNativeUiRestrictions`, `extraNativeLibPatterns`.
+
+Between these rules and the `importCycles` option, the layer direction,
+cross-feature isolation, and cycle checks that projects usually delegate to a
+separate dependency-graph tool are covered by ESLint alone.
 
 ## Agent setup
 

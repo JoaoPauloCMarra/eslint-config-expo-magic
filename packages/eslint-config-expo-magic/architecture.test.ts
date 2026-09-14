@@ -70,6 +70,12 @@ const VIOLATIONS: {
 		rule: 'expo-magic/no-cross-feature-imports',
 	},
 	{
+		code: "import { c } from '../../home/home-copy';\nexport const useZ = () => c;\n",
+		file: 'src/features/other/hooks/use-z.ts',
+		name: 'cross-feature import written as a relative path',
+		rule: 'expo-magic/no-cross-feature-imports',
+	},
+	{
 		code: "export const s = { backgroundColor: '#ff0000' };\n",
 		file: 'src/features/home/screens/hex-view.tsx',
 		name: 'raw hex colour in a view',
@@ -148,6 +154,18 @@ const VIOLATIONS: {
 		rule: 'no-console',
 	},
 	{
+		code: "import { store } from '@/services/client-state/app-store';\nexport default store;\n",
+		file: 'src/features/home/screens/state-view.tsx',
+		name: 'view importing a client-state module',
+		rule: 'no-restricted-imports',
+	},
+	{
+		code: "import useHomeScreen from '@/features/home/hooks/use-home-screen';\nexport default useHomeScreen;\n",
+		file: 'src/features/home/screens/home-screen-view.tsx',
+		name: 'view importing a feature hook',
+		rule: 'no-restricted-syntax',
+	},
+	{
 		code: "import { createHomeCopy } from '@/features/home/home-copy';\nexport const x = createHomeCopy('a');\n",
 		file: 'src/services/logger/bad-dep.ts',
 		name: 'service importing a feature',
@@ -191,6 +209,17 @@ describe('createArchitectureConfig', () => {
 				expect(ruleIds).not.toContain('expo-magic/no-cross-feature-imports');
 			});
 
+			it('allows a same-feature relative import', async () => {
+				const ruleIds = await lint(
+					lane.layers,
+					'src/features/home/hooks/use-home.ts',
+					"import { c } from '../home-copy';\nexport const useHome = () => c;\n",
+				);
+				expect(ruleIds).not.toContain(
+					'expo-magic/no-cross-feature-imports',
+				);
+			});
+
 			it('allows a cross-feature contracts import', async () => {
 				const ruleIds = await lint(
 					lane.layers,
@@ -216,6 +245,15 @@ describe('createArchitectureConfig', () => {
 					"export const log = (m: string) => {\n\tconsole.log(m);\n};\n",
 				);
 				expect(ruleIds).not.toContain('no-console');
+			});
+
+			it('allows globalThis.console inside the owned logger', async () => {
+				const ruleIds = await lint(
+					lane.layers,
+					'src/services/logger/logger.ts',
+					"export const log = (m: string) => {\n\tglobalThis.console?.log(m);\n};\n",
+				);
+				expect(ruleIds).not.toContain('no-restricted-syntax');
 			});
 		});
 	}
