@@ -86,7 +86,7 @@ The `no-prettier` export and subpath were removed. The `strictNoPrettier` and `t
 - TypeScript `>=5.9.3 <6.1.0`
 - TypeScript ESLint `^8.69.0`
 
-TypeScript 7 and the React Native/Jest preset 0.87 line remain intentional holds until the matching compatibility proof is available. Expo SDK 54 through 57 remain the supported smoke lanes, with SDK 57.0.20 coupled to React 19.2.3, React Native 0.86.3, React Test Renderer 19.2.3, `jest-expo` 57.0.5, and `@react-native/jest-preset` 0.86.3.
+TypeScript 7 and the React Native/Jest preset 0.87 line remain intentional holds until the matching compatibility proof is available. Expo SDK 54 through 57 remain the supported smoke lanes, with SDK 57.0.22 coupled to React 19.2.3, React Native 0.86.3, React Test Renderer 19.2.3, `jest-expo` 57.0.5, and `@react-native/jest-preset` 0.86.3.
 
 ### v4 verification
 
@@ -185,7 +185,7 @@ Enable `reactCompiler`, `nativeUi`, and `storybook` directly. Install `eslint-pl
 
 ## Expo SDK lanes
 
-Version 4 validates SDK 54, 55, 56, and 57 through packed-consumer smoke lanes. The clean SDK57 consumer follows Expo Doctor's SDK 57.0.20 tuple: React 19.2.3, React Native 0.86.3, React Test Renderer 19.2.3, `jest-expo` 57.0.5, and `@react-native/jest-preset` 0.86.3. Keep the SDK and React Native versions coupled to the Expo lane; do not advertise an independent React Native 0.87 support line until Expo publishes a matching stable lane.
+Version 4 validates SDK 54, 55, 56, and 57 through packed-consumer smoke lanes. The clean SDK57 consumer follows Expo Doctor's SDK 57.0.22 tuple: React 19.2.3, React Native 0.86.3, React Test Renderer 19.2.3, `jest-expo` 57.0.5, and `@react-native/jest-preset` 0.86.3. Keep the SDK and React Native versions coupled to the Expo lane; do not advertise an independent React Native 0.87 support line until Expo publishes a matching stable lane.
 
 The repo keeps the fixture in the root Bun workspace. Use the root `bun.lock` and the packed-consumer smoke tests rather than a nested fixture lockfile.
 

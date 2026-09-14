@@ -40,7 +40,7 @@ const smokeLanes = [
 	},
 	{
 		name: 'sdk-57',
-		expo: '57.0.20',
+		expo: '57.0.22',
 		react: '19.2.3',
 		reactNative: '0.86.3',
 		reactTestRenderer: '19.2.3',
@@ -130,7 +130,7 @@ function createNpmFixturePackageJson(tarballPath) {
 		private: true,
 		type: 'module',
 		dependencies: {
-			expo: '57.0.20',
+			expo: '57.0.22',
 			react: '19.2.3',
 			typescript: '6.0.3',
 			'eslint-config-expo-magic': `file:${tarballPath}`,

@@ -293,3 +293,35 @@ const secret = process.env.DATABASE_URL;
 ---
 
 _Made with ❤️ for the Expo community._
+
+## Layered architecture rules
+
+`createArchitectureConfig()` (subpath `eslint-config-expo-magic/architecture`).
+
+### `expo-magic/no-cross-feature-imports`
+
+A feature may import its own modules and any other feature's `contracts/`, and
+nothing else. The rule compares the feature segment of the importing file with
+the feature segment of the specifier, so it works on flat feature folders where
+pure modules sit at the feature root. Import-pattern bans cannot express this:
+they cannot tell "another feature" from "this feature", and a denylist of known
+subfolders misses root-level files entirely.
+
+The rule resolves relative specifiers against the importing file, so
+`../../billing/total` is caught as readily as `@/features/billing/total`.
+
+### `expo-magic/kebab-case-filenames`
+
+Authored file names are lowercase kebab-case. Extensions and router prefixes
+(`+not-found`, `[id]`) are ignored, so the convention applies to the stem only.
+Mixed-case file names break on case-insensitive filesystems and make imports
+ambiguous across platforms.
+
+### Composition over replacement
+
+Every layer block emitted by `createArchitectureConfig()` re-states the
+semantic-colour selectors and the native-UI restriction paths it must not lose.
+ESLint flat config replaces rule options when a later entry supplies them, so a
+block that declares only its own `no-restricted-syntax` disables the raw-colour
+ban for every file it matches. This is the defect the factory exists to prevent,
+and `architecture.test.ts` asserts each rule still fires from inside a view.
