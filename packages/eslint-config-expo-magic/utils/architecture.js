@@ -124,8 +124,13 @@ function createArchitectureConfig(options = {}) {
 	const aliasPrefix = options.aliasPrefix ?? '@';
 	const tokenModule = options.tokenModule ?? layers.tokens;
 	const loggerModule = options.loggerModule ?? 'services/logger/logger';
-	const nativeWrappers = options.nativeWrappers ?? [
-		`${src}/${layers.components}/*.{ts,tsx,js,jsx}`,
+	const nativeWrappers = [
+		// The owned native wrapper directory is exactly where these imports
+		// belong; the restriction message points callers here.
+		`${src}/services/native/**/*.${CODE}`,
+		...(options.nativeWrappers ?? [
+			`${src}/${layers.components}/*.{ts,tsx,js,jsx}`,
+		]),
 	];
 	const extraNativeUiRestrictions = options.extraNativeUiRestrictions ?? [];
 	const extraNativeLibPatterns = options.extraNativeLibPatterns ?? [];

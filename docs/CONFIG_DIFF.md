@@ -1,6 +1,6 @@
 # Config Diff
 
-Package version: `5.1.1`
+Package version: `5.1.2`
 Expo config version: `57.0.2`
 
 ## Effective Rule Counts
