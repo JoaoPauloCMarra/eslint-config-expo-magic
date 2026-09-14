@@ -32,9 +32,9 @@ describe('release notes', () => {
 	test('compares the current release candidate with the latest release tag', async () => {
 		const comparison = await loadReleaseComparison({ rootDir: projectRoot });
 
-		expect(comparison.previousRef).toBe('v5.0.0');
-		expect(comparison.previousManifest.version).toBe('5.0.0');
-		expect(comparison.currentManifest.version).toBe('5.1.0');
+		expect(comparison.previousRef).toBe('v5.1.0');
+		expect(comparison.previousManifest.version).toBe('5.1.0');
+		expect(comparison.currentManifest.version).toBe('5.1.1');
 	});
 
 	test('describes previous-to-current package changes only', () => {

@@ -2,6 +2,18 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
+## 5.1.1
+
+Released: 2026-09-14
+
+### Breaking Changes
+
+- None.
+
+### Fixed
+
+- `createArchitectureConfig()` matched only `.ts`/`.tsx`, so a type-stripped JavaScript application silently lost every layer rule: cross-feature isolation, barrels, kebab-case file names, the `globalThis` bypasses, and the HTTP ban all stopped matching. Layer globs now cover `.js`/`.jsx` as well. A TypeScript application has no `.js` under `src`, so matching both changes nothing there.
+
 ## 5.1.0
 
 Released: 2026-09-14

@@ -184,6 +184,54 @@ describe('createArchitectureConfig', () => {
 		expect(() => createArchitectureConfig([])).toThrow(TypeError);
 	});
 
+	/**
+	 * A type-stripped app is .js/.jsx. Layer globs that only matched .ts/.tsx
+	 * silently stopped enforcing anything there, so every rule is re-checked
+	 * against the JavaScript extensions.
+	 */
+	describe('javascript lane', () => {
+		const jsCases: { code: string; file: string; name: string; rule: string }[] =
+			[
+				{
+					code: 'export const x = 1;\n',
+					file: 'src/features/home/BadName.js',
+					name: 'PascalCase filename',
+					rule: 'expo-magic/kebab-case-filenames',
+				},
+				{
+					code: "export const shout = () => {\n\tglobalThis.console.log('x');\n};\n",
+					file: 'src/features/home/log-b.js',
+					name: 'globalThis.console bypass',
+					rule: 'no-restricted-syntax',
+				},
+				{
+					code: "export { c } from '@/features/home/home-copy';\n",
+					file: 'src/features/home/hooks/index.js',
+					name: 'nested barrel',
+					rule: 'no-restricted-syntax',
+				},
+				{
+					code: "import { c } from '@/features/home/home-copy';\nexport const useX = () => c;\n",
+					file: 'src/features/other/hooks/use-x.js',
+					name: 'cross-feature import',
+					rule: 'expo-magic/no-cross-feature-imports',
+				},
+				{
+					code: "export const load = () => fetch('https://x.dev');\n",
+					file: 'src/features/home/hooks/use-f.js',
+					name: 'fetch in a feature hook',
+					rule: 'no-restricted-globals',
+				},
+			];
+
+		for (const jsCase of jsCases) {
+			it(`catches ${jsCase.name} in a .js file`, async () => {
+				const ruleIds = await lint(EXPO_LAYERS, jsCase.file, jsCase.code);
+				expect(ruleIds).toContain(jsCase.rule);
+			});
+		}
+	});
+
 	for (const lane of [
 		{ layers: EXPO_LAYERS, name: 'expo' },
 		{ layers: BARE_LAYERS, name: 'bare' },
