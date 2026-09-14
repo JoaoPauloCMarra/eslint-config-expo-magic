@@ -25,7 +25,7 @@ function writeConsumerFiles(tempProjectDir, tarballPath) {
 			'@react-native/jest-preset': '0.86.3',
 			'@types/react': '~19.2.17',
 			'expo-status-bar': '57.0.1',
-			expo: '57.0.20',
+			expo: '57.0.22',
 			'eslint-config-expo-magic': `file:${tarballPath}`,
 			'jest-expo': '57.0.5',
 			react: '19.2.3',

@@ -1,6 +1,6 @@
 {
 	"name": "eslint-config-expo-magic",
-	"version": "5.0.0",
+	"version": "5.1.0",
 	"description": "ESLint flat config for Expo, React Native, and TypeScript projects",
 	"keywords": [
 		"eslint",
@@ -63,6 +63,12 @@
 			"types": "./agent-guardrails.d.ts",
 			"require": "./agent-guardrails.js",
 			"import": "./agent-guardrails.mjs"
+		},
+		"./architecture": {
+			"types": "./architecture.d.ts",
+			"import": "./architecture.mjs",
+			"require": "./architecture.js",
+			"default": "./architecture.js"
 		},
 		"./strict": {
 			"types": "./strict.d.ts",
@@ -160,6 +166,8 @@
 		"agent.mjs",
 		"agent-guardrails.js",
 		"agent-guardrails.mjs",
+		"architecture.js",
+		"architecture.mjs",
 		"strict.js",
 		"strict.mjs",
 		"typed.js",
@@ -195,6 +203,7 @@
 		"fast.d.ts",
 		"agent.d.ts",
 		"agent-guardrails.d.ts",
+		"architecture.d.ts",
 		"strict.d.ts",
 		"typed.d.ts",
 		"app-guardrails.d.ts",

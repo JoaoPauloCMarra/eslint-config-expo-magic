@@ -2,6 +2,26 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
+## 5.1.0
+
+Released: 2026-09-14
+
+### Breaking Changes
+
+- None. `createArchitectureConfig()` is a new opt-in subpath export; existing presets and focused configurations are unchanged.
+
+### Added
+
+- `eslint-config-expo-magic/architecture` exports `createArchitectureConfig()`, which enforces a layered `src/` application (routes, features, services, UI) on top of any preset. Layer names are explicit, so a project that calls its route host `core` and its UI layer `shared` passes those names instead of a lane enum.
+- `expo-magic/no-cross-feature-imports` restricts cross-feature access to `contracts/`. It compares the feature segment of the importing file with the feature segment of the specifier, so it works on flat feature folders and needs no import resolver.
+- `expo-magic/kebab-case-filenames` requires lowercase kebab-case file names, ignoring extensions and router prefixes such as `+not-found` and `[id]`.
+
+### Fixed
+
+- Layer configurations composed by `createArchitectureConfig()` re-state the semantic-colour selectors and native-UI restriction paths they extend. ESLint flat config replaces rule options when a later entry supplies them, so a layer block that declared only its own `no-restricted-imports` or `no-restricted-syntax` silently disabled the owned-primitive ban and the raw-colour ban for every file it matched. Applications that hand-wrote per-layer blocks were losing both in exactly the layers that matter.
+- `globalThis.fetch`, `globalThis.console` and their `global` / `window` / `self` forms are now caught. `no-restricted-globals` and `no-console` are scope-analysis rules and never saw the member-expression form.
+- Barrel files are matched at any depth. The previous single-segment glob missed nested barrels such as `features/<name>/hooks/index.ts`.
+
 ## 5.0.0
 
 Released: 2026-09-07

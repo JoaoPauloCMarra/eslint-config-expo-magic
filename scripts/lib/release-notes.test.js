@@ -34,7 +34,7 @@ describe('release notes', () => {
 
 		expect(comparison.previousRef).toBe('v4.0.0');
 		expect(comparison.previousManifest.version).toBe('4.0.0');
-		expect(comparison.currentManifest.version).toBe('5.0.0');
+		expect(comparison.currentManifest.version).toBe('5.1.0');
 	});
 
 	test('describes previous-to-current package changes only', () => {

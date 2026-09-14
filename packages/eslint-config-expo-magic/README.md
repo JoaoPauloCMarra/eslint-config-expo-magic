@@ -17,6 +17,7 @@ Type-safe flat ESLint configuration for Expo, React Native, and TypeScript proje
 - [Options](#options)
 - [Included integrations](#included-integrations)
 - [Focused configurations](#focused-configurations)
+- [Layered architecture](#layered-architecture)
 - [Agent setup](#agent-setup)
 - [Compatibility](#compatibility)
 - [Upgrading to 5.0.0](#upgrading-to-500)
@@ -148,6 +149,7 @@ The root export exposes focused factories and configs for projects that want to 
 - `createAppGuardrailsConfig()` / `appGuardrails`
 - `createComponentStructureConfig()` / `componentStructure`
 - `createDeprecatedApiConfig()` / `deprecatedApis`
+- `createArchitectureConfig()` from `eslint-config-expo-magic/architecture`
 - `createFeatureBoundaryConfig()` from `eslint-config-expo-magic/feature-boundaries`
 - `createNativeUiConfig()` / `nativeUi`
 - `createReanimatedConfig()` / `reanimated`
@@ -155,6 +157,65 @@ The root export exposes focused factories and configs for projects that want to 
 - `reactCompiler`, `storybook`, and `worklets`
 
 Focused configurations remain opt-in so a project can adopt a rule family incrementally.
+
+## Layered architecture
+
+`eslint-config-expo-magic/architecture` enforces a layered `src/` application on
+top of any preset. It is for projects that keep routes, features, services and a
+UI layer as separate layers with a `@/` alias.
+
+```js
+const { createConfig } = require('eslint-config-expo-magic');
+const {
+	createArchitectureConfig,
+} = require('eslint-config-expo-magic/architecture');
+
+module.exports = createConfig({
+	prettier: true,
+	nativeUi: true,
+	semanticColors: { tokenModule: 'uikit/tokens' },
+}).concat(
+	createArchitectureConfig({
+		layers: {
+			routes: 'app',
+			ui: 'uikit',
+			tokens: 'uikit/tokens',
+			components: 'uikit/components',
+		},
+	}),
+);
+```
+
+Layer names are explicit rather than a preset enum, so a project that calls its
+route host `core` and its UI layer `shared` passes those names instead.
+
+What it enforces:
+
+- Cross-feature imports are contracts-only, matched on the feature segment of
+  both paths. Works with flat feature folders and needs no import resolver.
+- Owned primitives: raw React Native `Button`, `Image`, `Pressable`,
+  `ScrollView`, `FlatList` and `Modal` stay inside the wrapper files listed in
+  `nativeWrappers`.
+- Raw colour literals stay out of every layer, including views.
+- Layer direction: services never import features or routes, and the UI layer
+  never imports either.
+- HTTP belongs to services. `fetch`, `XMLHttpRequest` and HTTP client packages
+  are banned elsewhere, including the `globalThis.fetch` form.
+- `console.*` belongs to the owned logger, including `globalThis.console`.
+- No barrels at any depth, and no `domain/` / `application/` / `ui/` trees
+  inside a feature.
+- Views render and wire only: no effects and no collection pipelines.
+- File names are lowercase kebab-case, with router conventions such as
+  `+not-found` and `[id]` exempt.
+
+Every block re-states the base restrictions it must not lose. ESLint flat config
+*replaces* rule options when a later entry supplies them, so a layer block that
+sets only its own `no-restricted-imports` silently drops the owned-primitive ban
+for every file it matches. Composing the base list into each block is what keeps
+both active.
+
+Options: `layers`, `srcRoot`, `aliasPrefix`, `tokenModule`, `loggerModule`,
+`nativeWrappers`, `extraNativeUiRestrictions`, `extraNativeLibPatterns`.
 
 ## Agent setup
 
@@ -180,10 +241,10 @@ Version 5.0.0 supports the following tested range:
 | ESLint                | `^10.10.0`                                                                   |
 | TypeScript            | `>=5.9.3 <6.1.0`                                                             |
 | TypeScript ESLint     | `^8.69.0`                                                                    |
-| Expo                  | SDK 54, 55, 56, and 57 smoke lanes; SDK 57 fixture is 57.0.20                |
-| React Native          | Expo-coupled; SDK 57.0.20 uses RN 0.86.3                                     |
-| React                 | SDK 57.0.20 fixture uses React 19.2.3                                        |
-| React Test Renderer   | SDK 57.0.20 fixture uses 19.2.3                                              |
+| Expo                  | SDK 54, 55, 56, and 57 smoke lanes; SDK 57 fixture is 57.0.22                |
+| React Native          | Expo-coupled; SDK 57.0.22 uses RN 0.86.3                                     |
+| React                 | SDK 57.0.22 fixture uses React 19.2.3                                        |
+| React Test Renderer   | SDK 57.0.22 fixture uses 19.2.3                                              |
 | Jest Expo / RN preset | `jest-expo` 57.0.5 / `@react-native/jest-preset` 0.86.3 in the SDK57 fixture |
 
 The SDK57 fixture intentionally stays on Expo Doctor's verified React 19.2.3 and React Test Renderer 19.2.3 tuple; newer React patch releases shown by `bun outdated` are not promoted without matching fixture proof.

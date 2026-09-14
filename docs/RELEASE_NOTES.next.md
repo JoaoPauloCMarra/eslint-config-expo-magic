@@ -1,13 +1,14 @@
 # Changes
 
-Compared `v4.0.0` package `4.0.0` with current package `5.0.0`.
+Compared `v4.0.0` package `4.0.0` with current package `5.1.0`.
 
 ## Package
 
-- Version: `4.0.0` → `5.0.0`
+- Version: `4.0.0` → `5.1.0`
 
 ## Exports
 
+- Added `./architecture`: `{"types":"./architecture.d.ts","import":"./architecture.mjs","require":"./architecture.js","default":"./architecture.js"}`
 - Added `./mobile-app`: `{"types":"./mobile-app.d.ts","require":"./mobile-app.js","import":"./mobile-app.mjs"}`
 - Added `./prettier`: `{"types":"./prettier.d.ts","require":"./prettier.js","import":"./prettier.mjs"}`
 
