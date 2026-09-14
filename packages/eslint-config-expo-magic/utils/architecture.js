@@ -17,6 +17,13 @@ const DEFAULT_LAYERS = Object.freeze({
 
 const GLOBAL_OBJECTS = ['globalThis', 'global', 'window', 'self'];
 
+/**
+ * A type-stripped JavaScript app is a first-class lane, so every layer glob
+ * covers .js/.jsx too. A TypeScript app has no .js under src, so matching both
+ * costs nothing there.
+ */
+const CODE = '{ts,tsx,js,jsx}';
+
 function assertObject(value, label) {
 	if (value === null || typeof value !== 'object' || Array.isArray(value)) {
 		throw new TypeError(`${label} must be an object.`);
@@ -87,8 +94,8 @@ function createFeatureIsolationConfig(src, aliasPrefix) {
 	return [
 		{
 			name: 'architecture/feature-isolation',
-			files: [`${src}/features/**/*.{ts,tsx}`],
-			ignores: [`${src}/features/**/*.{test,spec}.{ts,tsx}`],
+			files: [`${src}/features/**/*.${CODE}`],
+			ignores: [`${src}/features/**/*.{test,spec}.${CODE}`],
 			plugins: { 'expo-magic': plugin },
 			rules: {
 				'expo-magic/no-cross-feature-imports': [
@@ -118,7 +125,7 @@ function createArchitectureConfig(options = {}) {
 	const tokenModule = options.tokenModule ?? layers.tokens;
 	const loggerModule = options.loggerModule ?? 'services/logger/logger';
 	const nativeWrappers = options.nativeWrappers ?? [
-		`${src}/${layers.components}/*.{ts,tsx}`,
+		`${src}/${layers.components}/*.{ts,tsx,js,jsx}`,
 	];
 	const extraNativeUiRestrictions = options.extraNativeUiRestrictions ?? [];
 	const extraNativeLibPatterns = options.extraNativeLibPatterns ?? [];
@@ -126,7 +133,7 @@ function createArchitectureConfig(options = {}) {
 	const basePaths = [...defaultRestrictions, ...extraNativeUiRestrictions];
 	const baseColorSelectors = createSemanticColorGroups({
 		tokenModule,
-		allowFiles: [`**/${tokenModule}/colors.{ts,tsx}`],
+		allowFiles: [`**/${tokenModule}/colors.{ts,tsx,js,jsx}`],
 	}).flatMap((group) => group.selectors);
 
 	const nativeLibPatterns = [
@@ -146,13 +153,13 @@ function createArchitectureConfig(options = {}) {
 	];
 
 	const httpPatterns = httpRestrictedPatterns(HTTP_MESSAGE);
-	const sourceGlob = `${src}/**/*.{ts,tsx}`;
+	const sourceGlob = `${src}/**/*.${CODE}`;
 	const testGlobs = [
-		`${src}/**/*.{test,spec}.{ts,tsx}`,
-		`${src}/test/**/*.{ts,tsx}`,
+		`${src}/**/*.{test,spec}.${CODE}`,
+		`${src}/test/**/*.${CODE}`,
 	];
 
-	const featureGlob = `${src}/features/**/*.{ts,tsx}`;
+	const featureGlob = `${src}/features/**/*.${CODE}`;
 	const featureViewGlob = `${src}/features/**/*.{tsx,jsx}`;
 
 	const viewSelectors = [
@@ -215,7 +222,7 @@ function createArchitectureConfig(options = {}) {
 		// Routes/core import screens, never feature internals.
 		{
 			name: 'architecture/routes',
-			files: [`${src}/${layers.routes}/**/*.{ts,tsx}`],
+			files: [`${src}/${layers.routes}/**/*.${CODE}`],
 			ignores: testGlobs,
 			rules: {
 				'no-restricted-imports': restrictedImports(basePaths, [], [
@@ -227,7 +234,7 @@ function createArchitectureConfig(options = {}) {
 		// The UI layer stays independent of features and services.
 		{
 			name: 'architecture/ui',
-			files: [`${src}/${layers.ui}/**/*.{ts,tsx}`],
+			files: [`${src}/${layers.ui}/**/*.${CODE}`],
 			ignores: [...testGlobs, ...nativeWrappers],
 			rules: {
 				'no-restricted-imports': restrictedImports(basePaths, [], [
@@ -242,8 +249,8 @@ function createArchitectureConfig(options = {}) {
 		// Services own HTTP, so they keep the primitive ban but lose the HTTP ban.
 		{
 			name: 'architecture/services',
-			files: [`${src}/services/**/*.{ts,tsx}`],
-			ignores: [...testGlobs, `${src}/services/native/**/*.{ts,tsx}`],
+			files: [`${src}/services/**/*.${CODE}`],
+			ignores: [...testGlobs, `${src}/services/native/**/*.${CODE}`],
 			rules: {
 				'no-restricted-imports': restrictedImports(basePaths, [], [
 					...nativeLibPatterns,
@@ -270,10 +277,10 @@ function createArchitectureConfig(options = {}) {
 		{
 			name: 'architecture/no-barrels',
 			files: [
-				`${src}/features/**/index.{ts,tsx}`,
-				`${src}/services/**/index.{ts,tsx}`,
-				`${src}/${layers.ui}/**/index.{ts,tsx}`,
-				`${src}/${layers.routes}/**/index.ts`,
+				`${src}/features/**/index.${CODE}`,
+				`${src}/services/**/index.${CODE}`,
+				`${src}/${layers.ui}/**/index.${CODE}`,
+				`${src}/${layers.routes}/**/index.{ts,js}`,
 			],
 			rules: {
 				'no-restricted-syntax': restrictedSyntax(baseColorSelectors, [
@@ -287,7 +294,7 @@ function createArchitectureConfig(options = {}) {
 		},
 		{
 			name: 'architecture/no-clean-architecture-trees',
-			files: [`${src}/features/**/{domain,application,ui}/**/*.{ts,tsx}`],
+			files: [`${src}/features/**/{domain,application,ui}/**/*.${CODE}`],
 			rules: {
 				'no-restricted-syntax': restrictedSyntax(baseColorSelectors, [
 					{
@@ -363,7 +370,7 @@ function createArchitectureConfig(options = {}) {
 		{
 			name: 'architecture/no-console',
 			files: [sourceGlob],
-			ignores: [`${src}/${loggerModule}.{ts,tsx}`, ...testGlobs],
+			ignores: [`${src}/${loggerModule}.{ts,tsx,js,jsx}`, ...testGlobs],
 			rules: {
 				'no-console': 'error',
 				'no-restricted-globals': [
@@ -377,7 +384,7 @@ function createArchitectureConfig(options = {}) {
 		// either the bare or the `globalThis.` form. Every other rule still applies.
 		{
 			name: 'architecture/logger',
-			files: [`${src}/${loggerModule}.{ts,tsx}`],
+			files: [`${src}/${loggerModule}.{ts,tsx,js,jsx}`],
 			rules: {
 				'no-console': 'off',
 				'no-restricted-syntax': restrictedSyntax(
@@ -388,13 +395,13 @@ function createArchitectureConfig(options = {}) {
 		},
 		{
 			name: 'architecture/services-may-fetch',
-			files: [`${src}/services/**/*.{ts,tsx}`],
+			files: [`${src}/services/**/*.${CODE}`],
 			rules: { 'no-restricted-globals': 'off' },
 		},
 		// The token module is the one place raw colour literals belong.
 		{
 			name: 'architecture/token-module',
-			files: [`${src}/${tokenModule}/colors.{ts,tsx}`],
+			files: [`${src}/${tokenModule}/colors.{ts,tsx,js,jsx}`],
 			rules: { 'no-restricted-syntax': 'off' },
 		},
 		...createFeatureIsolationConfig(src, aliasPrefix),
