@@ -1,4 +1,6 @@
-const { createRestrictedSyntaxConfigs } = require('./restricted-syntax.js');
+const {
+	createComposedRestrictedSyntaxConfigs,
+} = require('./restricted-syntax.js');
 const { tsAndTsxFiles } = require('./file-patterns.js');
 const DEFAULT_GESTURE_HOOKS = ['usePanGesture'];
 const WRAPPER_EXPRESSION_TYPES = new Set([
@@ -424,7 +426,9 @@ function createRestrictedSyntaxGroups(options = {}) {
 function createReanimatedConfig(options = {}) {
 	return [
 		...createSharedValueUsageConfig(),
-		...createRestrictedSyntaxConfigs(createRestrictedSyntaxGroups(options)),
+		...createComposedRestrictedSyntaxConfigs(
+			createRestrictedSyntaxGroups(options),
+		),
 	];
 }
 

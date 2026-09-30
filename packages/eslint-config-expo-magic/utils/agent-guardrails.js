@@ -1,4 +1,7 @@
-const { createRestrictedSyntaxConfigs } = require('./restricted-syntax.js');
+const {
+	createComposedRestrictedSyntaxConfigs,
+	RESTRICTED_SYNTAX_SCOPES,
+} = require('./restricted-syntax.js');
 const { testFiles, typeScriptFiles } = require('./file-patterns.js');
 
 const generatedAttributionPattern =
@@ -38,6 +41,7 @@ function createRestrictedSyntaxGroups() {
 		},
 		{
 			files: testFiles,
+			scope: RESTRICTED_SYNTAX_SCOPES.TEST,
 			selectors: [
 				{
 					selector:
@@ -115,7 +119,10 @@ const base = [
 ];
 
 function createAgentGuardrailsConfig() {
-	return [...base, ...createRestrictedSyntaxConfigs(restrictedSyntaxGroups)];
+	return [
+		...base,
+		...createComposedRestrictedSyntaxConfigs(restrictedSyntaxGroups),
+	];
 }
 
 const config = createAgentGuardrailsConfig();

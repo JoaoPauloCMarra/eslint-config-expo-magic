@@ -2,6 +2,7 @@
 // Rationale: https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/RULES.md#-testing
 const jest = require('eslint-plugin-jest');
 const testingLibraryPlugin = require('eslint-plugin-testing-library');
+const { createTestFilePatterns } = require('./file-patterns.js');
 
 module.exports = [
 	{
@@ -11,10 +12,13 @@ module.exports = [
 		},
 
 		files: [
-			'**/*.test.[jt]s',
-			'**/*.test.[jt]sx',
-			'**/*.spec.[jt]s',
-			'**/*.spec.[jt]sx',
+			...createTestFilePatterns({
+				js: true,
+				jsx: true,
+				ts: true,
+				tsx: true,
+				moduleExtensions: true,
+			}),
 			'jest.setup.js',
 		],
 

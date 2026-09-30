@@ -1,4 +1,6 @@
-const { createRestrictedSyntaxConfigs } = require('./restricted-syntax.js');
+const {
+	createComposedRestrictedSyntaxConfigs,
+} = require('./restricted-syntax.js');
 const { tsAndTsxFiles } = require('./file-patterns.js');
 
 const restrictedSyntaxGroups = [
@@ -21,7 +23,7 @@ const restrictedSyntaxGroups = [
 	},
 ];
 
-const config = createRestrictedSyntaxConfigs(restrictedSyntaxGroups);
+const config = createComposedRestrictedSyntaxConfigs(restrictedSyntaxGroups);
 
 module.exports = config;
 module.exports.restrictedSyntaxGroups = restrictedSyntaxGroups;

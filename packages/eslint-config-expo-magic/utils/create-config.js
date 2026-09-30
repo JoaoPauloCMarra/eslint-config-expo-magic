@@ -2,6 +2,8 @@ const {
 	createBasePreset,
 	createDefaultPreset,
 	createTypeCheckedConfigs,
+	createTypeScriptImportResolverConfig,
+	createTypeScriptParserOptions,
 	defaultTsconfigProjectGlobs,
 	fastTsconfigProjectGlobs,
 	normalizeOptionConfig,
@@ -125,6 +127,10 @@ function resolveAgentAwareOption(
 		return optionValue;
 	}
 
+	if (Object.prototype.hasOwnProperty.call(options, optionName)) {
+		return optionValue;
+	}
+
 	if (
 		agent !== true &&
 		Object.prototype.hasOwnProperty.call(agentOptions, optionName)
@@ -132,11 +138,22 @@ function resolveAgentAwareOption(
 		return agentOptions[optionName];
 	}
 
-	if (Object.prototype.hasOwnProperty.call(options, optionName)) {
-		return optionValue;
-	}
-
 	return defaultValue;
+}
+
+function createImportCycleConfig() {
+	const { fixupPluginRules } = require('@eslint/compat');
+
+	return [
+		{
+			plugins: {
+				'import-x': fixupPluginRules(require('eslint-plugin-import-x')),
+			},
+			rules: {
+				'import-x/no-cycle': 'error',
+			},
+		},
+	];
 }
 
 function createConfig(options = {}) {
@@ -152,7 +169,7 @@ function createConfig(options = {}) {
 			? fastTsconfigProjectGlobs
 			: defaultTsconfigProjectGlobs,
 		extraIgnores = [],
-		importCycles = preset !== 'fast',
+		importCycles = preset === 'default',
 		agent = false,
 		appGuardrails = false,
 		componentStructure = false,
@@ -166,7 +183,7 @@ function createConfig(options = {}) {
 		storybook = false,
 		worklets = false,
 	} = options;
-	const typeAware = preset !== 'fast' || typeChecked || strict;
+	const typeAware = preset === 'default' || typeChecked || strict;
 	const restrictedSyntaxGroups = [];
 	const agentOptions = agent === true ? {} : agent || {};
 	const agentEnabled = Boolean(agent);
@@ -219,17 +236,36 @@ function createConfig(options = {}) {
 		agentOptions,
 	);
 
+	const typeCheckedConfigs = typeChecked
+		? createTypeCheckedConfigs(options.tsconfigProjects)
+		: [];
 	const presetConfig =
 		preset === 'base'
-			? createBasePreset(tsconfigProjects, extraIgnores)
+			? [
+					...createBasePreset(tsconfigProjects, extraIgnores),
+					...typeCheckedConfigs,
+					...(importCycles ? createImportCycleConfig() : []),
+					...(testing ? require('./jest.js') : []),
+				]
 			: createDefaultPreset(tsconfigProjects, {
 					extraIgnores,
 					importCycles,
 					testing,
 					typeAware,
 					fast: preset === 'fast',
+					parserTsconfigProjects: options.tsconfigProjects,
+					typeCheckedConfigs,
 				});
 	const finalConfig = [...presetConfig];
+
+	if (preset === 'base' && typeAware && !typeChecked) {
+		finalConfig.push({
+			files: typeScriptFiles,
+			languageOptions: {
+				parserOptions: createTypeScriptParserOptions(options.tsconfigProjects),
+			},
+		});
+	}
 
 	if (effectiveAppGuardrails) {
 		const appGuardrailsConfig = require('./app-guardrails.js');
@@ -285,22 +321,20 @@ function createConfig(options = {}) {
 				settings: {
 					'import/resolver': {
 						node: { extensions: allExtensions },
-						typescript: {
-							alwaysTryTypes: true,
-							bun: true,
-							noWarnOnMultipleProjects: true,
-							project: tsconfigProjects,
-							tsconfigRootDir: process.cwd(),
-						},
+						typescript: createTypeScriptImportResolverConfig(tsconfigProjects),
 					},
 				},
 			},
 		);
 	}
 
-	if (inlineStyles && preset !== 'base') {
+	if (inlineStyles) {
+		const { fixupPluginRules } = require('@eslint/compat');
 		finalConfig.push({
 			files: ['**/*.tsx'],
+			plugins: {
+				'react-native': fixupPluginRules(require('eslint-plugin-react-native')),
+			},
 			rules: {
 				'react-native/no-inline-styles':
 					inlineStyles === true ? 'warn' : inlineStyles,
@@ -317,7 +351,7 @@ function createConfig(options = {}) {
 
 	if (effectiveReactCompiler) {
 		const reactCompilerConfig = require('./react-compiler.js');
-		finalConfig.push({ rules: { ...reactCompilerConfig.rules } });
+		finalConfig.push(...reactCompilerConfig);
 	}
 
 	if (effectiveReanimated) {
@@ -355,10 +389,6 @@ function createConfig(options = {}) {
 		finalConfig.push(
 			...createComposedRestrictedSyntaxConfigs(restrictedSyntaxGroups),
 		);
-	}
-
-	if (typeChecked) {
-		finalConfig.push(...createTypeCheckedConfigs(tsconfigProjects));
 	}
 
 	if (prettier) {

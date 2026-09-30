@@ -22,11 +22,8 @@ const syntaxRules = {
 	'@typescript-eslint/no-unused-vars': [
 		'error',
 		{
-			vars: 'all',
 			args: 'none',
 			ignoreRestSiblings: true,
-			caughtErrors: 'all',
-			argsIgnorePattern: '^_',
 			varsIgnorePattern: '^_',
 		},
 	],
@@ -58,14 +55,16 @@ const typeAwareRules = {
 	'@typescript-eslint/prefer-readonly': 'warn',
 };
 
-function createTypeScriptConfig({ typeChecked = true } = {}) {
+function createTypeScriptConfig({
+	typeAware = true,
+	parserOptions = typeAware ? { projectService: true } : {},
+} = {}) {
 	return [
 		{
 			files: typeScriptFiles,
-			ignores: ['**/node_modules/**'],
 			languageOptions: {
 				parserOptions: {
-					...(typeChecked ? { projectService: true } : {}),
+					...parserOptions,
 					ecmaVersion: 'latest',
 					sourceType: 'module',
 					ecmaFeatures: {
@@ -76,7 +75,7 @@ function createTypeScriptConfig({ typeChecked = true } = {}) {
 			},
 			rules: {
 				...syntaxRules,
-				...(typeChecked ? typeAwareRules : {}),
+				...(typeAware ? typeAwareRules : {}),
 			},
 		},
 	];
@@ -86,4 +85,3 @@ const config = createTypeScriptConfig();
 
 module.exports = config;
 module.exports.createTypeScriptConfig = createTypeScriptConfig;
-module.exports.typeScriptFiles = typeScriptFiles;

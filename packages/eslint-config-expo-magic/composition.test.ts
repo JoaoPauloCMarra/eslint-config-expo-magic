@@ -234,6 +234,26 @@ describe('optional layer composition', () => {
 		).toBe(true);
 	});
 
+	it('lets explicit top-level values beat agent option values', async () => {
+		const ruleName = 'expo-magic-reanimated/no-shared-value-misuse';
+		const enabled = await calculateConfig(
+			{ agent: { reanimated: false }, reanimated: true },
+			'src/value.ts',
+		);
+		const disabled = await calculateConfig(
+			{ agent: { reanimated: true }, reanimated: false },
+			'src/value.ts',
+		);
+		const agentOnly = await calculateConfig(
+			{ agent: { reanimated: false } },
+			'src/value.ts',
+		);
+
+		expect(enabled.rules[ruleName]).toEqual([2]);
+		expect(disabled.rules[ruleName]).toBeUndefined();
+		expect(agentOnly.rules[ruleName]).toBeUndefined();
+	});
+
 	it('lets top-level false disable agent-default app guardrails', async () => {
 		const messages = await lint(
 			{
@@ -462,7 +482,7 @@ describe('optional layer composition', () => {
 		const appConfig = createAppGuardrailsConfig() as FlatConfig[];
 
 		for (const filePattern of ['**/*.test.mts', '**/*.spec.cts']) {
-			const matchingConfig = appConfig.find((entry) =>
+			const matchingConfig = appConfig.findLast((entry) =>
 				entry.files?.includes(filePattern),
 			);
 			const selectors = matchingConfig?.rules?.['no-restricted-syntax'];
