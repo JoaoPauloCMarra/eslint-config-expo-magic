@@ -94,9 +94,10 @@ function hasPatternIntersection(patternsA, patternsB) {
 }
 
 function isGlobPattern(pattern) {
-	const baseName = pattern.split('/').pop() ?? '';
+	// An extension group such as `colors.{ts,tsx}` still names one file stem.
+	const baseName = (pattern.split('/').pop() ?? '').replace(/\.\{[^}]*\}$/, '');
 
-	return /[\*?\[]/.test(baseName) || baseName.includes('{');
+	return /[*?[{]/.test(baseName);
 }
 
 function isTestFilePattern(pattern) {

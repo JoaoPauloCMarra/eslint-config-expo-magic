@@ -54,14 +54,22 @@ function lint(
 	filePath: string,
 	source: string,
 ) {
-	return lintWith(createConfig({ preset: 'fast', ...options }), filePath, source);
+	return lintWith(
+		createConfig({ preset: 'fast', ...options }),
+		filePath,
+		source,
+	);
 }
 
 describe('test-only restricted syntax groups', () => {
 	it('does not flag skip or only calls in production files', async () => {
 		for (const filePath of ['src/db.ts', 'src/db.tsx']) {
 			expect(
-				await lint({ agent: true }, filePath, 'query.skip(10);\nquery.only();\n'),
+				await lint(
+					{ agent: true },
+					filePath,
+					'query.skip(10);\nquery.only();\n',
+				),
 			).toEqual([]);
 		}
 	});
@@ -141,12 +149,22 @@ describe('semantic colors allow files', () => {
 	const screenSource = "export const background = '#ffffff';\n";
 
 	it('allows the token file when semantic colors is the only syntax layer', async () => {
-		expect(await lint({ semanticColors: true }, tokenFile, tokenSource)).toEqual(
-			[],
-		);
+		expect(
+			await lint({ semanticColors: true }, tokenFile, tokenSource),
+		).toEqual([]);
 		expect(
 			await lint({ semanticColors: true }, 'src/screen.ts', screenSource),
 		).toHaveLength(1);
+	});
+
+	it('keeps test-only selectors off the token file', async () => {
+		expect(
+			await lint(
+				{ agent: true, semanticColors: true },
+				tokenFile,
+				"export const colors = { white: '#ffffff' };\nquery.skip(10);\n",
+			),
+		).toEqual([]);
 	});
 
 	it('allows custom allow files when semantic colors is the only syntax layer', async () => {
@@ -183,7 +201,9 @@ async function getEffectiveSelectors(
 		cwd: tempDir,
 		overrideConfigFile: true,
 		overrideConfig: [
-			{ plugins: { '@typescript-eslint': require('typescript-eslint').plugin } },
+			{
+				plugins: { '@typescript-eslint': require('typescript-eslint').plugin },
+			},
 			...config,
 		],
 	});
