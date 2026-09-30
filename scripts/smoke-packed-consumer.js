@@ -5,6 +5,7 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 const { createRequire } = require('node:module');
 const {
+	readSdk57FixtureVersions,
 	run,
 	withPackedTarball,
 	withTempConsumer,
@@ -13,6 +14,7 @@ const {
 const NO_RESTRICTED_SYNTAX_RULE_ID = 'no-restricted-syntax';
 const REANIMATED_SHARED_VALUE_RULE_ID =
 	'expo-magic-reanimated/no-shared-value-misuse';
+const sdk57Versions = readSdk57FixtureVersions();
 
 const smokeLanes = [
 	{
@@ -40,10 +42,10 @@ const smokeLanes = [
 	},
 	{
 		name: 'sdk-57',
-		expo: '57.0.22',
-		react: '19.2.3',
-		reactNative: '0.86.3',
-		reactTestRenderer: '19.2.3',
+		expo: sdk57Versions.expo,
+		react: sdk57Versions.react,
+		reactNative: sdk57Versions['react-native'],
+		reactTestRenderer: sdk57Versions['react-test-renderer'],
 		typescript: '^6.0.3',
 	},
 ];
@@ -64,6 +66,10 @@ function runLint(tempProjectDir, configFile, targetFile) {
 			encoding: 'utf8',
 		},
 	);
+
+	if (result.error) {
+		throw result.error;
+	}
 
 	if (![0, 1].includes(result.status ?? -1)) {
 		throw new Error(
@@ -130,8 +136,8 @@ function createNpmFixturePackageJson(tarballPath) {
 		private: true,
 		type: 'module',
 		dependencies: {
-			expo: '57.0.22',
-			react: '19.2.3',
+			expo: sdk57Versions.expo,
+			react: sdk57Versions.react,
 			typescript: '6.0.3',
 			'eslint-config-expo-magic': `file:${tarballPath}`,
 		},

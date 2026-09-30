@@ -5,6 +5,17 @@ const { spawnSync } = require('node:child_process');
 
 const rootDir = path.resolve(__dirname, '../..');
 const packageDir = path.join(rootDir, 'packages', 'eslint-config-expo-magic');
+const fixtureManifestPath = path.join(rootDir, 'test-project', 'package.json');
+const sdk57FixturePackages = [
+	'@react-native/jest-preset',
+	'@types/react',
+	'expo',
+	'expo-status-bar',
+	'jest-expo',
+	'react',
+	'react-native',
+	'react-test-renderer',
+];
 let tempPathSequence = 0;
 
 function run(command, args, options = {}) {
@@ -97,12 +108,35 @@ function withPackedTarball(callback) {
 	});
 }
 
+function readSdk57FixtureVersions(
+	manifest = JSON.parse(fs.readFileSync(fixtureManifestPath, 'utf8')),
+) {
+	const devDependencies = manifest.devDependencies ?? {};
+	const missing = sdk57FixturePackages.filter(
+		(packageName) => typeof devDependencies[packageName] !== 'string',
+	);
+
+	if (missing.length > 0) {
+		throw new Error(
+			`test-project/package.json is missing SDK 57 fixture versions: ${missing.join(', ')}.`,
+		);
+	}
+
+	return Object.fromEntries(
+		sdk57FixturePackages.map((packageName) => [
+			packageName,
+			devDependencies[packageName],
+		]),
+	);
+}
+
 function writeJson(filePath, value) {
 	fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
 module.exports = {
 	packageDir,
+	readSdk57FixtureVersions,
 	rootDir,
 	run,
 	withPackedTarball,

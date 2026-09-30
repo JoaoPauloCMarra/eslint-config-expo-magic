@@ -43,3 +43,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 AGENTS.md
 
 eslint-output.json
+
+# Repo-local test temp directories
+.tmp-eslint-config-expo-magic-*
+test-project/composition-fixture-*

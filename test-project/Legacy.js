@@ -15,6 +15,9 @@ class Dupe {
 }
 console.log(Dupe);
 
+// ❌ This should trigger no-undef
+console.log(undefinedLegacyGlobal);
+
 // ❌ This should trigger no-unsafe-negation
 if ((!'a') in { a: 1 }) {
 	console.log('unsafe');
