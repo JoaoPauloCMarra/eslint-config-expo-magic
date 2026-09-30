@@ -53,7 +53,12 @@ ruleTester.run('kebab-case-filenames', rule, {
 		{
 			code,
 			filename: '/r/src/HomeScreen.tsx',
-			errors: [{ messageId: 'notKebab', data: { name: 'HomeScreen.tsx', suggestion: 'home-screen' } }],
+			errors: [
+				{
+					messageId: 'notKebab',
+					data: { name: 'HomeScreen.tsx', suggestion: 'home-screen' },
+				},
+			],
 		},
 		{
 			code,

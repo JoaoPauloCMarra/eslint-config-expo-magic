@@ -26,7 +26,10 @@ ruleTester.run('no-cross-feature-imports', rule, {
 	valid: [
 		{ code: "import x from './total';", filename: billingFile },
 		{ code: "import x from '../hooks/use-total';", filename: billingFile },
-		{ code: "import x from '@/features/billing/hooks';", filename: billingFile },
+		{
+			code: "import x from '@/features/billing/hooks';",
+			filename: billingFile,
+		},
 		{
 			code: "import x from '@/features/auth/contracts/session';",
 			filename: billingFile,
