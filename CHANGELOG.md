@@ -8,8 +8,7 @@ Released: 2026-09-30
 
 ### Breaking Changes
 
-- None to the public API. Several fixes make existing rules apply where the documentation already said they did, so code that passed 5.1.2 can report new errors. The cases are listed under **Fixed** and marked _(new reports)_.
-- The published package no longer has a `check-pm` script. It pointed at a file the package never shipped.
+- None. Several fixes make existing rules apply where the documentation already said they did, so code that passed 5.1.2 can report new errors. The cases are listed under **Fixed** and marked _(new reports)_.
 
 ### Added
 
@@ -55,7 +54,8 @@ Released: 2026-09-30
 ### Changed
 
 - The Expo SDK 57 fixture uses Expo 57.0.26, and the smoke lanes read the SDK 57 versions from `test-project/package.json`.
-- Patches `brace-expansion` in the lockfile for GHSA-qhr7-859c-m2p7, GHSA-6j4f-fj2g-mc7p and GHSA-q2hr-2g5m-vwhr.
+- The published package no longer has a `check-pm` script. It pointed at a file the package never shipped.
+- The repository lockfile patches `brace-expansion` (GHSA-qhr7-859c-m2p7, GHSA-6j4f-fj2g-mc7p, GHSA-q2hr-2g5m-vwhr). Consumers resolve their own dependency tree.
 
 ### Compatibility
 
