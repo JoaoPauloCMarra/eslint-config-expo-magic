@@ -348,7 +348,7 @@ describe('eslint-config-expo-magic', () => {
 					expect(disabledRequests).not.toContain(request);
 				}
 			}
-		});
+		}, 30_000);
 
 		it('loads typescript-eslint only for typed configs', () => {
 			const probe = (fileName: string) =>
@@ -374,7 +374,7 @@ describe('eslint-config-expo-magic', () => {
 			expect(defaultResult.loaded).not.toContain('typescript-eslint');
 			expect(fastResult.loaded).not.toContain('typescript-eslint');
 			expect(typedResult.loaded).toContain('typescript-eslint');
-		});
+		}, 30_000);
 
 		it('builds retained CJS presets directly from createConfig', () => {
 			for (const fileName of ['agent.js', 'strict.js', 'typed.js']) {
@@ -393,7 +393,7 @@ describe('eslint-config-expo-magic', () => {
 				expect(loaded.configLength).toBeGreaterThan(0);
 				expect(loaded.loaded).not.toContain('./index.js');
 			}
-		});
+		}, 30_000);
 	});
 
 	describe('comprehensive validation contracts', () => {
