@@ -1,4 +1,5 @@
 const {
+	createCapabilityAllowConfigs,
 	createRestrictedSyntaxConfigs,
 	RESTRICTED_SYNTAX_SCOPES,
 } = require('./restricted-syntax.js');
@@ -58,8 +59,7 @@ function createRestrictedSyntaxGroups(options = {}) {
 }
 
 function createAllowConfig(options = {}) {
-	void options;
-	return [];
+	return createCapabilityAllowConfigs(createRestrictedSyntaxGroups(options));
 }
 
 function createSemanticColorsConfig(options = {}) {

@@ -172,43 +172,14 @@ function isKnownScopePatternGroup(group) {
 	return group.files.every((pattern) => knownScopePatternSet.has(pattern));
 }
 
-function selectorHasDoubleAssertionMessage(selector) {
-	return selector.message.includes('double assertions');
-}
-
-function shouldKeepSelector(existing, candidate) {
-	if (existing.selector !== candidate.selector) {
-		return true;
-	}
-
-	if (existing.message === candidate.message) {
-		return false;
-	}
-
-	if (
-		selectorHasDoubleAssertionMessage(existing) &&
-		selectorHasDoubleAssertionMessage(candidate)
-	) {
-		return false;
-	}
-
-	return true;
-}
-
 function dedupeSelectors(selectors) {
-	const deduped = [];
+	const deduped = new Map();
 
 	for (const selector of selectors) {
-		const duplicateIndex = deduped.findIndex(
-			(existing) => !shouldKeepSelector(existing, selector),
-		);
-
-		if (duplicateIndex === -1) {
-			deduped.push(selector);
-		}
+		deduped.set(selector.selector, selector);
 	}
 
-	return deduped;
+	return [...deduped.values()];
 }
 
 function collectSelectorsForBucket(groups, isApplicable) {
@@ -342,10 +313,6 @@ function createCapabilityAllowConfigs(groups) {
 			capabilityGroup.allowFiles,
 		);
 
-		if (selectors.length === 0) {
-			continue;
-		}
-
 		configs.push({
 			files: getRelevantFilePatternsForAllowedFiles(capabilityGroup.allowFiles),
 			rules: {
@@ -373,6 +340,7 @@ function createComposedRestrictedSyntaxConfigs(groups) {
 }
 
 module.exports = {
+	createCapabilityAllowConfigs,
 	createComposedRestrictedSyntaxConfigs,
 	createRestrictedSyntaxConfigs,
 	mergeRestrictedSyntaxGroups,

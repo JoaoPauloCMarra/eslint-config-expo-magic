@@ -1,4 +1,7 @@
-const { createRestrictedSyntaxConfigs } = require('./restricted-syntax.js');
+const {
+	createRestrictedSyntaxConfigs,
+	RESTRICTED_SYNTAX_SCOPES,
+} = require('./restricted-syntax.js');
 const { testFiles, typeScriptFiles } = require('./file-patterns.js');
 
 const generatedAttributionPattern =
@@ -38,6 +41,7 @@ function createRestrictedSyntaxGroups() {
 		},
 		{
 			files: testFiles,
+			scope: RESTRICTED_SYNTAX_SCOPES.TEST,
 			selectors: [
 				{
 					selector:

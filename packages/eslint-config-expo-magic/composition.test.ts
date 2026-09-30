@@ -462,7 +462,7 @@ describe('optional layer composition', () => {
 		const appConfig = createAppGuardrailsConfig() as FlatConfig[];
 
 		for (const filePattern of ['**/*.test.mts', '**/*.spec.cts']) {
-			const matchingConfig = appConfig.find((entry) =>
+			const matchingConfig = appConfig.findLast((entry) =>
 				entry.files?.includes(filePattern),
 			);
 			const selectors = matchingConfig?.rules?.['no-restricted-syntax'];
