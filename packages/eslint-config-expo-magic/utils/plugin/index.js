@@ -4,10 +4,12 @@ const noCrossFeatureImports = require('./rules/no-cross-feature-imports.js');
 const noInlineProps = require('./rules/no-inline-props.js');
 const propsTypeOrder = require('./rules/props-type-order.js');
 const requireChildrenUsage = require('./rules/require-children-usage.js');
+const { version } = require('../../package.json');
 
 const plugin = {
 	meta: {
 		name: 'eslint-plugin-expo-magic',
+		version,
 	},
 	rules: {
 		'default-export-placement': defaultExportPlacement,
