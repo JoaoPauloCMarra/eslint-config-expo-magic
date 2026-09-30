@@ -325,7 +325,7 @@ function validateGuardrails(input, options = {}) {
 
 	if (
 		screenOrComponentFiles.length > 0 &&
-		!hasRelatedTestOrStory(input.changedFiles) &&
+		!hasRelatedTestOrStory(input.changedFiles, screenOrComponentFiles) &&
 		!labels.has(resolvedOptions.ownerApprovedLabel)
 	) {
 		failures.push(
@@ -411,10 +411,43 @@ function diffHeaderFilePaths(line) {
 	return match ? [match[1], match[2]] : [header];
 }
 
-function hasRelatedTestOrStory(changedFiles) {
-	return changedFiles.some((filePath) =>
-		/(\.test\.(ts|tsx)|\.stories\.(ts|tsx))$/.test(filePath),
-	);
+const testOrStoryFilePattern =
+	/(\.(test|spec|stories)\.(ts|tsx|js|jsx|mts|cts|mjs|cjs)$|(^|\/)__(tests|stories)__\/.*\.(ts|tsx|js|jsx|mts|cts|mjs|cjs)$)/;
+
+function isTestOrStoryFile(filePath) {
+	return testOrStoryFilePattern.test(filePath);
+}
+
+function nearbyDirectory(filePath) {
+	return path.posix
+		.dirname(filePath)
+		.split('/')
+		.filter((segment) => segment !== '__tests__' && segment !== '__stories__')
+		.join('/');
+}
+
+function featureRoot(filePath) {
+	return /^((?:src\/)?features\/[^/]+)\//.exec(filePath)?.[1];
+}
+
+function isNearby(sourceFile, testFile) {
+	const sourceFeature = featureRoot(sourceFile);
+	if (sourceFeature && sourceFeature === featureRoot(testFile)) {
+		return true;
+	}
+	return nearbyDirectory(sourceFile) === nearbyDirectory(testFile);
+}
+
+function hasRelatedTestOrStory(changedFiles, relatedFiles) {
+	const testFiles = changedFiles.filter(isTestOrStoryFile);
+	if (!relatedFiles) {
+		return testFiles.length > 0;
+	}
+	return relatedFiles
+		.filter((filePath) => !isTestOrStoryFile(filePath))
+		.every((filePath) =>
+			testFiles.some((testFile) => isNearby(filePath, testFile)),
+		);
 }
 
 const defaultTemplateLabels = [

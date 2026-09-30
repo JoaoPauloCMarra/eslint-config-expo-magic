@@ -278,3 +278,77 @@ describe('pr guardrails src-rooted mobile app paths', () => {
 		);
 	});
 });
+
+const nearbyFailure = 'need nearby tests or stories';
+
+describe('pr guardrails nearby tests and stories', () => {
+	function coverageFailures(changedFiles: string[]): string[] {
+		return failuresFor({ changedFiles }).filter((failure) =>
+			failure.includes(nearbyFailure),
+		);
+	}
+
+	for (const testFile of [
+		'features/home/screens/home-screen.test.tsx',
+		'features/home/screens/home-screen.spec.tsx',
+		'features/home/screens/home-screen.test.js',
+		'features/home/screens/home-screen.spec.jsx',
+		'features/home/screens/home-screen.test.mts',
+		'features/home/screens/home-screen.stories.jsx',
+		'features/home/screens/__tests__/home-screen.tsx',
+		'features/home/__tests__/home-screen.test.tsx',
+		'features/home/hooks/use-home.test.ts',
+	]) {
+		it(`accepts ${testFile} as nearby coverage`, () => {
+			expect(
+				coverageFailures(['features/home/screens/home-screen.tsx', testFile]),
+			).toEqual([]);
+		});
+	}
+
+	it('accepts a sibling __tests__ directory outside features', () => {
+		expect(
+			coverageFailures([
+				'uikit/button.tsx',
+				'uikit/__tests__/button.test.tsx',
+			]),
+		).toEqual([]);
+	});
+
+	it('rejects a test in another feature', () => {
+		expect(
+			coverageFailures([
+				'features/home/screens/home-screen.tsx',
+				'features/profile/screens/profile-screen.test.tsx',
+			]),
+		).toHaveLength(1);
+	});
+
+	it('rejects a test in an unrelated directory', () => {
+		expect(
+			coverageFailures(['uikit/button.tsx', 'services/api/client.test.ts']),
+		).toHaveLength(1);
+	});
+
+	it('needs nearby coverage for every changed screen or component', () => {
+		expect(
+			coverageFailures([
+				'features/home/screens/home-screen.tsx',
+				'features/home/screens/home-screen.test.tsx',
+				'uikit/button.tsx',
+			]),
+		).toHaveLength(1);
+	});
+
+	it('keeps the single-argument helper as an any-test check', () => {
+		expect(
+			prGuardrails.hasRelatedTestOrStory([
+				'features/home/screens/home-screen.tsx',
+				'src/other/thing.spec.js',
+			]),
+		).toBe(true);
+		expect(
+			prGuardrails.hasRelatedTestOrStory(['features/home/screens/home-screen.tsx']),
+		).toBe(false);
+	});
+});
