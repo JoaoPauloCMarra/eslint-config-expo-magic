@@ -2,7 +2,7 @@
 
 This document explains the reasoning behind the opinionated rules enforced by `eslint-config-expo-magic`.
 
-## v4 preset defaults
+## Preset defaults
 
 The root and typed/strict presets keep core Expo, TypeScript, React Native, import, and application rules active. Formatting and test-plugin rules are optional integrations and are disabled unless `createConfig({ prettier: true, testing: true })` opts into them. The fast preset keeps the core React and React Native hooks but skips type-aware parsing, React Compiler diagnostics, and import-cycle traversal.
 
@@ -31,16 +31,19 @@ The root and typed/strict presets keep core Expo, TypeScript, React Native, impo
 ### `@typescript-eslint/no-misused-promises`
 
 - **Rule**: Prevent promises where they are not expected.
+- **Presets**: Typed, strict, agent, and mobile-app only. The default and fast presets do not enable it.
 - **Rationale**: Catch cases where an async function is passed to a synchronous callback or prop where the returned promise would be ignored.
 
 ### `@typescript-eslint/no-redeclare`
 
 - **Rule**: Prevent variable redeclaration.
+- **Source**: Inherited from `eslint-config-expo` at `warn`.
 - **Rationale**: Avoids confusion and potential bugs from accidental redeclaration.
 
 ### `@typescript-eslint/no-require-imports`
 
 - **Rule**: Prefer ES6 imports over require().
+- **Source**: Inherited from `eslint-config-expo` at `warn`, with asset and data file extensions allowed. `typeChecked` (and the typed preset) raises it to `error`.
 - **Rationale**: Ensures consistent import style and better tree-shaking support.
 
 ### `@typescript-eslint/naming-convention`
@@ -102,7 +105,7 @@ The root and typed/strict presets keep core Expo, TypeScript, React Native, impo
 - **`react-hooks/set-state-in-render`**: Prevents calling setState during render (causes infinite loops).
 - **`react-hooks/preserve-manual-memoization`**: Ensures manual memoization doesn't conflict with compiler optimizations.
 
-**Rationale**: Core React Hooks checks remain part of the default and typed/strict presets; the fast preset keeps only the core hooks checks. The opt-in `reactCompiler` layer promotes `unsupported-syntax`, `incompatible-library`, `immutability`, `purity`, `preserve-manual-memoization`, `set-state-in-render`, and `static-components` to `error`. (This replaces the previous hand-rolled `no-restricted-syntax` heuristics, which falsely flagged any optional chaining or `throw` inside a `try` block.)
+**Rationale**: Core React Hooks checks remain part of the default and typed/strict presets; the fast preset keeps only the core hooks checks. The opt-in `reactCompiler` layer sets `unsupported-syntax`, `incompatible-library`, `immutability`, `purity`, `preserve-manual-memoization`, `set-state-in-render`, and `static-components` to `error`. In the default preset most of these are already `error`, so the layer changes only `incompatible-library` and `unsupported-syntax` (from `warn`). In the fast preset it adds all seven. (This replaces the previous hand-rolled `no-restricted-syntax` heuristics, which falsely flagged any optional chaining or `throw` inside a `try` block.)
 
 ## 🛡️ Optional Hardening Layers
 
@@ -126,10 +129,10 @@ These layers are off by default and enabled per project via `createConfig({ ... 
 
 ### `componentStructure` (`expo-magic/*` plugin rules)
 
-- **`expo-magic/props-type-order`**: orders `*Props` members as required, optional, then function props, alphabetized within each group.
+- **`expo-magic/props-type-order`**: orders the members of `*Props` type aliases and interfaces as required, optional, then function props, alphabetized within each group. Method signatures count as function props.
 - **`expo-magic/default-export-placement`**: requires `export default Component;` immediately after the component declaration.
-- **`expo-magic/no-inline-props`**: requires a named `type ...Props` alias instead of an inline object type on a `props` parameter.
-- **`expo-magic/require-children-usage`**: flags a declared `children` prop (or `PropsWithChildren`) that the component never renders.
+- **`expo-magic/no-inline-props`**: requires a named `type ...Props` alias instead of an inline object type on a `props` parameter. It also flags an inline type on the destructured first parameter of a component (a PascalCase function or a default export), with or without a default value.
+- **`expo-magic/require-children-usage`**: flags a declared `children` prop (or `PropsWithChildren`) that the component never renders. It follows type aliases and interface `extends` in the same file. Spreading the props object or its rest binding (`{...props}`, `{...rest}`), or passing it to `cloneElement(element, props)`, counts as using `children`.
 
 **Rationale**: Encodes component-authoring conventions that keep prop contracts and exports predictable across a large app.
 
@@ -183,11 +186,13 @@ These layers are off by default and enabled per project via `createConfig({ ... 
 ### `import-x/no-duplicates`
 
 - **Rule**: Disallow duplicated imports from the same module.
+- **Source**: The `eslint-plugin-import-x` recommended config, at `warn`.
 - **Rationale**: Prevents redundant imports and keeps import blocks clean and predictable.
 
 ### `import-x/no-unresolved`
 
 - **Rule**: Ensure all imports can be resolved.
+- **Source**: The `eslint-plugin-import-x` recommended config, at `error`.
 - **Rationale**: Catches typos and missing dependencies early.
 
 ### `import-x/no-named-as-default-member`
@@ -232,18 +237,20 @@ Jest and Testing Library rules are disabled in the root and fast presets by defa
 
 ### Core JavaScript Rules
 
-- **`eqeqeq`**: Enforce strict equality (`===` and `!==`).
-- **`no-dupe-args`**: Prevent duplicate function parameters.
-- **`no-dupe-keys`**: Prevent duplicate object keys.
-- **`no-duplicate-case`**: Prevent duplicate case labels in switch statements.
-- **`no-empty-pattern`**: Prevent empty destructuring patterns.
-- **`no-extend-native`**: Prevent extending native objects.
-- **`no-unreachable`**: Prevent unreachable code after return/throw.
-- **`no-unsafe-negation`**: Prevent unsafe negation of left side of relational operators.
-- **`no-unused-expressions`**: Prevent unused expressions.
-- **`no-unused-labels`**: Prevent unused labels.
-- **`no-var`**: Prefer `let`/`const` over `var`.
-- **`no-with`**: Disallow `with` statements.
+These rules come from `eslint-config-expo`. This package does not change their level.
+
+- **`eqeqeq`** (`warn`, `"smart"`): Enforce strict equality (`===` and `!==`), except for `typeof` checks, comparisons between literals, and `null` checks.
+- **`no-dupe-args`** (`error`): Prevent duplicate function parameters.
+- **`no-dupe-keys`** (`error`): Prevent duplicate object keys.
+- **`no-duplicate-case`** (`error`): Prevent duplicate case labels in switch statements.
+- **`no-empty-pattern`** (`warn`): Prevent empty destructuring patterns.
+- **`no-extend-native`** (`warn`): Prevent extending native objects.
+- **`no-unreachable`** (`warn`): Prevent unreachable code after return/throw.
+- **`no-unsafe-negation`** (`warn`): Prevent unsafe negation of left side of relational operators.
+- **`no-unused-expressions`** (`warn`): Prevent unused expressions.
+- **`no-unused-labels`** (`warn`): Prevent unused labels.
+- **`no-var`** (`error`): Prefer `let`/`const` over `var`.
+- **`no-with`** (`warn`): Disallow `with` statements.
 
 **Rationale**: These rules enforce modern JavaScript best practices and prevent common bugs.
 
@@ -251,6 +258,10 @@ Jest and Testing Library rules are disabled in the root and fast presets by defa
 
 - **Rule**: Warn in apps, Error in packages.
 - **Rationale**: Prevents accidental logs in production while allowing them for app debugging.
+
+### Expo rules
+
+`expo/no-dynamic-env-var` and `expo/no-env-var-destructuring` come from `eslint-config-expo` at `error`. This package sets `expo/prefer-box-shadow` to `warn` in every preset.
 
 ### `expo/no-dynamic-env-var`
 
