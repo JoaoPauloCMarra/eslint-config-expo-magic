@@ -965,6 +965,10 @@ describe('eslint-config-expo-magic', () => {
 
 			expect(restrictedPaths).toEqual([
 				expect.objectContaining({
+					name: 'react-native',
+					importNames: ['SafeAreaView'],
+				}),
+				expect.objectContaining({
 					name: 'expo-router',
 					importNames: ['Link'],
 				}),
