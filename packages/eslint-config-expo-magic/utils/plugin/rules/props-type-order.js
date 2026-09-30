@@ -46,7 +46,10 @@ function isFunctionType(typeNode) {
 }
 
 function rankMember(member) {
-	if (isFunctionType(member.typeAnnotation?.typeAnnotation)) {
+	if (
+		member.type === 'TSMethodSignature' ||
+		isFunctionType(member.typeAnnotation?.typeAnnotation)
+	) {
 		return 2;
 	}
 
@@ -99,40 +102,50 @@ module.exports = {
 			? new RegExp(options.pattern)
 			: DEFAULT_PATTERN;
 
+		function checkMembers(node, members) {
+			if (!pattern.test(node.id.name)) {
+				return;
+			}
+
+			if (
+				members.length < 2 ||
+				!members.every(
+					(member) =>
+						member.type === 'TSPropertySignature' ||
+						member.type === 'TSMethodSignature',
+				) ||
+				members.some((member) => getPropertyName(member) === null)
+			) {
+				return;
+			}
+
+			const expectedOrder = getExpectedOrder(members);
+			if (!expectedOrder) {
+				return;
+			}
+
+			const expectedNames = expectedOrder
+				.map((member) => getPropertyName(member))
+				.join(', ');
+
+			context.report({
+				node: node.id,
+				messageId: 'order',
+				data: { name: node.id.name, expected: expectedNames },
+			});
+		}
+
 		return {
 			TSTypeAliasDeclaration(node) {
-				if (!pattern.test(node.id.name)) {
-					return;
-				}
-
 				const typeNode = node.typeAnnotation;
 				if (!typeNode || typeNode.type !== 'TSTypeLiteral') {
 					return;
 				}
 
-				const members = typeNode.members;
-				if (
-					members.length < 2 ||
-					!members.every((member) => member.type === 'TSPropertySignature') ||
-					members.some((member) => getPropertyName(member) === null)
-				) {
-					return;
-				}
-
-				const expectedOrder = getExpectedOrder(members);
-				if (!expectedOrder) {
-					return;
-				}
-
-				const expectedNames = expectedOrder
-					.map((member) => getPropertyName(member))
-					.join(', ');
-
-				context.report({
-					node: node.id,
-					messageId: 'order',
-					data: { name: node.id.name, expected: expectedNames },
-				});
+				checkMembers(node, typeNode.members);
+			},
+			TSInterfaceDeclaration(node) {
+				checkMembers(node, node.body.body);
 			},
 		};
 	},

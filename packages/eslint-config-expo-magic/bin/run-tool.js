@@ -39,6 +39,10 @@ function runTool(packageName, executableName) {
 		return;
 	}
 
+	if (result.signal) {
+		process.kill(process.pid, result.signal);
+	}
+
 	process.exitCode = result.status ?? 1;
 }
 

@@ -24,6 +24,17 @@ function getDeclaredNames(statement) {
 	return [];
 }
 
+function isMemberAssignment(statement, name) {
+	const expression =
+		statement?.type === 'ExpressionStatement' ? statement.expression : null;
+	return (
+		expression?.type === 'AssignmentExpression' &&
+		expression.left.type === 'MemberExpression' &&
+		expression.left.object.type === 'Identifier' &&
+		expression.left.object.name === name
+	);
+}
+
 module.exports = {
 	meta: {
 		type: 'suggestion',
@@ -66,7 +77,15 @@ module.exports = {
 						return;
 					}
 
-					const previous = body[index - 1];
+					let previousIndex = index - 1;
+					while (
+						previousIndex >= 0 &&
+						isMemberAssignment(body[previousIndex], name)
+					) {
+						previousIndex -= 1;
+					}
+
+					const previous = body[previousIndex];
 					if (previous && getDeclaredNames(previous).includes(name)) {
 						return;
 					}
