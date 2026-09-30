@@ -4,6 +4,7 @@ const path = require('node:path');
 const { describe, expect, test } = require('bun:test');
 const {
 	createReleaseNotes,
+	findLatestReleaseTag,
 	loadReleaseComparison,
 } = require('./release-notes.js');
 
@@ -32,9 +33,18 @@ describe('release notes', () => {
 	test('compares the current release candidate with the latest release tag', async () => {
 		const comparison = await loadReleaseComparison({ rootDir: projectRoot });
 
-		expect(comparison.previousRef).toBe('v5.1.1');
-		expect(comparison.previousManifest.version).toBe('5.1.1');
-		expect(comparison.currentManifest.version).toBe('5.1.2');
+		const latestTag = findLatestReleaseTag({ cwd: projectRoot });
+		const currentVersion = JSON.parse(
+			fs.readFileSync(
+				path.join(projectRoot, 'packages/eslint-config-expo-magic/package.json'),
+				'utf8',
+			),
+		).version;
+
+		expect(latestTag).toMatch(/^v\d+\.\d+\.\d+/);
+		expect(comparison.previousRef).toBe(latestTag);
+		expect(comparison.previousManifest.version).toBe(latestTag.slice(1));
+		expect(comparison.currentManifest.version).toBe(currentVersion);
 	});
 
 	test('describes previous-to-current package changes only', () => {
