@@ -47,12 +47,11 @@ const defaultProtectedFilePatterns = [
 
 const mobileAppProtectedFilePatterns = [
 	...defaultProtectedFilePatterns,
-	/^app\//,
-	/^features\/auth\//,
-	/^features\/core\/api\//,
-	/^features\/.*\/api\//,
-	/^features\/.*\/.*native/i,
-	/^services\/(api|analytics|sentry|storage|startup-routing|push-notifications)/,
+	/^(?:src\/)?app\//,
+	/^(?:src\/)?features\/auth\//,
+	/^(?:src\/)?features\/.*\/api\//,
+	/^(?:src\/)?features\/.*\/.*native/i,
+	/^(?:src\/)?services\/(api|analytics|sentry|storage|startup-routing|push-notifications)/,
 	/^.*storybook/i,
 	/^\.storybook\//,
 ];
@@ -72,12 +71,13 @@ const defaultMobileRuntimePatterns = [
 
 const mobileAppRuntimePatterns = [
 	...defaultMobileRuntimePatterns,
-	/^features\/.*\/screens\//,
-	/^features\/.*\/components\//,
-	/^features\/.*\/hooks\//,
-	/^features\/.*\/api\//,
-	/^uikit\//,
-	/^services\/(api|analytics|sentry|storage|startup-routing|push-notifications|linking-routing)/,
+	/^src\/app\//,
+	/^(?:src\/)?features\/.*\/screens\//,
+	/^(?:src\/)?features\/.*\/components\//,
+	/^(?:src\/)?features\/.*\/hooks\//,
+	/^(?:src\/)?features\/.*\/api\//,
+	/^(?:src\/)?uikit\//,
+	/^(?:src\/)?services\/(api|analytics|sentry|storage|startup-routing|push-notifications|linking-routing)/,
 	/^.*storybook/i,
 	/^\.storybook\//,
 ];
@@ -91,9 +91,9 @@ const defaultScreenOrComponentPatterns = [
 
 const mobileAppScreenOrComponentPatterns = [
 	...defaultScreenOrComponentPatterns,
-	/^features\/.*\/screens\/.*\.(ts|tsx)$/,
-	/^features\/.*\/components\/.*\.(ts|tsx)$/,
-	/^uikit\/.*\.(ts|tsx)$/,
+	/^(?:src\/)?features\/.*\/screens\/.*\.(ts|tsx)$/,
+	/^(?:src\/)?features\/.*\/components\/.*\.(ts|tsx)$/,
+	/^(?:src\/)?uikit\/.*\.(ts|tsx)$/,
 ];
 
 const broadEslintDisablePattern =

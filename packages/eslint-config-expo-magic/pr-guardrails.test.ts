@@ -213,3 +213,68 @@ describe('pr guardrails ignored risky files', () => {
 		).toEqual([]);
 	});
 });
+
+function matches(patterns: RegExp[], filePath: string): boolean {
+	return patterns.some((pattern) => pattern.test(filePath));
+}
+
+describe('pr guardrails src-rooted mobile app paths', () => {
+	const options = prGuardrails.createPrGuardrailOptions({ preset: 'mobileApp' });
+
+	for (const filePath of [
+		'src/app/_layout.tsx',
+		'src/features/auth/login.ts',
+		'src/features/home/api/client.ts',
+		'src/features/camera/native-camera.ts',
+		'src/services/api/client.ts',
+		'app/_layout.tsx',
+		'features/home/api/client.ts',
+	]) {
+		it(`protects ${filePath}`, () => {
+			expect(matches(options.protectedFilePatterns, filePath)).toBe(true);
+		});
+	}
+
+	for (const filePath of [
+		'src/app/(tabs)/index.tsx',
+		'src/features/home/screens/home-screen.tsx',
+		'src/features/home/api/client.ts',
+		'src/uikit/button.tsx',
+		'src/services/linking-routing/index.ts',
+		'features/home/hooks/use-home.ts',
+	]) {
+		it(`treats ${filePath} as a runtime file`, () => {
+			expect(matches(options.mobileRuntimePatterns, filePath)).toBe(true);
+		});
+	}
+
+	for (const filePath of [
+		'src/features/home/screens/home-screen.tsx',
+		'src/uikit/button.tsx',
+	]) {
+		it(`treats ${filePath} as a screen or component`, () => {
+			expect(matches(options.screenOrComponentPatterns, filePath)).toBe(true);
+		});
+	}
+
+	it('requires runtime evidence and owner approval for src/app changes', () => {
+		const failures = failuresFor({
+			changedFiles: ['src/app/_layout.tsx'],
+		});
+
+		expect(failures).toEqual(
+			expect.arrayContaining([
+				expect.stringContaining('Runtime validation checkbox is not checked'),
+				expect.stringContaining('Protected files changed'),
+			]),
+		);
+	});
+
+	it('keeps default src paths unprotected', () => {
+		const defaults = prGuardrails.createPrGuardrailOptions();
+
+		expect(matches(defaults.protectedFilePatterns, 'src/app/_layout.tsx')).toBe(
+			false,
+		);
+	});
+});
