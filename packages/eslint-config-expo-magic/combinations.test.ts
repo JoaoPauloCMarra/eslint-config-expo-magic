@@ -39,10 +39,9 @@ async function lintCombination(options: Record<string, unknown>) {
 
 	for (const target of lintTargets) {
 		const filePath = path.join(testProjectDir, target);
-		const [result] = await eslint.lintText(
-			fs.readFileSync(filePath, 'utf8'),
-			{ filePath },
-		);
+		const [result] = await eslint.lintText(fs.readFileSync(filePath, 'utf8'), {
+			filePath,
+		});
 		results.push(result);
 	}
 
@@ -176,6 +175,27 @@ describe('createConfig option combinations', () => {
 		);
 
 		expect(calculated.rules['import-x/no-cycle']).toBeUndefined();
+	});
+
+	it('keeps projectService for custom tsconfigProjects without typeChecked', async () => {
+		for (const options of [
+			{ tsconfigProjects: ['./tsconfig.json'] },
+			{ preset: 'base', strict: true, tsconfigProjects: ['./tsconfig.json'] },
+		]) {
+			const eslint = new ESLint({
+				overrideConfigFile: true,
+				overrideConfig: createConfig(options),
+				cwd: testProjectDir,
+			});
+			const calculated = await eslint.calculateConfigForFile(
+				path.join(testProjectDir, 'module.ts'),
+			);
+
+			expect(calculated.languageOptions.parserOptions.projectService).toBe(
+				true,
+			);
+			expect(calculated.languageOptions.parserOptions.project).toBeUndefined();
+		}
 	});
 
 	it('keeps projectService when tsconfigProjects is not set', async () => {

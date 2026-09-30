@@ -253,7 +253,9 @@ function createConfig(options = {}) {
 					testing,
 					typeAware,
 					fast: preset === 'fast',
-					parserTsconfigProjects: options.tsconfigProjects,
+					parserTsconfigProjects: typeChecked
+						? options.tsconfigProjects
+						: undefined,
 					typeCheckedConfigs,
 				});
 	const finalConfig = [...presetConfig];
@@ -262,7 +264,7 @@ function createConfig(options = {}) {
 		finalConfig.push({
 			files: typeScriptFiles,
 			languageOptions: {
-				parserOptions: createTypeScriptParserOptions(options.tsconfigProjects),
+				parserOptions: createTypeScriptParserOptions(),
 			},
 		});
 	}
