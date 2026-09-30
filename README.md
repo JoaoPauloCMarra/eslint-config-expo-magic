@@ -218,21 +218,30 @@ const {
 	createArchitectureConfig,
 } = require('eslint-config-expo-magic/architecture');
 
-module.exports = createConfig({
+const nativeUi = true;
+const base = createConfig({
 	prettier: true,
-	nativeUi: true,
-	semanticColors: { tokenModule: 'uikit/tokens' },
-}).concat(
-	createArchitectureConfig({
+	nativeUi,
+	semanticColors: { tokenModule: 'uikit/tokens/colors' },
+});
+
+module.exports = [
+	...base,
+	...createArchitectureConfig({
 		layers: {
 			routes: 'app',
 			ui: 'uikit',
 			tokens: 'uikit/tokens',
 			components: 'uikit/components',
 		},
+		baseConfig: base,
+		nativeUi,
 	}),
-);
+];
 ```
+
+Pass the config you spread first as `baseConfig`, and pass the same `nativeUi`
+value to both calls. See [Composition](#composition) below.
 
 Layer names are explicit rather than a preset enum, so a project that calls its
 route host `core` and its UI layer `shared` passes those names instead.
@@ -244,29 +253,46 @@ What it enforces:
   feature folders, and needs no import resolver.
 - Owned primitives: raw React Native `Button`, `Image`, `Pressable`,
   `ScrollView`, `FlatList` and `Modal` stay inside the wrapper files listed in
-  `nativeWrappers`.
+  `nativeWrappers` (and `nativeUi.allowFiles`). Wrapper files are exempt from
+  the primitive ban only; the layer bans still apply to them.
 - Raw colour literals stay out of every layer, including views.
 - Layer direction: services never import features or routes, and the UI layer
-  never imports either.
+  never imports either. Aliased (`aliasPrefix`) and relative specifiers are
+  both checked.
 - HTTP belongs to services. `fetch`, `XMLHttpRequest` and HTTP client packages
   are banned elsewhere, including the `globalThis.fetch` form.
 - `console.*` belongs to the owned logger, including `globalThis.console`.
 - No barrels at any depth, and no `domain/` / `application/` / `ui/` trees
   inside a feature.
-- Views render and wire only: no effects, no collection pipelines, and no
-  query or client-state imports. `*-view` files and feature components receive
-  props; only a screen host may call a feature hook.
+- Views render and wire only: no effects, no chained collection pipelines (a
+  single `.map` for list rendering is fine), and no query or client-state
+  imports. `*-view` files and feature components receive props; only a screen
+  host may call a feature hook, including flat `use-*` hook files.
+- Test files keep the base `SafeAreaView` ban.
 - File names are lowercase kebab-case, with router conventions such as
   `+not-found` and `[id]` exempt.
 
-Every block re-states the base restrictions it must not lose. ESLint flat config
-*replaces* rule options when a later entry supplies them, so a layer block that
-sets only its own `no-restricted-imports` silently drops the owned-primitive ban
-for every file it matches. Composing the base list into each block is what keeps
-both active.
+### Composition
 
-Options: `layers`, `srcRoot`, `aliasPrefix`, `tokenModule`, `loggerModule`,
-`nativeWrappers`, `extraNativeUiRestrictions`, `extraNativeLibPatterns`.
+ESLint flat config _replaces_ a rule's options when a later entry sets the
+same rule. The architecture blocks compose instead: for each file, one
+`no-restricted-imports` and one `no-restricted-syntax` entry holds every
+restriction that applies to it, and exemptions (wrappers, the logger, the
+token module) remove only their own restriction. `.tsx` views keep the same
+layer bans as `.ts` files.
+
+With `baseConfig`, the `no-restricted-imports` and `no-restricted-syntax`
+entries of the config you spread first (agent guardrails, Reanimated, Worklets,
+semantic colors, your own bans) are restated inside every architecture block.
+Without `baseConfig`, only the native-UI and semantic-colour restrictions that
+architecture knows about are kept inside `src/`, and other layers' selectors
+are replaced there.
+
+Options: `layers`, `srcRoot`, `aliasPrefix`, `tokenModule` (the colour module
+path, as in `semanticColors`; the `layers.tokens` directory form resolves to its
+`colors` module), `loggerModule`, `nativeWrappers`, `extraNativeUiRestrictions`,
+`extraNativeLibPatterns` (`group` or `regex` entries), `nativeUi`, and
+`baseConfig`.
 
 Between these rules and the `importCycles` option, the layer direction,
 cross-feature isolation, and cycle checks that projects usually delegate to a

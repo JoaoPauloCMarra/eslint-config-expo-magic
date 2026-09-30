@@ -323,16 +323,21 @@ The rule resolves relative specifiers against the importing file, so
 
 ### `expo-magic/kebab-case-filenames`
 
-Authored file names are lowercase kebab-case. Extensions and router prefixes
-(`+not-found`, `[id]`) are ignored, so the convention applies to the stem only.
-Mixed-case file names break on case-insensitive filesystems and make imports
-ambiguous across platforms.
+Authored file names are lowercase kebab-case. Extensions are ignored, and the
+rule ignores Expo Router names by default: `+not-found`, `[id]`, `[...slug]`
+and `(tabs)`. An `ignore` option adds patterns to these defaults. Mixed-case
+file names break on case-insensitive filesystems and make imports ambiguous
+across platforms.
 
 ### Composition over replacement
 
-Every layer block emitted by `createArchitectureConfig()` re-states the
-semantic-colour selectors and the native-UI restriction paths it must not lose.
 ESLint flat config replaces rule options when a later entry supplies them, so a
-block that declares only its own `no-restricted-syntax` disables the raw-colour
-ban for every file it matches. This is the defect the factory exists to prevent,
-and `architecture.test.ts` asserts each rule still fires from inside a view.
+block that declares only its own `no-restricted-imports` or
+`no-restricted-syntax` disables every other restriction for the files it
+matches. `createArchitectureConfig()` composes instead: each file gets one
+entry per rule that holds every restriction that applies to it, including in
+`.tsx` views, and exemptions (wrapper files, the logger, the token module)
+remove only their own restriction. With `baseConfig`, the restrictions of the
+config spread before the architecture blocks are restated too.
+`architecture.test.ts` runs every violation in `.ts`, `.tsx`, `.js` and `.jsx`
+files, with and without `baseConfig`.
