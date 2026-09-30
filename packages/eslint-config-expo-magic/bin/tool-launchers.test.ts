@@ -8,10 +8,14 @@ const { spawnSync } = require('node:child_process');
 const packageDir = path.resolve(__dirname, '..');
 
 function runLauncher(fileName: string, args: string[] = ['--version']) {
-	return spawnSync(process.execPath, [path.join(__dirname, fileName), ...args], {
-		cwd: packageDir,
-		encoding: 'utf8',
-	});
+	return spawnSync(
+		process.execPath,
+		[path.join(__dirname, fileName), ...args],
+		{
+			cwd: packageDir,
+			encoding: 'utf8',
+		},
+	);
 }
 
 describe('tool launchers', () => {
@@ -39,7 +43,9 @@ describe('tool launchers', () => {
 	});
 
 	it('re-raises the signal that terminated the tool', () => {
-		const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'expo-magic-launcher-'));
+		const tempDir = fs.mkdtempSync(
+			path.join(os.tmpdir(), 'expo-magic-launcher-'),
+		);
 		const configPath = path.join(tempDir, 'eslint.config.cjs');
 		fs.writeFileSync(
 			configPath,
