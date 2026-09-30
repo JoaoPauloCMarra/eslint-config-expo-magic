@@ -702,6 +702,46 @@ describe('createArchitectureConfig', () => {
 			);
 		});
 
+		it('keeps a consumer path ban in wrapper and test files when composed', async () => {
+			const base = [
+				...createConfig({ preset: 'base', prettier: false, nativeUi: true }),
+				{
+					rules: {
+						'no-restricted-imports': [
+							'error',
+							{ paths: [{ name: 'lodash', message: 'Use native methods.' }] },
+						],
+					},
+				},
+			];
+			const eslint = new ESLint({
+				overrideConfigFile: true,
+				overrideConfig: [
+					...base,
+					...createArchitectureConfig({ baseConfig: base, nativeUi: true }),
+				],
+				cwd: repoRoot,
+			});
+
+			for (const filePath of [
+				'src/uikit/components/button.tsx',
+				'src/services/native/cam.ts',
+				'src/features/home/home.test.tsx',
+			]) {
+				const [result] = await eslint.lintText(
+					"import _ from 'lodash';\nimport { Pressable } from 'react-native';\nexport default [_, Pressable];\n",
+					{ filePath },
+				);
+				const messages = result.messages.map((message) => message.message);
+				expect(messages).toContain(
+					"'lodash' import is restricted from being used. Use native methods.",
+				);
+				expect(
+					messages.some((message) => message.includes("'Pressable'")),
+				).toBe(false);
+			}
+		});
+
 		it('honours nativeUi.additionalRestrictions from the base config', async () => {
 			const nativeUi = {
 				additionalRestrictions: [

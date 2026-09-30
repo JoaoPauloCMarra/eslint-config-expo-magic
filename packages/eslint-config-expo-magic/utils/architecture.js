@@ -467,8 +467,9 @@ function composeWithBase(ruleName, blocks, baseConfig) {
 	for (const block of blocks) {
 		configs.push(toConfig(block));
 		for (const baseEntry of baseEntries) {
-			const inherited = block.drop
-				? kind.subtract(baseEntry.value, block.drop)
+			const drop = block.drop?.inherited ?? block.drop;
+			const inherited = drop
+				? kind.subtract(baseEntry.value, drop)
 				: baseEntry.value;
 			const composed = intersectBlocks(
 				block,
@@ -713,29 +714,38 @@ function createArchitectureConfig(options = {}) {
 		},
 	];
 
+	const primitivePathKeys = new Set(
+		basePaths
+			.filter((entry) => !baseRestrictedImports.includes(entry))
+			.map(restrictionKey),
+	);
+	const nativeLibPatternKeys = new Set(nativeLibPatterns.map(patternKey));
 	const importExemptions = [
 		// Owned wrappers may import the primitives and native libraries they
-		// wrap. Every layer-direction ban still applies to them.
+		// wrap. Every layer-direction ban and every `baseConfig` ban that is not
+		// a primitive still applies to them.
 		{
 			name: 'architecture/native-wrappers',
 			files: nativeWrappers,
 			drop: {
-				pathKeys: new Set(
-					basePaths
-						.filter((entry) => !baseRestrictedImports.includes(entry))
-						.map(restrictionKey),
-				),
+				pathKeys: primitivePathKeys,
 				keepOnlyPathKeys: new Set(baseRestrictedImports.map(restrictionKey)),
-				patternKeys: new Set(nativeLibPatterns.map(patternKey)),
+				patternKeys: nativeLibPatternKeys,
+				inherited: {
+					pathKeys: primitivePathKeys,
+					patternKeys: nativeLibPatternKeys,
+				},
 			},
 		},
-		// Tests may use primitives freely but keep the base SafeAreaView ban.
+		// Tests may use primitives freely but keep the base SafeAreaView ban and
+		// the non-primitive `baseConfig` bans.
 		{
 			name: 'architecture/tests-imports',
 			files: testGlobs,
 			value: { paths: baseRestrictedImports, patterns: [] },
 			drop: {
 				keepOnlyPathKeys: new Set(baseRestrictedImports.map(restrictionKey)),
+				inherited: { pathKeys: primitivePathKeys },
 			},
 		},
 	];
