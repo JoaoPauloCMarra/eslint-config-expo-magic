@@ -508,12 +508,8 @@ function escapeRegExp(value) {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function runCommand(command) {
-	const result = spawnSync(command[0], command.slice(1), {
-		stdout: 'pipe',
-		stderr: 'pipe',
-		encoding: 'utf8',
-	});
+function runCommand(command, spawn = spawnSync) {
+	const result = spawn(command[0], command.slice(1), { encoding: 'utf8' });
 	if (result.status !== 0) {
 		throw new Error(
 			`Command failed: ${command.join(' ')}${result.stderr ? `\n${result.stderr.trim()}` : ''}`,
