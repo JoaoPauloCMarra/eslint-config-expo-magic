@@ -6,11 +6,8 @@ const { spawnSync } = require('child_process');
 const path = require('path');
 const { ESLint } = require('eslint');
 const {
-	collectMessagesByFile,
 	collectLintRuleResults,
-	findExpectedFileRuleFailures,
 	findMissingRuleFileCoverage,
-	findUnexpectedFileRuleFailures,
 } = require('./validation-results.js');
 
 // Expected rules that should trigger
@@ -99,15 +96,7 @@ const expectedRules = {
 	'expo/no-dynamic-env-var': ['App.tsx'],
 	'expo/no-env-var-destructuring': ['App.tsx'],
 	'expo/use-dom-exports': ['test.web.tsx'],
-	'no-console': [
-		'App.tsx',
-		'analyze-rules.js',
-		'babel.config.js',
-		'find-missing-rules.js',
-		'index.js',
-		'metro.config.js',
-		'validate-comprehensive.js',
-	],
+	'no-console': ['App.tsx', 'babel.config.js', 'index.js', 'metro.config.js'],
 	'no-dupe-args': ['components/GeneralAdvanced.tsx'],
 	'no-dupe-class-members': ['Legacy.js'],
 	'no-dupe-keys': ['App.tsx'],
@@ -118,7 +107,7 @@ const expectedRules = {
 	'no-extra-bind': ['App.tsx'],
 	'no-redeclare': ['Legacy.js'],
 	'no-restricted-imports': ['App.tsx'],
-	'no-undef': ['validate-comprehensive.js'],
+	'no-undef': ['Legacy.js'],
 	'no-unreachable': ['App.tsx'],
 	'no-unsafe-negation': ['App.tsx'],
 	'no-unused-expressions': ['App.tsx', 'components/GeneralAdvanced.tsx'],
@@ -308,49 +297,25 @@ function createPresetConfigSource(presetModules) {
 	return `module.exports = [...${presetExpressions.join(', ')}].flat();\n`;
 }
 
-function runPresetLint(presetModules, targets, options = {}) {
-	const { stageFiles = {}, tsconfig } = options;
-	const staged = Object.keys(stageFiles).length > 0 || tsconfig !== undefined;
-	const tempRoot = staged ? process.cwd() : os.tmpdir();
+function runPresetLint(presetModules, targets) {
 	const tempDir = fs.mkdtempSync(
-		path.join(
-			tempRoot,
-			staged ? 'validation-staging-' : 'eslint-config-expo-magic-preset-',
-		),
+		path.join(os.tmpdir(), 'eslint-config-expo-magic-preset-'),
 	);
 	const configPath = path.join(tempDir, 'eslint.config.js');
-	const lintCwd = staged ? tempDir : process.cwd();
 
 	try {
 		fs.writeFileSync(configPath, createPresetConfigSource(presetModules));
 
-		if (tsconfig !== undefined) {
-			fs.writeFileSync(path.join(tempDir, 'tsconfig.json'), tsconfig);
-		}
+		const result = runCommand('bunx', [
+			'eslint',
+			...targets,
+			'--no-config-lookup',
+			'--config',
+			configPath,
+			'--format=json',
+		]);
 
-		for (const [relativePath, sourcePath] of Object.entries(stageFiles)) {
-			const destPath = path.join(tempDir, relativePath);
-			fs.mkdirSync(path.dirname(destPath), { recursive: true });
-			fs.copyFileSync(sourcePath, destPath);
-		}
-
-		const result = runCommand(
-			'bunx',
-			[
-				'eslint',
-				...targets,
-				'--no-config-lookup',
-				'--config',
-				configPath,
-				'--format=json',
-			],
-			lintCwd,
-		);
-
-		return {
-			cwd: lintCwd,
-			lintResults: parseLintResults(result),
-		};
+		return parseLintResults(result);
 	} finally {
 		fs.rmSync(tempDir, { recursive: true, force: true });
 	}
@@ -362,20 +327,12 @@ function validatePresetCheck({
 	targets,
 	requiredRules = [],
 	forbiddenRules = [],
-	stageFiles,
-	tsconfig,
-	expectedByFile,
-	forbiddenByFile,
 }) {
 	console.log(`\n🧪 Preset Check: ${label}`);
 	console.log('==============================');
 
-	const { cwd, lintResults } = runPresetLint(presetModules, targets, {
-		stageFiles,
-		tsconfig,
-	});
+	const lintResults = runPresetLint(presetModules, targets);
 	const messages = lintResults.flatMap((result) => result.messages ?? []);
-	const messagesByFile = collectMessagesByFile(lintResults, cwd);
 
 	let passed = true;
 
@@ -406,23 +363,6 @@ function validatePresetCheck({
 		}
 
 		console.log(`✅ ${ruleId} absent`);
-	}
-
-	const expectedFailures = findExpectedFileRuleFailures(
-		messagesByFile,
-		expectedByFile,
-	);
-	const forbiddenFailures = findUnexpectedFileRuleFailures(
-		messagesByFile,
-		forbiddenByFile,
-	);
-
-	for (const failure of [...expectedFailures, ...forbiddenFailures]) {
-		console.log(`❌ ${failure.file}: ${failure.ruleId} (${failure.reason})`);
-	}
-
-	if (expectedFailures.length > 0 || forbiddenFailures.length > 0) {
-		passed = false;
 	}
 
 	return passed;

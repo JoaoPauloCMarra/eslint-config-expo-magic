@@ -1,6 +1,6 @@
 # Config Diff
 
-Package version: `5.1.2`
+Package version: `5.2.0`
 Expo config version: `57.0.2`
 
 ## Effective Rule Counts
@@ -20,25 +20,25 @@ Expo config version: `57.0.2`
 | --- | --- | ---: | ---: | ---: |
 | app | baseVsExpo | 1 | 0 | 48 |
 | app | defaultVsExpo | 48 | 3 | 9 |
-| app | typedVsDefault | 69 | 14 | 0 |
+| app | typedVsDefault | 69 | 7 | 0 |
 | app | strictVsDefault | 1 | 2 | 0 |
 | app | productionAppVsDefault | 10 | 5 | 0 |
 | app | fastVsDefault | 0 | 1 | 22 |
 | package | baseVsExpo | 1 | 0 | 48 |
 | package | defaultVsExpo | 48 | 3 | 9 |
-| package | typedVsDefault | 69 | 14 | 0 |
+| package | typedVsDefault | 69 | 7 | 0 |
 | package | strictVsDefault | 1 | 1 | 0 |
 | package | productionAppVsDefault | 8 | 4 | 0 |
 | package | fastVsDefault | 0 | 1 | 22 |
 | test | baseVsExpo | 1 | 0 | 48 |
 | test | defaultVsExpo | 48 | 3 | 9 |
-| test | typedVsDefault | 69 | 14 | 0 |
+| test | typedVsDefault | 69 | 7 | 0 |
 | test | strictVsDefault | 1 | 2 | 0 |
 | test | productionAppVsDefault | 10 | 5 | 0 |
 | test | fastVsDefault | 0 | 1 | 22 |
 | story | baseVsExpo | 1 | 0 | 48 |
 | story | defaultVsExpo | 48 | 3 | 9 |
-| story | typedVsDefault | 69 | 14 | 0 |
+| story | typedVsDefault | 69 | 7 | 0 |
 | story | strictVsDefault | 1 | 2 | 0 |
 | story | productionAppVsDefault | 10 | 6 | 0 |
 | story | fastVsDefault | 0 | 1 | 22 |
@@ -50,7 +50,7 @@ Expo config version: `57.0.2`
 | config | fastVsDefault | 0 | 1 | 13 |
 | web | baseVsExpo | 1 | 0 | 48 |
 | web | defaultVsExpo | 48 | 3 | 9 |
-| web | typedVsDefault | 69 | 14 | 0 |
+| web | typedVsDefault | 69 | 7 | 0 |
 | web | strictVsDefault | 1 | 2 | 0 |
 | web | productionAppVsDefault | 10 | 5 | 0 |
 | web | fastVsDefault | 0 | 1 | 22 |
@@ -201,7 +201,6 @@ Expo config version: `57.0.2`
 - `no-unused-vars`
 - `react-hooks/exhaustive-deps`
 - `react-hooks/set-state-in-effect`
-- `react/jsx-key`
 
 #### Removed
 
@@ -292,22 +291,12 @@ Expo config version: `57.0.2`
 
 #### Changed
 
-- `@typescript-eslint/array-type`
-- `@typescript-eslint/consistent-type-assertions`
-- `@typescript-eslint/consistent-type-definitions`
-- `@typescript-eslint/no-empty-object-type`
-- `@typescript-eslint/no-extra-non-null-assertion`
 - `@typescript-eslint/no-require-imports`
-- `@typescript-eslint/no-unused-vars`
-- `@typescript-eslint/no-wrapper-object-types`
-- `@typescript-eslint/prefer-nullish-coalescing`
-- `@typescript-eslint/prefer-optional-chain`
 - `no-dupe-args`
 - `no-dupe-keys`
 - `no-unreachable`
 - `no-unsafe-negation`
 - `no-unused-expressions`
-- `no-unused-vars`
 - `no-with`
 
 #### Removed

@@ -54,7 +54,7 @@ Version 4 changes the package's ownership and root defaults. Make the migration 
 3. Run the full lint and typecheck commands before enabling autofix in CI.
 
 ```bash
-bun add --dev eslint-config-expo-magic typescript@^6.0.3
+bun add --dev eslint-config-expo-magic typescript@~6.0.3
 ```
 
 TypeScript is the required toolchain peer. Expo and React are optional peers because an Expo application normally owns them. ESLint, Prettier, and all formatting, testing, and feature-boundary plugins ship with this package.
@@ -86,7 +86,7 @@ The `no-prettier` export and subpath were removed. The `strictNoPrettier` and `t
 - TypeScript `>=5.9.3 <6.1.0`
 - TypeScript ESLint `^8.69.0`
 
-TypeScript 7 and the React Native/Jest preset 0.87 line remain intentional holds until the matching compatibility proof is available. Expo SDK 54 through 57 remain the supported smoke lanes, with SDK 57.0.22 coupled to React 19.2.3, React Native 0.86.3, React Test Renderer 19.2.3, `jest-expo` 57.0.5, and `@react-native/jest-preset` 0.86.3.
+TypeScript 7 and the React Native/Jest preset 0.87 line remain intentional holds until the matching compatibility proof is available. Expo SDK 54 through 57 remain the supported smoke lanes. The SDK 57 lanes read their versions from `test-project/package.json`: Expo 57.0.26, React 19.2.3, React Native 0.86.3, React Test Renderer 19.2.3, `jest-expo` 57.0.5, and `@react-native/jest-preset` 0.86.3.
 
 ### v4 verification
 
@@ -116,7 +116,7 @@ module.exports = [...expoConfig];
 module.exports = require('eslint-config-expo-magic');
 ```
 
-The package adds TypeScript, React, React Native, import organization, unused-import, app, and cycle rules. Deprecated-API, Reanimated, Worklets, and other hardening layers are available as explicit options or subpaths. Formatting and testing integrations are opt-in in v4.
+The package adds TypeScript, React, React Native, import organization, unused-import, app, and cycle rules. Deprecated-API, Reanimated, Worklets, and other hardening layers are available as explicit options or subpaths. Formatting and testing integrations are opt-in.
 
 For a gradual rollout, adopt the `base` preset first:
 
@@ -181,11 +181,11 @@ module.exports = createConfig({
 });
 ```
 
-Enable `reactCompiler`, `nativeUi`, and `storybook` directly. Install `eslint-plugin-boundaries` before enabling `featureBoundaries`. Configure `allowFiles`, `additionalRestrictions`, `sharedComponentPatterns`, and `additionalSharedComponentPatterns` before enforcing project-shaped boundaries in CI.
+Enable `reactCompiler`, `nativeUi`, `storybook`, and `featureBoundaries` directly. Their plugins, including `eslint-plugin-boundaries`, ship with the package. Configure `allowFiles`, `additionalRestrictions`, `sharedComponentPatterns`, and `additionalSharedComponentPatterns` before enforcing project-shaped boundaries in CI.
 
 ## Expo SDK lanes
 
-Version 4 validates SDK 54, 55, 56, and 57 through packed-consumer smoke lanes. The clean SDK57 consumer follows Expo Doctor's SDK 57.0.22 tuple: React 19.2.3, React Native 0.86.3, React Test Renderer 19.2.3, `jest-expo` 57.0.5, and `@react-native/jest-preset` 0.86.3. Keep the SDK and React Native versions coupled to the Expo lane; do not advertise an independent React Native 0.87 support line until Expo publishes a matching stable lane.
+The 5.x release line validates SDK 54, 55, 56, and 57 through packed-consumer smoke lanes. The SDK 57 lanes, including the clean SDK57 consumer that runs Expo Doctor, read their versions from `test-project/package.json`: Expo 57.0.26, React 19.2.3, React Native 0.86.3, React Test Renderer 19.2.3, `jest-expo` 57.0.5, and `@react-native/jest-preset` 0.86.3. Keep the SDK and React Native versions coupled to the Expo lane; do not advertise an independent React Native 0.87 support line until Expo publishes a matching stable lane.
 
 The repo keeps the fixture in the root Bun workspace. Use the root `bun.lock` and the packed-consumer smoke tests rather than a nested fixture lockfile.
 

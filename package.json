@@ -7,7 +7,7 @@
 	"packageManager": "bun@1.4.0",
 	"private": true,
 	"scripts": {
-		"test": "bun test packages/eslint-config-expo-magic scripts/lib/audit-dependencies.test.js scripts/lib/config-report.test.js scripts/lib/documentation.test.js scripts/lib/release-notes.test.js test-project/validation-results.test.js",
+		"test": "bun test packages/eslint-config-expo-magic scripts/lib/audit-dependencies.test.js scripts/lib/packed-consumer.test.js scripts/lib/config-report.test.js scripts/lib/documentation.test.js scripts/lib/release-notes.test.js test-project/validation-results.test.js",
 		"typecheck": "cd packages/eslint-config-expo-magic && bun run typecheck",
 		"audit:deps": "bun scripts/audit-dependencies.js",
 		"check-pm": "node packages/eslint-config-expo-magic/check-pm.js",

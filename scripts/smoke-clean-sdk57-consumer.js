@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const {
+	readSdk57FixtureVersions,
 	run,
 	withPackedTarball,
 	withTempConsumer,
@@ -13,6 +14,8 @@ const {
 const expoDoctorVersion = '1.20.1';
 
 function writeConsumerFiles(tempProjectDir, tarballPath) {
+	const sdk57Versions = readSdk57FixtureVersions();
+
 	writeJson(path.join(tempProjectDir, 'package.json'), {
 		name: 'eslint-config-expo-magic-clean-sdk57-consumer',
 		private: true,
@@ -22,15 +25,8 @@ function writeConsumerFiles(tempProjectDir, tarballPath) {
 			doctor: 'expo-doctor',
 		},
 		devDependencies: {
-			'@react-native/jest-preset': '0.86.3',
-			'@types/react': '~19.2.17',
-			'expo-status-bar': '57.0.1',
-			expo: '57.0.22',
+			...sdk57Versions,
 			'eslint-config-expo-magic': `file:${tarballPath}`,
-			'jest-expo': '57.0.5',
-			react: '19.2.3',
-			'react-native': '0.86.3',
-			'react-test-renderer': '19.2.3',
 			typescript: '^6.0.3',
 		},
 	});
@@ -85,6 +81,10 @@ function assertLintClean(tempProjectDir) {
 		cwd: tempProjectDir,
 		encoding: 'utf8',
 	});
+
+	if (result.error) {
+		throw result.error;
+	}
 
 	if (result.status !== 0) {
 		throw new Error(result.stderr || result.stdout || 'ESLint smoke failed.');

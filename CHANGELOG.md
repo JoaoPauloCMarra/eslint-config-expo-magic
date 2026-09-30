@@ -2,6 +2,65 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
+## 5.2.0
+
+Released: 2026-09-30
+
+### Breaking Changes
+
+- None. Several fixes make existing rules apply where the documentation already said they did, so code that passed 5.1.2 can report new errors. The cases are listed under **Fixed** and marked _(new reports)_.
+
+### Added
+
+- `createArchitectureConfig({ baseConfig, nativeUi })`: pass the config you spread before the architecture blocks, and the architecture blocks restate its `no-restricted-imports` and `no-restricted-syntax` entries instead of replacing them.
+- `createMobileAppConfig({ additionalNativeUiWrapperFiles })` lists extra files that may import the raw primitives they wrap.
+- `expo-magic` plugin `meta.version` reports the package version.
+- `pr-guardrails` helpers accept optional dependency arguments for testing (`readPullRequestInputFromEnv`, `runCli`, `readCliOptionsFromEnv`, `mentionsRuntimeTarget`, `hasRelatedTestOrStory`).
+
+### Fixed
+
+- **Option combinations that crashed ESLint now load:** `typeChecked` with `preset: 'fast'` or custom `tsconfigProjects` (fatal "Enabling project does nothing when projectService is enabled"), `preset: 'base'` with `reactCompiler` or `agent` (missing `react-hooks` plugin), and `preset: 'base'` with `strict` (type-aware rules without type information).
+- **Test-only guardrails stay in test files.** With `agent` or `appGuardrails`, `.only(`, `.skip(` and `toMatchSnapshot()` were reported in application code such as `query.skip(10)`.
+- `semanticColors.allowFiles` works when semantic colors is the only `no-restricted-syntax` layer; the token file was still reported. `createAllowConfig()` now returns the allow block instead of an empty array.
+- `typeChecked` (and the `typed` preset) no longer overrides the package's own TypeScript rule levels: `prefer-nullish-coalescing` stays off, and `array-type`, `consistent-type-assertions`, `no-empty-object-type`, `no-wrapper-object-types`, `no-extra-non-null-assertion` and `prefer-optional-chain` stay at `warn` instead of `error`.
+- An explicit top-level option now wins over the same key in `agent: { … }`, as documented.
+- `testing`, `importCycles` and `inlineStyles` now apply under `preset: 'base'`.
+- `tsconfigProjects` reaches the parser as `parserOptions.project` when `typeChecked` is set. Without `typeChecked` the parser keeps `projectService`, as before.
+- The configured TypeScript import resolver options are kept; the import-x plugin's `{ typescript: true }` replaced them.
+- `nativeUi: { restrictions }` keeps the base `SafeAreaView` ban, and an empty list no longer turns the rule off.
+- Jest rules apply to `.test`/`.spec` files with `.mts` and `.cts` extensions _(new reports)_.
+- Standalone focused configs (`agent-guardrails`, `reanimated`, `semantic-colors`, `worklets`) compose their own selectors; `agent-guardrails` alone no longer drops its source selectors on test files _(new reports)_.
+- **`createArchitectureConfig()`** _(new reports)_:
+  - `.tsx`/`.jsx` views keep the HTTP, route and layer-direction bans, and barrels and `domain/`/`application/` trees are banned in `.tsx` too.
+  - Layer direction honours `aliasPrefix` and also checks relative specifiers; `aliasPrefix` is in the typings.
+  - Wrapper files may import the primitives they wrap under `nativeUi: true`, and keep the layer bans.
+  - `nativeUi.additionalRestrictions` is honoured. `tokenModule` is the colour module path, as in `semanticColors`, and now defaults to `uikit/tokens/colors`; the directory form (`layers.tokens`) resolves to its `colors` module. Importing the colour map from `@/uikit/tokens/colors` in `src/` is now reported.
+  - With `baseConfig`, restated restrictions are reported as errors inside `src/`, and wrapper and test files keep every non-primitive ban.
+  - A single `.map` in a view is no longer reported; only chains are. Flat `use-*` hook files count as feature hooks for "views receive props".
+  - Test files keep the `SafeAreaView` ban.
+- **`mobile-app`** _(new reports)_: wrapper files keep the `SafeAreaView`, UI-kit and `useRouter` bans; ignores match nested app roots; `types/` is default-disallow; storage bans cover `uikit/`, `utils/` and `modules/`; `.js`/`.jsx` files are covered. `preset: 'base'` is rejected with a clear error.
+- `feature-boundaries` `recommended` includes the import resolver settings that `createConfig({ featureBoundaries: true })` adds.
+- **Plugin rules:**
+  - `no-cross-feature-imports` no longer reports relative imports through a non-`src` folder named `features`.
+  - `require-children-usage` follows `interface … extends` (including `PropsWithChildren`) _(new reports)_, and accepts children forwarded through `...rest` or `cloneElement(el, props)`.
+  - `no-inline-props` checks destructured and defaulted component props _(new reports)_.
+  - `props-type-order` checks interfaces and method signatures _(new reports)_.
+  - `default-export-placement` allows `Foo.displayName = …` before `export default Foo`.
+  - `kebab-case-filenames` ignores Expo Router names (`+not-found`, `[id]`, `[...slug]`, `(tabs)`) by default.
+- **`expo-magic-init --write`** keeps existing setups: it skips writing when any `eslint.config.*` or Prettier config exists, writes `eslint.config.cjs` in ESM packages, keeps `package.json` indentation, and stops when there is no `package.json`.
+- The `eslint` and `prettier` launchers re-raise a child's termination signal.
+- **PR guardrails:** unchecked template lines no longer count as runtime evidence; targeted `eslint-disable-next-line <rule>` is not a broad ignore; `ignoredRiskyFilePatterns` match file paths; `mobileApp` patterns cover `src/`; "nearby" tests and stories are checked per changed screen or component; the CLI handles shallow checkouts and API errors and prints one error line instead of a stack trace.
+
+### Changed
+
+- The Expo SDK 57 fixture uses Expo 57.0.26, and the smoke lanes read the SDK 57 versions from `test-project/package.json`.
+- The published package no longer has a `check-pm` script. It pointed at a file the package never shipped.
+- The repository lockfile patches `brace-expansion` (GHSA-qhr7-859c-m2p7, GHSA-6j4f-fj2g-mc7p, GHSA-q2hr-2g5m-vwhr). Consumers resolve their own dependency tree.
+
+### Compatibility
+
+- Expo SDK 54 / 55 / 56 / 57, React 19.1–19.2, ESLint 10.10, and TypeScript `>=5.9.3 <6.1.0`. Unchanged from 5.1.2.
+
 ## 5.1.2
 
 Released: 2026-09-14

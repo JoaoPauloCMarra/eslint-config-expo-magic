@@ -1,5 +1,6 @@
 const {
-	createRestrictedSyntaxConfigs,
+	createCapabilityAllowConfigs,
+	createComposedRestrictedSyntaxConfigs,
 	RESTRICTED_SYNTAX_SCOPES,
 } = require('./restricted-syntax.js');
 const { tsAndTsxFiles } = require('./file-patterns.js');
@@ -58,15 +59,13 @@ function createRestrictedSyntaxGroups(options = {}) {
 }
 
 function createAllowConfig(options = {}) {
-	void options;
-	return [];
+	return createCapabilityAllowConfigs(createRestrictedSyntaxGroups(options));
 }
 
 function createSemanticColorsConfig(options = {}) {
-	return [
-		...createRestrictedSyntaxConfigs(createRestrictedSyntaxGroups(options)),
-		...createAllowConfig(options),
-	];
+	return createComposedRestrictedSyntaxConfigs(
+		createRestrictedSyntaxGroups(options),
+	);
 }
 
 const restrictedSyntaxGroups = createRestrictedSyntaxGroups();

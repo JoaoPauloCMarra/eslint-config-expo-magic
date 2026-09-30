@@ -1,12 +1,15 @@
 #!/usr/bin/env bun
 
 const fs = require('node:fs');
-const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const {
+	rootDir,
+	withPackedTarball,
+	withTempConsumer,
+	writeJson,
+} = require('./lib/packed-consumer.js');
 
-const rootDir = path.resolve(__dirname, '..');
-const packageDir = path.join(rootDir, 'packages', 'eslint-config-expo-magic');
 const policyPath = path.join(__dirname, 'dependency-audit-policy.json');
 const severityRank = {
 	low: 1,
@@ -89,44 +92,6 @@ function readAudit() {
 	}
 }
 
-function snapshotTarballs() {
-	return fs
-		.readdirSync(packageDir)
-		.filter((file) => file.endsWith('.tgz'))
-		.reduce((accumulator, tarballName) => {
-			accumulator.set(
-				tarballName,
-				fs.statSync(path.join(packageDir, tarballName)).mtimeMs,
-			);
-			return accumulator;
-		}, new Map());
-}
-
-function findPublishedTarballPath() {
-	const tarballBefore = snapshotTarballs();
-	run('bun', ['pm', 'pack'], { cwd: packageDir });
-
-	const tarballs = fs
-		.readdirSync(packageDir)
-		.filter((file) => file.endsWith('.tgz'))
-		.filter((file) => {
-			const mtimeMs = fs.statSync(path.join(packageDir, file)).mtimeMs;
-			const previousMtimeMs = tarballBefore.get(file);
-			return previousMtimeMs === undefined || mtimeMs > previousMtimeMs;
-		})
-		.sort((left, right) => {
-			const leftMtime = fs.statSync(path.join(packageDir, left)).mtimeMs;
-			const rightMtime = fs.statSync(path.join(packageDir, right)).mtimeMs;
-			return rightMtime - leftMtime;
-		});
-
-	if (tarballs.length === 0) {
-		throw new Error('Unable to create package tarball for dependency audit.');
-	}
-
-	return path.join(packageDir, tarballs[0]);
-}
-
 function extractDependencyPackagesFromLockfile(packageLock) {
 	const names = new Set();
 
@@ -183,57 +148,41 @@ function extractDependencyPackagesFromLockfile(packageLock) {
 }
 
 function readPublishedDependencyPackages() {
-	let tarballPath;
-	const tempDir = fs.mkdtempSync(
-		path.join(os.tmpdir(), 'eslint-config-audit-'),
+	return withPackedTarball((tarballPath) =>
+		withTempConsumer('audit-consumer', (tempDir) => {
+			const consumerPackageJson = {
+				name: 'eslint-config-expo-magic-audit-consumer',
+				private: true,
+				version: '1.0.0',
+				dependencies: {
+					'eslint-config-expo-magic': `file:${tarballPath}`,
+				},
+			};
+
+			writeJson(path.join(tempDir, 'package.json'), consumerPackageJson);
+
+			run(
+				'npm',
+				[
+					'install',
+					'--package-lock-only',
+					'--package-lock=true',
+					'--dry-run=false',
+					'--ignore-scripts',
+					'--legacy-peer-deps',
+					'--no-audit',
+				],
+				{
+					cwd: tempDir,
+				},
+			);
+
+			const packageLock = JSON.parse(
+				fs.readFileSync(path.join(tempDir, 'package-lock.json'), 'utf8'),
+			);
+			return extractDependencyPackagesFromLockfile(packageLock);
+		}),
 	);
-
-	try {
-		tarballPath = findPublishedTarballPath();
-		const tarballName = path.basename(tarballPath);
-		const copiedTarballPath = path.join(tempDir, tarballName);
-		fs.copyFileSync(tarballPath, copiedTarballPath);
-
-		const consumerPackageJson = {
-			name: 'eslint-config-expo-magic-audit-consumer',
-			private: true,
-			version: '1.0.0',
-			dependencies: {
-				'eslint-config-expo-magic': `file:${tarballName}`,
-			},
-		};
-
-		fs.writeFileSync(
-			path.join(tempDir, 'package.json'),
-			`${JSON.stringify(consumerPackageJson, null, 2)}\n`,
-		);
-
-		run(
-			'npm',
-			[
-				'install',
-				'--package-lock-only',
-				'--package-lock=true',
-				'--dry-run=false',
-				'--ignore-scripts',
-				'--legacy-peer-deps',
-				'--no-audit',
-			],
-			{
-				cwd: tempDir,
-			},
-		);
-
-		const packageLock = JSON.parse(
-			fs.readFileSync(path.join(tempDir, 'package-lock.json'), 'utf8'),
-		);
-		return extractDependencyPackagesFromLockfile(packageLock);
-	} finally {
-		if (tarballPath && fs.existsSync(tarballPath)) {
-			fs.unlinkSync(tarballPath);
-		}
-		fs.rmSync(tempDir, { recursive: true, force: true });
-	}
 }
 
 function normalizeAudit(audit) {

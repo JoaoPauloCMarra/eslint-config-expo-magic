@@ -1,5 +1,5 @@
 import type { Linter } from 'eslint';
-import type { NativeUiRestriction } from './types';
+import type { NativeUiOptions, NativeUiRestriction } from './types';
 
 export type ArchitectureLayers = {
 	/** Route or navigation-host folder under `srcRoot`. Expo: `app`. Bare: `core`. */
@@ -13,8 +13,9 @@ export type ArchitectureLayers = {
 };
 
 export type RestrictedImportPattern = {
-	group: string[];
-	message: string;
+	group?: string[];
+	regex?: string;
+	message?: string;
 };
 
 export type ArchitectureOptions = {
@@ -22,7 +23,12 @@ export type ArchitectureOptions = {
 	layers?: Partial<ArchitectureLayers>;
 	/** Source root. Defaults to `src`. */
 	srcRoot?: string;
-	/** Token module path used by the semantic-colour selectors. */
+	/** Import alias prefix for `src`. Defaults to `@`. */
+	aliasPrefix?: string;
+	/**
+	 * Colour token module path, as in `semanticColors` (`uikit/tokens/colors`).
+	 * The layer directory form (`layers.tokens`) resolves to its `colors` module.
+	 */
 	tokenModule?: string;
 	/** Logger module allowed to call `console.*`. */
 	loggerModule?: string;
@@ -32,6 +38,18 @@ export type ArchitectureOptions = {
 	extraNativeUiRestrictions?: NativeUiRestriction[];
 	/** Extra `no-restricted-imports` patterns merged into every layer block. */
 	extraNativeLibPatterns?: RestrictedImportPattern[];
+	/**
+	 * The same `nativeUi` options passed to `createConfig`. Restrictions are
+	 * restated in every layer block and `allowFiles` are treated as wrappers.
+	 */
+	nativeUi?: boolean | NativeUiOptions;
+	/**
+	 * The config the architecture blocks are appended to. Its
+	 * `no-restricted-imports` and `no-restricted-syntax` entries are restated
+	 * inside every overlapping architecture block, so no layer drops them.
+	 * Restated restrictions are reported at `error` severity.
+	 */
+	baseConfig?: readonly Linter.Config[];
 };
 
 export declare const DEFAULT_LAYERS: Readonly<ArchitectureLayers>;

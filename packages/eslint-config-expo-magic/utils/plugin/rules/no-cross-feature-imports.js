@@ -75,7 +75,23 @@ function parseRelative(source, filePath, options) {
 	const fromDir = normalized.split('/').slice(0, -1);
 	const resolved = normalizeSegments([...fromDir, ...source.split('/')]);
 
-	const index = resolved.lastIndexOf(options.featuresSegment);
+	const marker = [
+		...options.srcRoot.split('/').filter(Boolean),
+		options.featuresSegment,
+	];
+	let index = -1;
+	for (
+		let position = resolved.length - marker.length;
+		position >= 0;
+		position -= 1
+	) {
+		if (
+			marker.every((segment, offset) => resolved[position + offset] === segment)
+		) {
+			index = position + marker.length - 1;
+			break;
+		}
+	}
 	if (index === -1) {
 		return null;
 	}
@@ -123,7 +139,7 @@ module.exports = {
 	},
 	create(context) {
 		const options = { ...DEFAULTS, ...(context.options[0] ?? {}) };
-		const filePath = context.filename ?? context.getFilename();
+		const filePath = context.filename;
 		const fromFeature = featureOfFile(filePath, options);
 
 		if (!fromFeature) {

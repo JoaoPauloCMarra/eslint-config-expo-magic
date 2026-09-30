@@ -94,15 +94,29 @@ function createExpoBaseConfig() {
 		.filter((config) => !config.plugins || !config.plugins['react-hooks']);
 }
 
-function createTypeCheckedConfigs(
-	tsconfigProjects = defaultTsconfigProjectGlobs,
-) {
-	const tseslint = require('typescript-eslint');
-	const seenConfigNames = new Set();
-	const usesDefaultProjects =
+function usesDefaultTsconfigProjects(tsconfigProjects) {
+	return (
+		tsconfigProjects === undefined ||
 		tsconfigProjects === defaultTsconfigProjectGlobs ||
 		JSON.stringify(tsconfigProjects) ===
-			JSON.stringify(defaultTsconfigProjectGlobs);
+			JSON.stringify(defaultTsconfigProjectGlobs)
+	);
+}
+
+function createTypeScriptParserOptions(tsconfigProjects) {
+	if (usesDefaultTsconfigProjects(tsconfigProjects)) {
+		return { projectService: true };
+	}
+
+	return {
+		project: tsconfigProjects,
+		tsconfigRootDir: process.cwd(),
+	};
+}
+
+function createTypeCheckedConfigs(tsconfigProjects) {
+	const tseslint = require('typescript-eslint');
+	const seenConfigNames = new Set();
 
 	return [
 		...tseslint.configs.recommendedTypeChecked,
@@ -126,9 +140,7 @@ function createTypeCheckedConfigs(
 					...(configEntry.languageOptions ?? {}),
 					parserOptions: {
 						...(configEntry.languageOptions?.parserOptions ?? {}),
-						...(usesDefaultProjects
-							? { projectService: true }
-							: { project: tsconfigProjects }),
+						...createTypeScriptParserOptions(tsconfigProjects),
 						tsconfigRootDir: process.cwd(),
 					},
 				},
@@ -205,10 +217,7 @@ function createSharedConfig(tsconfigProjects, extraIgnores = []) {
 		},
 		{
 			files: [
-				'*.config.{js,cjs,mjs,ts,mts,cts}',
 				'**/*.config.{js,cjs,mjs,ts,mts,cts}',
-				'metro.config.{js,cjs,mjs,ts,mts,cts}',
-				'babel.config.{js,cjs,mjs,ts,mts,cts}',
 				'scripts/**/*.{js,cjs,mjs,ts,mts,cts}',
 			],
 			languageOptions: {
@@ -244,9 +253,11 @@ function createDefaultPreset(
 	{
 		extraIgnores = [],
 		importCycles = true,
-		testing = true,
+		testing = false,
 		typeAware = true,
 		fast = false,
+		parserTsconfigProjects,
+		typeCheckedConfigs = [],
 	} = {},
 ) {
 	const reactConfig = require('./react.js');
@@ -256,8 +267,12 @@ function createDefaultPreset(
 
 	return [
 		...createBasePreset(tsconfigProjects, extraIgnores),
+		...typeCheckedConfigs,
 		...require('./typescript.js').createTypeScriptConfig({
-			typeChecked: typeAware,
+			typeAware,
+			parserOptions: typeAware
+				? createTypeScriptParserOptions(parserTsconfigProjects)
+				: {},
 		}),
 		...reactPreset,
 		...require('./imports.js').createImportConfig({ noCycle: importCycles }),
@@ -282,6 +297,8 @@ module.exports = {
 	createBasePreset,
 	createDefaultPreset,
 	createTypeCheckedConfigs,
+	createTypeScriptImportResolverConfig,
+	createTypeScriptParserOptions,
 	defaultTsconfigProjectGlobs,
 	fastTsconfigProjectGlobs,
 	normalizeOptionConfig,

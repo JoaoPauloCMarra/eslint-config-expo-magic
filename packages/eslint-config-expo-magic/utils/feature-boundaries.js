@@ -257,7 +257,29 @@ function createFeatureBoundaryConfig(options = {}) {
 	];
 }
 
-const recommended = createFeatureBoundaryConfig();
+function createFeatureBoundaryResolverConfig() {
+	const {
+		createTypeScriptImportResolverConfig,
+		defaultTsconfigProjectGlobs,
+	} = require('./config-core.js');
+	const allExtensions = require('./extensions.js');
+
+	return {
+		settings: {
+			'import/resolver': {
+				node: { extensions: allExtensions },
+				typescript: createTypeScriptImportResolverConfig(
+					defaultTsconfigProjectGlobs,
+				),
+			},
+		},
+	};
+}
+
+const recommended = [
+	...createFeatureBoundaryConfig(),
+	createFeatureBoundaryResolverConfig(),
+];
 
 module.exports = {
 	createFeatureBoundaryConfig,

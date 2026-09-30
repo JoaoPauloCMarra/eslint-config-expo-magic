@@ -1,4 +1,5 @@
 const DEFAULT_KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const DEFAULT_IGNORE = ['^\\+.*', '^\\[.*\\]', '^\\(.*\\)'];
 
 function baseName(filePath) {
 	return filePath.split(/[\\/]/).pop() ?? '';
@@ -42,13 +43,15 @@ module.exports = {
 	},
 	create(context) {
 		const options = context.options[0] ?? {};
-		const ignore = (options.ignore ?? []).map((value) => new RegExp(value));
+		const ignore = [...DEFAULT_IGNORE, ...(options.ignore ?? [])].map(
+			(value) => new RegExp(value),
+		);
 		// Router conventions such as `+not-found` or `[id]` keep their prefix.
 		const leading = options.allowLeadingCharacters ?? '+_[]()$@.';
 
 		return {
 			Program(node) {
-				const filePath = context.filename ?? context.getFilename();
+				const filePath = context.filename;
 				if (!filePath || filePath === '<input>' || filePath === '<text>') {
 					return;
 				}

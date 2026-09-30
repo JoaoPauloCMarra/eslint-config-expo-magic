@@ -1,5 +1,6 @@
 const {
 	createComposedRestrictedSyntaxConfigs,
+	RESTRICTED_SYNTAX_SCOPES,
 } = require('./restricted-syntax.js');
 const { testFiles, typeScriptFiles } = require('./file-patterns.js');
 
@@ -26,6 +27,7 @@ function createRestrictedSyntaxGroups({
 		},
 		{
 			files: testFiles,
+			scope: RESTRICTED_SYNTAX_SCOPES.TEST,
 			selectors: [
 				{
 					selector:

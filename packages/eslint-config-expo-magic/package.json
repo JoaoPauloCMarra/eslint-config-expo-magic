@@ -1,6 +1,6 @@
 {
 	"name": "eslint-config-expo-magic",
-	"version": "5.1.2",
+	"version": "5.2.0",
 	"description": "ESLint flat config for Expo, React Native, and TypeScript projects",
 	"keywords": [
 		"eslint",
@@ -231,7 +231,6 @@
 		"test": "bun test",
 		"typecheck": "tsc -p tsconfig.types.json",
 		"prepublishOnly": "node ../../scripts/release-check.js",
-		"check-pm": "node check-pm.js",
 		"pack:dry-run": "bun pm pack --dry-run",
 		"publish:dry-run": "bun publish --dry-run",
 		"ci": "bun install --frozen-lockfile",

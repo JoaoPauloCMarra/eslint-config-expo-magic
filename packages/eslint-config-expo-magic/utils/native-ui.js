@@ -1,10 +1,6 @@
 const { baseRestrictedImports } = require('./restricted-imports.js');
 
 function createRestrictedImportsRule(restrictions) {
-	if (restrictions.length === 0) {
-		return 'off';
-	}
-
 	return [
 		'error',
 		{
@@ -13,8 +9,24 @@ function createRestrictedImportsRule(restrictions) {
 	];
 }
 
-const defaultRestrictions = [
-	...baseRestrictedImports,
+function getRestrictionKey(restriction) {
+	return JSON.stringify([restriction.name, restriction.importNames ?? null]);
+}
+
+function dedupeRestrictions(restrictions) {
+	const deduped = new Map();
+
+	for (const restriction of restrictions) {
+		const key = getRestrictionKey(restriction);
+		if (!deduped.has(key)) {
+			deduped.set(key, restriction);
+		}
+	}
+
+	return [...deduped.values()];
+}
+
+const nativeUiRestrictions = [
 	{
 		name: 'react-native',
 		importNames: ['Button'],
@@ -67,11 +79,14 @@ const defaultRestrictions = [
 	},
 ];
 
+const defaultRestrictions = [...baseRestrictedImports, ...nativeUiRestrictions];
+
 function createNativeUiConfig(options = {}) {
-	const restrictions = [
-		...(options.restrictions ?? defaultRestrictions),
+	const restrictions = dedupeRestrictions([
+		...baseRestrictedImports,
+		...(options.restrictions ?? nativeUiRestrictions),
 		...(options.additionalRestrictions ?? []),
-	];
+	]);
 	const allowFiles = options.allowFiles ?? [];
 	const config = [
 		{

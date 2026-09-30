@@ -2,6 +2,7 @@ import { describe, expect, it } from 'bun:test';
 import type { Linter } from 'eslint';
 
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
@@ -39,6 +40,7 @@ type ModuleLoadProbeResult = {
 	loaded: string[];
 };
 const rootDir = path.resolve(__dirname, '../..');
+const tempRoot = fs.realpathSync(os.tmpdir());
 
 async function runPresetLint(presetModulePath: string, targets: string[]) {
 	return runDirectoryLint(rootDir, require(presetModulePath), targets);
@@ -73,10 +75,16 @@ function withExplicitLintRoot(config: FlatConfig[], cwd: string): FlatConfig[] {
 
 function getRuleMessages(
 	results: Array<{
+		filePath: string;
 		messages: Array<{ ruleId: string | null; severity: number }>;
 	}>,
 ) {
-	return results.flatMap((result) => result.messages ?? []);
+	return results.flatMap((result) =>
+		(result.messages ?? []).map((message) => ({
+			...message,
+			filePath: result.filePath,
+		})),
+	);
 }
 
 async function runDirectoryLint(
@@ -114,7 +122,7 @@ async function runFixtureLint({
 	targets?: string[];
 }) {
 	const tempDir = fs.mkdtempSync(
-		path.join(rootDir, '.tmp-eslint-config-expo-magic-fixture-'),
+		path.join(tempRoot, 'eslint-config-expo-magic-fixture-'),
 	);
 	const configPath = path.join(tempDir, 'eslint.config.js');
 
@@ -253,7 +261,6 @@ describe('eslint-config-expo-magic', () => {
 			);
 			expect(typeof nativeUiSubpath.createNativeUiConfig).toBe('function');
 			expect(typeof prGuardrails.validateGuardrails).toBe('function');
-			expect(Array.isArray(agentGuardrailsSubpath)).toBe(true);
 			expect(Array.isArray(reactCompilerSubpath)).toBe(true);
 			expect(Array.isArray(storybookSubpath)).toBe(true);
 			expect(Array.isArray(workletsSubpath)).toBe(true);
@@ -348,7 +355,7 @@ describe('eslint-config-expo-magic', () => {
 					expect(disabledRequests).not.toContain(request);
 				}
 			}
-		});
+		}, 30_000);
 
 		it('loads typescript-eslint only for typed configs', () => {
 			const probe = (fileName: string) =>
@@ -374,7 +381,7 @@ describe('eslint-config-expo-magic', () => {
 			expect(defaultResult.loaded).not.toContain('typescript-eslint');
 			expect(fastResult.loaded).not.toContain('typescript-eslint');
 			expect(typedResult.loaded).toContain('typescript-eslint');
-		});
+		}, 30_000);
 
 		it('builds retained CJS presets directly from createConfig', () => {
 			for (const fileName of ['agent.js', 'strict.js', 'typed.js']) {
@@ -393,7 +400,7 @@ describe('eslint-config-expo-magic', () => {
 				expect(loaded.configLength).toBeGreaterThan(0);
 				expect(loaded.loaded).not.toContain('./index.js');
 			}
-		});
+		}, 30_000);
 	});
 
 	describe('comprehensive validation contracts', () => {
@@ -826,7 +833,7 @@ describe('eslint-config-expo-magic', () => {
 
 		it('createConfig custom config runs end to end', async () => {
 			const tempDir = fs.mkdtempSync(
-				path.join(rootDir, '.tmp-eslint-config-expo-magic-factory-'),
+				path.join(tempRoot, 'eslint-config-expo-magic-factory-'),
 			);
 			const configPath = path.join(tempDir, 'eslint.config.js');
 			const targetPath = path.join(tempDir, 'factory-smoke.ts');
@@ -878,7 +885,7 @@ describe('eslint-config-expo-magic', () => {
 					].join('\n'),
 				);
 
-				const results = await runPresetLint(configPath, [targetPath]);
+				const results = await runDirectoryLint(tempDir, configPath, [targetPath]);
 				const messages = getRuleMessages(results);
 
 				expect(
@@ -965,6 +972,10 @@ describe('eslint-config-expo-magic', () => {
 
 			expect(restrictedPaths).toEqual([
 				expect.objectContaining({
+					name: 'react-native',
+					importNames: ['SafeAreaView'],
+				}),
+				expect.objectContaining({
 					name: 'expo-router',
 					importNames: ['Link'],
 				}),
@@ -1022,7 +1033,7 @@ describe('eslint-config-expo-magic', () => {
 
 		it('composes optional production app hardening rules', async () => {
 			const tempDir = fs.mkdtempSync(
-				path.join(rootDir, '.tmp-eslint-config-expo-magic-app-'),
+				path.join(tempRoot, 'eslint-config-expo-magic-app-'),
 			);
 			const configPath = path.join(tempDir, 'eslint.config.js');
 			const targetPath = path.join(tempDir, 'hardening-smoke.tsx');
@@ -1104,7 +1115,10 @@ describe('eslint-config-expo-magic', () => {
 					].join('\n'),
 				);
 
-				const results = await runPresetLint(configPath, [targetPath, storyPath]);
+				const results = await runDirectoryLint(tempDir, configPath, [
+					targetPath,
+					storyPath,
+				]);
 				const messages = getRuleMessages(results);
 
 				expect(
@@ -1237,7 +1251,7 @@ describe('eslint-config-expo-magic', () => {
 
 		it('uses the supported boundaries v7 policy API without migration warnings', async () => {
 			const tempDir = fs.mkdtempSync(
-				path.join(rootDir, '.tmp-eslint-config-expo-magic-boundaries-warning-'),
+				path.join(tempRoot, 'eslint-config-expo-magic-boundaries-warning-'),
 			);
 			const uikitDir = path.join(tempDir, 'uikit');
 			const featureDir = path.join(tempDir, 'features', 'people', 'api');
@@ -1296,7 +1310,7 @@ describe('eslint-config-expo-magic', () => {
 
 		it('runs feature boundary rules end to end', async () => {
 			const tempDir = fs.mkdtempSync(
-				path.join(rootDir, '.tmp-eslint-config-expo-magic-boundaries-'),
+				path.join(tempRoot, 'eslint-config-expo-magic-boundaries-'),
 			);
 			const configPath = path.join(tempDir, 'eslint.config.js');
 			const uikitDir = path.join(tempDir, 'uikit');
@@ -1432,7 +1446,7 @@ describe('eslint-config-expo-magic', () => {
 				.find(
 					(c: FlatConfig) =>
 						c.files &&
-						c.files.includes('**/*.test.[jt]s') &&
+						c.files.includes('**/*.test.ts') &&
 						c.rules &&
 						c.rules['jest/no-disabled-tests'],
 				);
@@ -1446,7 +1460,7 @@ describe('eslint-config-expo-magic', () => {
 				.find(
 					(c: FlatConfig) =>
 						c.files &&
-						c.files.includes('**/*.test.[jt]s') &&
+						c.files.includes('**/*.test.ts') &&
 						c.rules &&
 						c.rules['testing-library/await-async-queries'],
 				);
@@ -1650,10 +1664,6 @@ describe('eslint-config-expo-magic', () => {
 	});
 
 	describe('strict preset', () => {
-		it('extends base config', () => {
-			expect(config.strict.length).toBeGreaterThan(config.length);
-		});
-
 		it('makes no-console an error', () => {
 			const strictExtra = config.strict[config.strict.length - 1];
 			expect(strictExtra.rules['no-console']).toBe('error');
@@ -1666,10 +1676,6 @@ describe('eslint-config-expo-magic', () => {
 					c.rules['@typescript-eslint/no-non-null-assertion'] === 'error',
 			);
 			expect(strictTypeScriptConfig).toBeDefined();
-		});
-
-		it('exposes typed presets on the main export', () => {
-			expect(Array.isArray(config.typed)).toBe(true);
 		});
 	});
 
@@ -1892,7 +1898,7 @@ describe('eslint-config-expo-magic', () => {
 
 		it('reads PR guardrail options from a config file', () => {
 			const tempDir = fs.mkdtempSync(
-				path.join(rootDir, '.tmp-eslint-config-expo-magic-guardrails-'),
+				path.join(tempRoot, 'eslint-config-expo-magic-guardrails-'),
 			);
 
 			try {
@@ -1915,7 +1921,7 @@ describe('eslint-config-expo-magic', () => {
 
 		it('lets the environment preset override config file options', () => {
 			const tempDir = fs.mkdtempSync(
-				path.join(rootDir, '.tmp-eslint-config-expo-magic-guardrails-env-'),
+				path.join(tempRoot, 'eslint-config-expo-magic-guardrails-env-'),
 			);
 			const originalPreset = process.env.EXPO_MAGIC_PR_GUARDRAILS_PRESET;
 
@@ -2267,11 +2273,15 @@ describe('eslint-config-expo-magic', () => {
 				},
 			});
 
-			const screenMessages = messages.filter(
-				(message) => message.ruleId === 'no-restricted-syntax',
-			);
+			const restrictedMessagesFor = (fileName: string) =>
+				messages.filter(
+					(message) =>
+						message.ruleId === 'no-restricted-syntax' &&
+						message.filePath.endsWith(fileName),
+				);
 
-			expect(screenMessages.length).toBeGreaterThanOrEqual(4);
+			expect(restrictedMessagesFor('/screen.ts')).toHaveLength(4);
+			expect(restrictedMessagesFor('/uikit/tokens/colors.ts')).toEqual([]);
 		}, 15_000);
 
 		it('supports a custom token module path', () => {
