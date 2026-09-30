@@ -284,6 +284,9 @@ layer bans as `.ts` files.
 With `baseConfig`, the `no-restricted-imports` and `no-restricted-syntax`
 entries of the config you spread first (agent guardrails, Reanimated, Worklets,
 semantic colors, your own bans) are restated inside every architecture block.
+Wrapper and test files drop only the primitive and native-library bans. ESLint
+has one severity per rule and file, so a restated restriction is reported as an
+error inside `src/` even when the base config sets it to `warn`.
 Without `baseConfig`, only the native-UI and semantic-colour restrictions that
 architecture knows about are kept inside `src/`, and other layers' selectors
 are replaced there.

@@ -47,6 +47,7 @@ export type ArchitectureOptions = {
 	 * The config the architecture blocks are appended to. Its
 	 * `no-restricted-imports` and `no-restricted-syntax` entries are restated
 	 * inside every overlapping architecture block, so no layer drops them.
+	 * Restated restrictions are reported at `error` severity.
 	 */
 	baseConfig?: readonly Linter.Config[];
 };
