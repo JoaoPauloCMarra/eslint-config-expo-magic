@@ -126,15 +126,15 @@ function resolveAgentAwareOption(
 		return optionValue;
 	}
 
+	if (Object.prototype.hasOwnProperty.call(options, optionName)) {
+		return optionValue;
+	}
+
 	if (
 		agent !== true &&
 		Object.prototype.hasOwnProperty.call(agentOptions, optionName)
 	) {
 		return agentOptions[optionName];
-	}
-
-	if (Object.prototype.hasOwnProperty.call(options, optionName)) {
-		return optionValue;
 	}
 
 	return defaultValue;
