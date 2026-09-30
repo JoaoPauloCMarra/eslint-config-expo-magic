@@ -9,6 +9,10 @@ function getReferenceName(typeName) {
 		return typeName.right.name;
 	}
 
+	if (typeName?.type === 'MemberExpression' && !typeName.computed) {
+		return typeName.property.name ?? '';
+	}
+
 	return '';
 }
 
@@ -68,6 +72,17 @@ function getObjectPatternProperty(pattern, name) {
 	);
 }
 
+function getRestBinding(pattern) {
+	if (pattern?.type !== 'ObjectPattern') {
+		return null;
+	}
+
+	const rest = pattern.properties.find(
+		(property) => property.type === 'RestElement',
+	);
+	return rest ? getPatternIdentifier(rest.argument) : null;
+}
+
 function getPropertyBinding(property) {
 	if (!property || property.type !== 'Property') {
 		return null;
@@ -116,7 +131,8 @@ function typeDeclaresChildren(typeNode, typeDeclarations, seen = new Set()) {
 
 	if (
 		typeNode.type === 'TSTypeReference' ||
-		typeNode.type === 'TSExpressionWithTypeArguments'
+		typeNode.type === 'TSExpressionWithTypeArguments' ||
+		typeNode.type === 'TSInterfaceHeritage'
 	) {
 		const referenceName = getReferenceName(
 			typeNode.typeName ?? typeNode.expression,
@@ -241,6 +257,24 @@ function patternReadsChildren(pattern, scope) {
 	return variableHasRead(findVariable(scope, binding.name));
 }
 
+function isCloneElementCall(identifier, parent) {
+	if (
+		parent?.type !== 'CallExpression' ||
+		!parent.arguments.includes(identifier)
+	) {
+		return false;
+	}
+
+	const callee = parent.callee;
+	const calleeName =
+		callee.type === 'Identifier'
+			? callee.name
+			: callee.type === 'MemberExpression' && !callee.computed
+				? callee.property.name
+				: '';
+	return calleeName === 'cloneElement';
+}
+
 function isChildrenMemberAccess(identifier, parent) {
 	return (
 		parent?.type === 'MemberExpression' &&
@@ -267,6 +301,10 @@ function referenceUsesChildren(reference, scope) {
 			parent?.type === 'SpreadElement') &&
 		parent.argument === identifier
 	) {
+		return true;
+	}
+
+	if (isCloneElementCall(identifier, parent)) {
 		return true;
 	}
 
@@ -301,7 +339,8 @@ function componentUsesChildren(node, parameter, sourceCode) {
 		return variableHasRead(findVariable(scope, childrenBinding.name));
 	}
 
-	const propsBinding = getPatternIdentifier(parameter);
+	const propsBinding =
+		getPatternIdentifier(parameter) ?? getRestBinding(parameter);
 	if (!propsBinding) {
 		return false;
 	}
@@ -347,7 +386,10 @@ module.exports = {
 		const components = [];
 
 		function recordComponent(node) {
-			if (/^[A-Z]/u.test(getComponentName(node))) {
+			if (
+			node.parent?.type === 'ExportDefaultDeclaration' ||
+			/^[A-Z]/u.test(getComponentName(node))
+		) {
 				components.push(node);
 			}
 		}
