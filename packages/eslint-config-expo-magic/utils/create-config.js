@@ -354,6 +354,9 @@ function createConfig(options = {}) {
 	if (effectiveReactCompiler) {
 		const reactCompilerConfig = require('./react-compiler.js');
 		finalConfig.push(...reactCompilerConfig);
+		restrictedSyntaxGroups.push(
+			...reactCompilerConfig.restrictedSyntaxGroups,
+		);
 	}
 
 	if (effectiveReanimated) {

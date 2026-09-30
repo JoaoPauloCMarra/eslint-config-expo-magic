@@ -142,6 +142,7 @@ export type ReactCompilerRuleName =
 
 export type ReactCompilerConfig = FlatConfig[] & {
 	rules: Readonly<Record<ReactCompilerRuleName, Linter.RuleEntry>>;
+	restrictedSyntaxGroups: readonly RestrictedSyntaxGroup[];
 };
 
 export type ReanimatedConfig = FlatConfig[] & {

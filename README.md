@@ -140,7 +140,7 @@ Options that accept `true` also accept a focused options object where that confi
 
 `typeChecked` adds the `recommendedTypeChecked` and `stylisticTypeChecked` configs from TypeScript ESLint. Among other changes, this raises `@typescript-eslint/no-require-imports` from the `warn` level set by `eslint-config-expo` to `error`.
 
-In the default preset, most React Compiler diagnostics are already `error`. `reactCompiler: true` promotes only `react-hooks/incompatible-library` and `react-hooks/unsupported-syntax` from `warn` to `error`. The option matters most with `preset: 'fast'`, which has no compiler diagnostics: there it adds `incompatible-library`, `unsupported-syntax`, `immutability`, `purity`, `preserve-manual-memoization`, `set-state-in-render`, and `static-components` at `error`.
+In the default preset, most React Compiler diagnostics are already `error`. `reactCompiler: true` promotes only `react-hooks/incompatible-library` and `react-hooks/unsupported-syntax` from `warn` to `error`. The option matters most with `preset: 'fast'`, which has no compiler diagnostics: there it adds `incompatible-library`, `unsupported-syntax`, `immutability`, `purity`, `preserve-manual-memoization`, `set-state-in-render`, and `static-components` at `error`. `reactCompiler: true` also errors on `TryStatement[handler=null]` (try/finally without catch). The compiler cannot lower that form and skips the function. try/catch/finally is not this bailout, and `TryStatement[finalizer!=null]` is the wrong selector.
 
 `nativeUi: { restrictions }` replaces only the native-UI import list. The `SafeAreaView` import ban from `react-native` always stays. Use `additionalRestrictions` to extend the default list instead of replacing it.
 

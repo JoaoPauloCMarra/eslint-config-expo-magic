@@ -277,3 +277,54 @@ describe('audit composition regressions', () => {
 		}
 	});
 });
+
+
+describe('react compiler try/finally without catch', () => {
+	const missingCatch = [
+		'export function Widget() {',
+		'	try {',
+		'		doWork();',
+		'	} finally {',
+		'		cleanup();',
+		'	}',
+		'	return null;',
+		'}',
+		'',
+	].join('\n');
+	const withCatch = [
+		'export function Widget() {',
+		'	try {',
+		'		doWork();',
+		'	} catch (error) {',
+		'		report(error);',
+		'	} finally {',
+		'		cleanup();',
+		'	}',
+		'	return null;',
+		'}',
+		'',
+	].join('\n');
+
+	it('errors when reactCompiler is on', async () => {
+		const messages = await lint(
+			{ reactCompiler: true },
+			'src/Widget.tsx',
+			missingCatch,
+		);
+		expect(messages.some((message) => message.includes('without catch'))).toBe(
+			true,
+		);
+	});
+
+	it('allows try/catch/finally', async () => {
+		expect(
+			await lint({ reactCompiler: true }, 'src/Widget.tsx', withCatch),
+		).toEqual([]);
+	});
+
+	it('stays off when reactCompiler is off', async () => {
+		expect(
+			await lint({ reactCompiler: false }, 'src/Widget.tsx', missingCatch),
+		).toEqual([]);
+	});
+});

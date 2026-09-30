@@ -5,3 +5,4 @@ const config = require('./react-compiler.js');
 
 export default config;
 export const rules = config.rules;
+export const restrictedSyntaxGroups = config.restrictedSyntaxGroups;

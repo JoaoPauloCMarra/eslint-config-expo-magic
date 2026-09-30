@@ -2369,14 +2369,35 @@ describe('eslint-config-expo-magic', () => {
 			).toBe('error');
 		});
 
-		it('no longer ships brittle restricted-syntax selectors', () => {
-			expect(reactCompilerSubpath.restrictedSyntaxGroups).toBeUndefined();
-			const composed = config.createConfig({ reactCompiler: true });
-			const compilerEntry = composed.find(
-				(entry: FlatConfig) =>
-					entry.rules?.['react-hooks/unsupported-syntax'] === 'error',
+		it('flags try/finally without catch and not every finally', () => {
+			const selectors = reactCompilerSubpath.restrictedSyntaxGroups.flatMap(
+				(group: { selectors: { selector: string }[] }) =>
+					group.selectors.map((selector) => selector.selector),
 			);
-			expect(compilerEntry).toBeDefined();
+			expect(selectors).toEqual(['TryStatement[handler=null]']);
+			expect(selectors).not.toContain('TryStatement[finalizer!=null]');
+			const composed = config.createConfig({ reactCompiler: true });
+			const syntax = composed.flatMap((entry: FlatConfig) => {
+				const rule = entry.rules?.['no-restricted-syntax'];
+				return Array.isArray(rule) ? rule.slice(1) : [];
+			});
+			expect(
+				syntax.some(
+					(selector: { selector?: string }) =>
+						selector.selector === 'TryStatement[handler=null]',
+				),
+			).toBe(true);
+			const without = config.createConfig({ reactCompiler: false, preset: 'fast' });
+			const withoutSyntax = without.flatMap((entry: FlatConfig) => {
+				const rule = entry.rules?.['no-restricted-syntax'];
+				return Array.isArray(rule) ? rule.slice(1) : [];
+			});
+			expect(
+				withoutSyntax.some(
+					(selector: { selector?: string }) =>
+						selector.selector === 'TryStatement[handler=null]',
+				),
+			).toBe(false);
 		});
 	});
 

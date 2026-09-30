@@ -101,11 +101,12 @@ The root and typed/strict presets keep core Expo, TypeScript, React Native, impo
 - **`react-hooks/immutability`**: Ensures proper immutable updates in React components.
 - **`react-hooks/refs`**: Prevents accessing refs during render and other ref-related issues.
 - **`react-hooks/purity`**: Ensures component functions remain pure (no side effects during render).
+- **`no-restricted-syntax` `TryStatement[handler=null]`**: When `reactCompiler` is on, forbids try/finally without catch. The compiler cannot lower it ("Handle TryStatement without a catch clause") and skips the whole function. Use `promise.finally()` or a real catch. try/catch/finally is not this bailout. Do not select `TryStatement[finalizer!=null]`.
 - **`react-hooks/unsupported-syntax`**: Blocks syntax that cannot be optimized by React Compiler.
 - **`react-hooks/set-state-in-render`**: Prevents calling setState during render (causes infinite loops).
 - **`react-hooks/preserve-manual-memoization`**: Ensures manual memoization doesn't conflict with compiler optimizations.
 
-**Rationale**: Core React Hooks checks remain part of the default and typed/strict presets; the fast preset keeps only the core hooks checks. The opt-in `reactCompiler` layer sets `unsupported-syntax`, `incompatible-library`, `immutability`, `purity`, `preserve-manual-memoization`, `set-state-in-render`, and `static-components` to `error`. In the default preset most of these are already `error`, so the layer changes only `incompatible-library` and `unsupported-syntax` (from `warn`). In the fast preset it adds all seven. (This replaces the previous hand-rolled `no-restricted-syntax` heuristics, which falsely flagged any optional chaining or `throw` inside a `try` block.)
+**Rationale**: Core React Hooks checks remain part of the default and typed/strict presets; the fast preset keeps only the core hooks checks. The opt-in `reactCompiler` layer sets `unsupported-syntax`, `incompatible-library`, `immutability`, `purity`, `preserve-manual-memoization`, `set-state-in-render`, and `static-components` to `error`. In the default preset most of these are already `error`, so the layer changes only `incompatible-library` and `unsupported-syntax` (from `warn`). In the fast preset it adds all seven. (The previous hand-rolled heuristics, which falsely flagged any optional chaining or `throw` inside a `try` block, stay removed. The one syntax selector this layer adds is `TryStatement[handler=null]`.)
 
 ## 🛡️ Optional Hardening Layers
 
