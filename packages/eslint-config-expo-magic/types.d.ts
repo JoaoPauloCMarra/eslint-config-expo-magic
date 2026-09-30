@@ -228,6 +228,35 @@ export type GuardrailOptions = Readonly<{
 	maxChangedLines?: number;
 }>;
 
+export type PrGuardrailsSpawnResult = Readonly<{
+	status: number | null;
+	stdout: string;
+	stderr?: string;
+}>;
+
+export type PrGuardrailsInputDeps = Readonly<{
+	env?: Readonly<Record<string, string | undefined>>;
+	readFile?: (filePath: string) => string;
+	spawn?: (
+		command: string,
+		args: readonly string[],
+		options: Readonly<{ encoding: 'utf8' }>,
+	) => PrGuardrailsSpawnResult;
+	warn?: (message: string) => void;
+	fetch?: (
+		url: string,
+		init: Readonly<{ headers: Readonly<Record<string, string>> }>,
+	) => Promise<Readonly<{ ok: boolean; json(): Promise<unknown> }>>;
+}>;
+
+export type PrGuardrailsCliDeps = PrGuardrailsInputDeps &
+	Readonly<{
+		cwd?: string;
+		log?: (message: string) => void;
+		error?: (message: string) => void;
+		exit?: (code: number) => void;
+	}>;
+
 export type PrGuardrailPresets = Readonly<{
 	default: ResolvedGuardrailOptions;
 	agentMobileApp: ResolvedGuardrailOptions;
@@ -254,12 +283,26 @@ export type PrGuardrailsConfig = {
 		patch: string,
 		ignoredFilePatterns: readonly RegExp[],
 	): string;
-	hasRelatedTestOrStory(changedFiles: readonly string[]): boolean;
-	mentionsRuntimeTarget(markdown: string): boolean;
+	hasRelatedTestOrStory(
+		changedFiles: readonly string[],
+		relatedFiles?: readonly string[],
+	): boolean;
+	mentionsRuntimeTarget(
+		markdown: string,
+		templateLabels?: readonly string[],
+	): boolean;
 	readPrGuardrailConfig(cwd?: string): GuardrailOptions;
-	readCliOptionsFromEnv(cwd?: string): GuardrailOptions;
-	readPullRequestInputFromEnv(): Promise<GuardrailInput>;
-	runCli(options?: GuardrailOptions): Promise<void>;
+	readCliOptionsFromEnv(
+		cwd?: string,
+		env?: Readonly<Record<string, string | undefined>>,
+	): GuardrailOptions;
+	readPullRequestInputFromEnv(
+		deps?: PrGuardrailsInputDeps,
+	): Promise<GuardrailInput>;
+	runCli(
+		options?: GuardrailOptions,
+		deps?: PrGuardrailsCliDeps,
+	): Promise<void>;
 };
 
 export type ComponentStructureModule = FlatConfig[] & {
