@@ -383,8 +383,9 @@ function patchWithoutIgnoredFiles(patch, ignoredFilePatterns) {
 	let includeCurrentFile = true;
 	for (const line of lines) {
 		if (line.startsWith('diff --git ')) {
+			const filePaths = diffHeaderFilePaths(line);
 			includeCurrentFile = !ignoredFilePatterns.some((pattern) =>
-				pattern.test(line),
+				filePaths.some((filePath) => pattern.test(filePath)),
 			);
 		}
 		if (includeCurrentFile) {
@@ -392,6 +393,22 @@ function patchWithoutIgnoredFiles(patch, ignoredFilePatterns) {
 		}
 	}
 	return filteredLines.join('\n');
+}
+
+function diffHeaderFilePaths(line) {
+	const header = line.slice('diff --git '.length);
+	const middle = (header.length - 1) / 2;
+	if (
+		Number.isInteger(middle) &&
+		header[middle] === ' ' &&
+		header.startsWith('a/') &&
+		header.slice(middle + 1).startsWith('b/') &&
+		header.slice(2, middle) === header.slice(middle + 3)
+	) {
+		return [header.slice(2, middle)];
+	}
+	const match = /^a\/(.+?) b\/(.+)$/.exec(header);
+	return match ? [match[1], match[2]] : [header];
 }
 
 function hasRelatedTestOrStory(changedFiles) {

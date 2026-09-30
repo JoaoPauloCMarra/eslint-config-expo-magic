@@ -146,3 +146,70 @@ describe('pr guardrails broad eslint disables', () => {
 		);
 	});
 });
+
+describe('pr guardrails ignored risky files', () => {
+	const scriptPatch = [
+		'diff --git a/scripts/check.ts b/scripts/check.ts',
+		'+++ b/scripts/check.ts',
+		'+const value: any = input;',
+	];
+	const patch = [
+		...scriptPatch,
+		'diff --git a/src/features/home/home.ts b/src/features/home/home.ts',
+		'+++ b/src/features/home/home.ts',
+		'+it.only("focus", () => {});',
+	].join('\n');
+
+	it('matches anchored patterns against the file path', () => {
+		const filtered = prGuardrails.patchWithoutIgnoredFiles(patch, [
+			/^scripts\//,
+		]);
+
+		expect(filtered).not.toContain('value: any');
+		expect(filtered).toContain('it.only');
+	});
+
+	it('does not match the diff header or a/ b/ prefixes', () => {
+		expect(prGuardrails.patchWithoutIgnoredFiles(patch, [/^b\//])).toBe(patch);
+		expect(prGuardrails.patchWithoutIgnoredFiles(patch, [/^diff /])).toBe(
+			patch,
+		);
+	});
+
+	it('matches either path of a renamed file', () => {
+		const renamePatch = [
+			'diff --git a/scripts/old.ts b/tools/new.ts',
+			'+const value: any = input;',
+		].join('\n');
+
+		expect(
+			prGuardrails.patchWithoutIgnoredFiles(renamePatch, [/^scripts\//]),
+		).not.toContain('value: any');
+		expect(
+			prGuardrails.patchWithoutIgnoredFiles(renamePatch, [/^tools\//]),
+		).not.toContain('value: any');
+	});
+
+	it('matches paths that contain spaces', () => {
+		const spacedPatch = [
+			'diff --git a/scripts/my b/x.ts b/scripts/my b/x.ts',
+			'+const value: any = input;',
+		].join('\n');
+
+		expect(
+			prGuardrails.patchWithoutIgnoredFiles(spacedPatch, [/^scripts\/my b\/x\.ts$/]),
+		).not.toContain('value: any');
+	});
+
+	it('skips risky failures for anchored ignored files', () => {
+		expect(
+			failuresFor(
+				{
+					changedFiles: ['scripts/check.ts'],
+					changedPatch: scriptPatch.join('\n'),
+				},
+				{ preset: 'mobileApp', ignoredRiskyFilePatterns: [/^scripts\//] },
+			),
+		).toEqual([]);
+	});
+});
