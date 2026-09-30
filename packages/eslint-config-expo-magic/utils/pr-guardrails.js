@@ -284,7 +284,14 @@ function validateGuardrails(input, options = {}) {
 				`Runtime target checkbox is not checked: ${resolvedOptions.runtimeTargetCheckbox}`,
 			);
 		}
-		if (!mentionsRuntimeTarget(input.prBody)) {
+		if (
+			!mentionsRuntimeTarget(input.prBody, [
+				...defaultTemplateLabels,
+				...resolvedOptions.requiredCheckboxes,
+				resolvedOptions.runtimeCheckbox,
+				resolvedOptions.runtimeTargetCheckbox,
+			])
+		) {
 			failures.push(
 				'PR body must name the iOS Simulator, Android Emulator, or physical device used for validation.',
 			);
@@ -389,9 +396,32 @@ function hasRelatedTestOrStory(changedFiles) {
 	);
 }
 
-function mentionsRuntimeTarget(markdown) {
+const defaultTemplateLabels = [
+	...new Set([
+		...agentMobileAppRequiredCheckboxes,
+		defaultRuntimeCheckbox,
+		defaultRuntimeTargetCheckbox,
+	]),
+];
+
+function runtimeEvidenceText(markdown, templateLabels) {
+	const labels = new Set(templateLabels.map((label) => label.trim()));
+	return markdown
+		.replace(/<!--[\s\S]*?-->/g, '')
+		.split(/\r?\n/)
+		.filter((line) => {
+			const checklistItem = /^\s*[-*]\s*\[([ xX]?)\]\s*(.*?)\s*$/.exec(line);
+			if (!checklistItem) {
+				return true;
+			}
+			return checklistItem[1].trim() !== '' && !labels.has(checklistItem[2]);
+		})
+		.join('\n');
+}
+
+function mentionsRuntimeTarget(markdown, templateLabels = defaultTemplateLabels) {
 	return /\b(iPhone|iPad|Simulator|Android Emulator|Pixel|Galaxy|physical device|device)\b/i.test(
-		markdown,
+		runtimeEvidenceText(markdown, templateLabels),
 	);
 }
 
