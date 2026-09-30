@@ -140,6 +140,21 @@ function resolveAgentAwareOption(
 	return defaultValue;
 }
 
+function createImportCycleConfig() {
+	const { fixupPluginRules } = require('@eslint/compat');
+
+	return [
+		{
+			plugins: {
+				'import-x': fixupPluginRules(require('eslint-plugin-import-x')),
+			},
+			rules: {
+				'import-x/no-cycle': 'error',
+			},
+		},
+	];
+}
+
 function createConfig(options = {}) {
 	validateCreateConfigOptions(options);
 
@@ -153,7 +168,7 @@ function createConfig(options = {}) {
 			? fastTsconfigProjectGlobs
 			: defaultTsconfigProjectGlobs,
 		extraIgnores = [],
-		importCycles = preset !== 'fast',
+		importCycles = preset === 'default',
 		agent = false,
 		appGuardrails = false,
 		componentStructure = false,
@@ -228,6 +243,8 @@ function createConfig(options = {}) {
 			? [
 					...createBasePreset(tsconfigProjects, extraIgnores),
 					...typeCheckedConfigs,
+					...(importCycles ? createImportCycleConfig() : []),
+					...(testing ? require('./jest.js') : []),
 				]
 			: createDefaultPreset(tsconfigProjects, {
 					extraIgnores,
@@ -316,9 +333,13 @@ function createConfig(options = {}) {
 		);
 	}
 
-	if (inlineStyles && preset !== 'base') {
+	if (inlineStyles) {
+		const { fixupPluginRules } = require('@eslint/compat');
 		finalConfig.push({
 			files: ['**/*.tsx'],
+			plugins: {
+				'react-native': fixupPluginRules(require('eslint-plugin-react-native')),
+			},
 			rules: {
 				'react-native/no-inline-styles':
 					inlineStyles === true ? 'warn' : inlineStyles,

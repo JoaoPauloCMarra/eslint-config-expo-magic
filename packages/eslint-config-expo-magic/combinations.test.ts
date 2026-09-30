@@ -15,6 +15,9 @@ const optionSets: Array<[string, Record<string, unknown>]> = [
 	['strict', { strict: true }],
 	['agent', { agent: true }],
 	['reactCompiler', { reactCompiler: true }],
+	['testing', { testing: true }],
+	['importCycles', { importCycles: true }],
+	['inlineStyles', { inlineStyles: 'warn' }],
 	['tsconfigProjects', { tsconfigProjects: [testProjectTsconfig] }],
 	[
 		'typeChecked with tsconfigProjects',
@@ -113,6 +116,42 @@ describe('createConfig option combinations', () => {
 				calculated.rules['@typescript-eslint/no-empty-object-type'][0],
 			).toBe(1);
 		}
+	});
+
+	it('applies testing, importCycles, and inlineStyles to the base preset', async () => {
+		const eslint = new ESLint({
+			overrideConfigFile: true,
+			overrideConfig: createConfig({
+				preset: 'base',
+				testing: true,
+				importCycles: true,
+				inlineStyles: 'warn',
+			}),
+			cwd: testProjectDir,
+		});
+		const testFile = await eslint.calculateConfigForFile(
+			path.join(testProjectDir, '__tests__/standalone.test.ts'),
+		);
+		const tsxFile = await eslint.calculateConfigForFile(
+			path.join(testProjectDir, 'test.web.tsx'),
+		);
+
+		expect(testFile.rules['jest/no-disabled-tests']).toEqual([2]);
+		expect(testFile.rules['import-x/no-cycle'][0]).toBe(2);
+		expect(tsxFile.rules['react-native/no-inline-styles']).toEqual([1]);
+	});
+
+	it('keeps import cycles off by default for the base preset', async () => {
+		const eslint = new ESLint({
+			overrideConfigFile: true,
+			overrideConfig: createConfig({ preset: 'base' }),
+			cwd: testProjectDir,
+		});
+		const calculated = await eslint.calculateConfigForFile(
+			path.join(testProjectDir, 'module.ts'),
+		);
+
+		expect(calculated.rules['import-x/no-cycle']).toBeUndefined();
 	});
 
 	it('keeps projectService when tsconfigProjects is not set', async () => {
