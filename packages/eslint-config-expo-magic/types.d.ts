@@ -7,9 +7,20 @@ export type RestrictedSyntaxSelector = Readonly<{
 	message?: string;
 }>;
 
+export type RestrictedSyntaxScope =
+	| 'typescript'
+	| 'typescript-without-tsx'
+	| 'tsx'
+	| 'test'
+	| 'test-typescript'
+	| 'test-tsx';
+
 export type RestrictedSyntaxGroup = Readonly<{
 	files: readonly string[];
 	selectors: readonly RestrictedSyntaxSelector[];
+	scope?: RestrictedSyntaxScope | readonly RestrictedSyntaxScope[];
+	capability?: string;
+	allowFiles?: readonly string[];
 }>;
 
 export type RestrictedSyntaxConfig = FlatConfig[] & {

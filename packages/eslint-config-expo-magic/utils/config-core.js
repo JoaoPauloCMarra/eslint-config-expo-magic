@@ -256,7 +256,7 @@ function createDefaultPreset(
 	{
 		extraIgnores = [],
 		importCycles = true,
-		testing = true,
+		testing = false,
 		typeAware = true,
 		fast = false,
 		parserTsconfigProjects,
@@ -272,7 +272,7 @@ function createDefaultPreset(
 		...createBasePreset(tsconfigProjects, extraIgnores),
 		...typeCheckedConfigs,
 		...require('./typescript.js').createTypeScriptConfig({
-			typeChecked: typeAware,
+			typeAware,
 			parserOptions: typeAware
 				? createTypeScriptParserOptions(parserTsconfigProjects)
 				: {},
@@ -300,6 +300,7 @@ module.exports = {
 	createBasePreset,
 	createDefaultPreset,
 	createTypeCheckedConfigs,
+	createTypeScriptImportResolverConfig,
 	createTypeScriptParserOptions,
 	defaultTsconfigProjectGlobs,
 	fastTsconfigProjectGlobs,

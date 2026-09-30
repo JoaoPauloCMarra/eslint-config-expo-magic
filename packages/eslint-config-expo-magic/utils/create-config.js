@@ -2,6 +2,7 @@ const {
 	createBasePreset,
 	createDefaultPreset,
 	createTypeCheckedConfigs,
+	createTypeScriptImportResolverConfig,
 	createTypeScriptParserOptions,
 	defaultTsconfigProjectGlobs,
 	fastTsconfigProjectGlobs,
@@ -320,13 +321,7 @@ function createConfig(options = {}) {
 				settings: {
 					'import/resolver': {
 						node: { extensions: allExtensions },
-						typescript: {
-							alwaysTryTypes: true,
-							bun: true,
-							noWarnOnMultipleProjects: true,
-							project: tsconfigProjects,
-							tsconfigRootDir: process.cwd(),
-						},
+						typescript: createTypeScriptImportResolverConfig(tsconfigProjects),
 					},
 				},
 			},

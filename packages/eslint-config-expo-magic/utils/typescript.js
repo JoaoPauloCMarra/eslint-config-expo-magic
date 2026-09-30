@@ -22,11 +22,8 @@ const syntaxRules = {
 	'@typescript-eslint/no-unused-vars': [
 		'error',
 		{
-			vars: 'all',
 			args: 'none',
 			ignoreRestSiblings: true,
-			caughtErrors: 'all',
-			argsIgnorePattern: '^_',
 			varsIgnorePattern: '^_',
 		},
 	],
@@ -59,8 +56,8 @@ const typeAwareRules = {
 };
 
 function createTypeScriptConfig({
-	typeChecked = true,
-	parserOptions = typeChecked ? { projectService: true } : {},
+	typeAware = true,
+	parserOptions = typeAware ? { projectService: true } : {},
 } = {}) {
 	return [
 		{
@@ -79,7 +76,7 @@ function createTypeScriptConfig({
 			},
 			rules: {
 				...syntaxRules,
-				...(typeChecked ? typeAwareRules : {}),
+				...(typeAware ? typeAwareRules : {}),
 			},
 		},
 	];
