@@ -220,9 +220,15 @@ function createConfig(options = {}) {
 		agentOptions,
 	);
 
+	const typeCheckedConfigs = typeChecked
+		? createTypeCheckedConfigs(options.tsconfigProjects)
+		: [];
 	const presetConfig =
 		preset === 'base'
-			? createBasePreset(tsconfigProjects, extraIgnores)
+			? [
+					...createBasePreset(tsconfigProjects, extraIgnores),
+					...typeCheckedConfigs,
+				]
 			: createDefaultPreset(tsconfigProjects, {
 					extraIgnores,
 					importCycles,
@@ -230,6 +236,7 @@ function createConfig(options = {}) {
 					typeAware,
 					fast: preset === 'fast',
 					parserTsconfigProjects: options.tsconfigProjects,
+					typeCheckedConfigs,
 				});
 	const finalConfig = [...presetConfig];
 
@@ -366,10 +373,6 @@ function createConfig(options = {}) {
 		finalConfig.push(
 			...createComposedRestrictedSyntaxConfigs(restrictedSyntaxGroups),
 		);
-	}
-
-	if (typeChecked) {
-		finalConfig.push(...createTypeCheckedConfigs(options.tsconfigProjects));
 	}
 
 	if (prettier) {

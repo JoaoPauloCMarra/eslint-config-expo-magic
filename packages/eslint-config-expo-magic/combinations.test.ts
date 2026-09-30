@@ -87,6 +87,34 @@ describe('createConfig option combinations', () => {
 		});
 	}
 
+	it('keeps package rule levels when typeChecked adds TypeScript ESLint presets', async () => {
+		for (const options of [
+			{ typeChecked: true },
+			{ preset: 'fast', typeChecked: true },
+			{ typeChecked: true, agent: true },
+		]) {
+			const eslint = new ESLint({
+				overrideConfigFile: true,
+				overrideConfig: createConfig(options),
+				cwd: testProjectDir,
+			});
+			const calculated = await eslint.calculateConfigForFile(
+				path.join(testProjectDir, 'module.ts'),
+			);
+
+			expect(
+				calculated.rules['@typescript-eslint/prefer-nullish-coalescing'],
+			).toEqual([0]);
+			expect(calculated.rules['@typescript-eslint/array-type'][0]).toBe(1);
+			expect(
+				calculated.rules['@typescript-eslint/consistent-type-assertions'][0],
+			).toBe(1);
+			expect(
+				calculated.rules['@typescript-eslint/no-empty-object-type'][0],
+			).toBe(1);
+		}
+	});
+
 	it('keeps projectService when tsconfigProjects is not set', async () => {
 		for (const options of [
 			{ typeChecked: true },

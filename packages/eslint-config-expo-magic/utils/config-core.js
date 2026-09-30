@@ -260,6 +260,7 @@ function createDefaultPreset(
 		typeAware = true,
 		fast = false,
 		parserTsconfigProjects,
+		typeCheckedConfigs = [],
 	} = {},
 ) {
 	const reactConfig = require('./react.js');
@@ -269,6 +270,7 @@ function createDefaultPreset(
 
 	return [
 		...createBasePreset(tsconfigProjects, extraIgnores),
+		...typeCheckedConfigs,
 		...require('./typescript.js').createTypeScriptConfig({
 			typeChecked: typeAware,
 			parserOptions: typeAware
