@@ -1,5 +1,5 @@
 const {
-	createRestrictedSyntaxConfigs,
+	createComposedRestrictedSyntaxConfigs,
 	RESTRICTED_SYNTAX_SCOPES,
 } = require('./restricted-syntax.js');
 const { testFiles, typeScriptFiles } = require('./file-patterns.js');
@@ -119,7 +119,10 @@ const base = [
 ];
 
 function createAgentGuardrailsConfig() {
-	return [...base, ...createRestrictedSyntaxConfigs(restrictedSyntaxGroups)];
+	return [
+		...base,
+		...createComposedRestrictedSyntaxConfigs(restrictedSyntaxGroups),
+	];
 }
 
 const config = createAgentGuardrailsConfig();

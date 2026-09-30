@@ -174,3 +174,66 @@ describe('semantic colors allow files', () => {
 		]);
 	});
 });
+
+async function getEffectiveSelectors(
+	config: Linter.Config[],
+	filePath: string,
+) {
+	const eslint = new ESLint({
+		cwd: tempDir,
+		overrideConfigFile: true,
+		overrideConfig: [
+			{ plugins: { '@typescript-eslint': require('typescript-eslint').plugin } },
+			...config,
+		],
+	});
+	const calculated = await eslint.calculateConfigForFile(
+		path.join(tempDir, filePath),
+	);
+	const rule = calculated?.rules?.['no-restricted-syntax'] ?? [];
+
+	return rule
+		.slice(1)
+		.map((selector: { selector: string }) => selector.selector);
+}
+
+describe('standalone restricted syntax subpaths', () => {
+	const skipSelector = expect.stringContaining('callee.property.name="skip"');
+
+	it('keeps agent source selectors on test files', async () => {
+		const selectors = await getEffectiveSelectors(
+			agentGuardrails,
+			'src/x.test.ts',
+		);
+
+		expect(selectors).toContain('TSAnyKeyword');
+		expect(selectors).toContain('TSAsExpression > TSAnyKeyword');
+		expect(selectors).toEqual(expect.arrayContaining([skipSelector]));
+	});
+
+	it('keeps agent test selectors off production files', async () => {
+		const selectors = await getEffectiveSelectors(agentGuardrails, 'src/x.ts');
+
+		expect(selectors).toContain('TSAnyKeyword');
+		expect(selectors).not.toEqual(expect.arrayContaining([skipSelector]));
+	});
+
+	it('keeps each standalone layer selector on TypeScript files', async () => {
+		const layers: Array<[Linter.Config[], unknown]> = [
+			[semanticColors, expect.stringContaining('Literal[value=')],
+			[
+				require('./utils/reanimated.js'),
+				expect.stringContaining('ObjectExpression'),
+			],
+			[require('./utils/worklets.js'), expect.stringContaining('scheduleOnRN')],
+		];
+
+		for (const [layer, selector] of layers) {
+			for (const filePath of ['src/x.ts', 'src/x.tsx', 'src/x.mts']) {
+				expect(await getEffectiveSelectors(layer, filePath)).toEqual(
+					expect.arrayContaining([selector]),
+				);
+			}
+		}
+	});
+});
