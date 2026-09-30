@@ -59,7 +59,6 @@ function createReactConfig({ fast = false } = {}) {
 				'react-hooks/set-state-in-effect': 'off',
 				'react/jsx-no-leaked-render': 'error',
 				'react/jsx-no-useless-fragment': 'error',
-				'react/jsx-key': 'error',
 				'react/no-unstable-nested-components': 'off',
 				'react/self-closing-comp': 'error',
 				'react-native/no-unused-styles': 'error',

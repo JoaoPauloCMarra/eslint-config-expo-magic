@@ -217,10 +217,7 @@ function createSharedConfig(tsconfigProjects, extraIgnores = []) {
 		},
 		{
 			files: [
-				'*.config.{js,cjs,mjs,ts,mts,cts}',
 				'**/*.config.{js,cjs,mjs,ts,mts,cts}',
-				'metro.config.{js,cjs,mjs,ts,mts,cts}',
-				'babel.config.{js,cjs,mjs,ts,mts,cts}',
 				'scripts/**/*.{js,cjs,mjs,ts,mts,cts}',
 			],
 			languageOptions: {

@@ -64,8 +64,6 @@ const testTypeScriptFiles = createTestFilePatterns({
 
 const testTsxFiles = createTestFilePatterns({ tsx: true });
 
-const tsAndTsxTestFiles = createTestFilePatterns({ ts: true, tsx: true });
-
 const testFiles = createTestFilePatterns({
 	ts: true,
 	tsx: true,
@@ -75,7 +73,6 @@ const testFiles = createTestFilePatterns({
 module.exports = {
 	createTestFilePatterns,
 	tsAndTsxFiles,
-	tsAndTsxTestFiles,
 	tsxFiles,
 	testFiles,
 	testTsxFiles,

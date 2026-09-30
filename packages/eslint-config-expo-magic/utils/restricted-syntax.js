@@ -117,24 +117,7 @@ function hasBoundedPatternIntersection(patternsA, patternsB) {
 			}
 
 			if (
-				!isGlobPattern(patternA) &&
-				!isGlobPattern(patternB) &&
-				isTestFilePattern(patternA) !== isTestFilePattern(patternB)
-			) {
-				continue;
-			}
-
-			if (
-				!isGlobPattern(patternA) &&
-				isGlobPattern(patternB) &&
-				isTestFilePattern(patternA) !== isTestFilePattern(patternB)
-			) {
-				continue;
-			}
-
-			if (
-				isGlobPattern(patternA) &&
-				!isGlobPattern(patternB) &&
+				!(isGlobPattern(patternA) && isGlobPattern(patternB)) &&
 				isTestFilePattern(patternA) !== isTestFilePattern(patternB)
 			) {
 				continue;
@@ -292,10 +275,6 @@ function collectSelectorsForAllowedFilePatterns(
 	return dedupeSelectors(selectorsByInput);
 }
 
-function getRelevantFilePatternsForAllowedFiles(allowFiles) {
-	return [...new Set(allowFiles)];
-}
-
 function createCapabilityAllowConfigs(groups) {
 	const capabilityGroups = groups.filter(
 		(group) => typeof group.capability === 'string' && group.allowFiles?.length,
@@ -314,7 +293,7 @@ function createCapabilityAllowConfigs(groups) {
 		);
 
 		configs.push({
-			files: getRelevantFilePatternsForAllowedFiles(capabilityGroup.allowFiles),
+			files: [...new Set(capabilityGroup.allowFiles)],
 			rules: {
 				'no-restricted-syntax': createRestrictedSyntaxRule(selectors),
 			},
@@ -343,6 +322,5 @@ module.exports = {
 	createCapabilityAllowConfigs,
 	createComposedRestrictedSyntaxConfigs,
 	createRestrictedSyntaxConfigs,
-	mergeRestrictedSyntaxGroups,
 	RESTRICTED_SYNTAX_SCOPES,
 };

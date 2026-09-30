@@ -62,7 +62,6 @@ function createTypeScriptConfig({
 	return [
 		{
 			files: typeScriptFiles,
-			ignores: ['**/node_modules/**'],
 			languageOptions: {
 				parserOptions: {
 					...parserOptions,
@@ -86,4 +85,3 @@ const config = createTypeScriptConfig();
 
 module.exports = config;
 module.exports.createTypeScriptConfig = createTypeScriptConfig;
-module.exports.typeScriptFiles = typeScriptFiles;
