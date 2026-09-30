@@ -348,7 +348,7 @@ function unreachableCode() {
 	console.log('unreachable');
 }
 
-// ❌ This should trigger no-unsafe-negation
+// ✅ Parenthesized negation is explicit, so no-unsafe-negation allows it
 const unsafeneg = (!'key') in {};
 
 // ❌ This should trigger no-unused-expressions
@@ -625,7 +625,7 @@ const _negation = (!'a') in { a: 1 };
 export const exportedA = 1;
 export const exportedB = 2;
 
-// ❌ Trigger no-unsafe-negation
+// ✅ Parenthesized negation is explicit, so no-unsafe-negation allows it
 if ((!'x') in {}) {
 	console.log('unsafe');
 }
