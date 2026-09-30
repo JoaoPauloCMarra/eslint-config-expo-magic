@@ -96,12 +96,7 @@ const expectedRules = {
 	'expo/no-dynamic-env-var': ['App.tsx'],
 	'expo/no-env-var-destructuring': ['App.tsx'],
 	'expo/use-dom-exports': ['test.web.tsx'],
-	'no-console': [
-		'App.tsx',
-		'babel.config.js',
-		'index.js',
-		'metro.config.js',
-	],
+	'no-console': ['App.tsx', 'babel.config.js', 'index.js', 'metro.config.js'],
 	'no-dupe-args': ['components/GeneralAdvanced.tsx'],
 	'no-dupe-class-members': ['Legacy.js'],
 	'no-dupe-keys': ['App.tsx'],

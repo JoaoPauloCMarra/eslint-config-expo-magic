@@ -36,7 +36,10 @@ describe('release notes', () => {
 		const latestTag = findLatestReleaseTag({ cwd: projectRoot });
 		const currentVersion = JSON.parse(
 			fs.readFileSync(
-				path.join(projectRoot, 'packages/eslint-config-expo-magic/package.json'),
+				path.join(
+					projectRoot,
+					'packages/eslint-config-expo-magic/package.json',
+				),
 				'utf8',
 			),
 		).version;
