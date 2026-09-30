@@ -94,15 +94,29 @@ function createExpoBaseConfig() {
 		.filter((config) => !config.plugins || !config.plugins['react-hooks']);
 }
 
-function createTypeCheckedConfigs(
-	tsconfigProjects = defaultTsconfigProjectGlobs,
-) {
-	const tseslint = require('typescript-eslint');
-	const seenConfigNames = new Set();
-	const usesDefaultProjects =
+function usesDefaultTsconfigProjects(tsconfigProjects) {
+	return (
+		tsconfigProjects === undefined ||
 		tsconfigProjects === defaultTsconfigProjectGlobs ||
 		JSON.stringify(tsconfigProjects) ===
-			JSON.stringify(defaultTsconfigProjectGlobs);
+			JSON.stringify(defaultTsconfigProjectGlobs)
+	);
+}
+
+function createTypeScriptParserOptions(tsconfigProjects) {
+	if (usesDefaultTsconfigProjects(tsconfigProjects)) {
+		return { projectService: true };
+	}
+
+	return {
+		project: tsconfigProjects,
+		tsconfigRootDir: process.cwd(),
+	};
+}
+
+function createTypeCheckedConfigs(tsconfigProjects) {
+	const tseslint = require('typescript-eslint');
+	const seenConfigNames = new Set();
 
 	return [
 		...tseslint.configs.recommendedTypeChecked,
@@ -126,9 +140,7 @@ function createTypeCheckedConfigs(
 					...(configEntry.languageOptions ?? {}),
 					parserOptions: {
 						...(configEntry.languageOptions?.parserOptions ?? {}),
-						...(usesDefaultProjects
-							? { projectService: true }
-							: { project: tsconfigProjects }),
+						...createTypeScriptParserOptions(tsconfigProjects),
 						tsconfigRootDir: process.cwd(),
 					},
 				},
@@ -247,6 +259,7 @@ function createDefaultPreset(
 		testing = true,
 		typeAware = true,
 		fast = false,
+		parserTsconfigProjects,
 	} = {},
 ) {
 	const reactConfig = require('./react.js');
@@ -258,6 +271,9 @@ function createDefaultPreset(
 		...createBasePreset(tsconfigProjects, extraIgnores),
 		...require('./typescript.js').createTypeScriptConfig({
 			typeChecked: typeAware,
+			parserOptions: typeAware
+				? createTypeScriptParserOptions(parserTsconfigProjects)
+				: {},
 		}),
 		...reactPreset,
 		...require('./imports.js').createImportConfig({ noCycle: importCycles }),
@@ -282,6 +298,7 @@ module.exports = {
 	createBasePreset,
 	createDefaultPreset,
 	createTypeCheckedConfigs,
+	createTypeScriptParserOptions,
 	defaultTsconfigProjectGlobs,
 	fastTsconfigProjectGlobs,
 	normalizeOptionConfig,

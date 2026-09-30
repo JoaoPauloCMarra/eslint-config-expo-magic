@@ -842,7 +842,7 @@ describe('eslint-config-expo-magic', () => {
 						'',
 						'module.exports = [',
 						'\t...createConfig({',
-						"\t\ttsconfigProjects: ['./tsconfig.json'],",
+						`\t\ttsconfigProjects: [${JSON.stringify(tsconfigPath)}],`,
 						'\t\tprettier: false,',
 						'\t\ttesting: false,',
 						'\t}),',

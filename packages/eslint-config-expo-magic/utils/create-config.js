@@ -2,6 +2,7 @@ const {
 	createBasePreset,
 	createDefaultPreset,
 	createTypeCheckedConfigs,
+	createTypeScriptParserOptions,
 	defaultTsconfigProjectGlobs,
 	fastTsconfigProjectGlobs,
 	normalizeOptionConfig,
@@ -166,7 +167,7 @@ function createConfig(options = {}) {
 		storybook = false,
 		worklets = false,
 	} = options;
-	const typeAware = preset !== 'fast' || typeChecked || strict;
+	const typeAware = preset === 'default' || typeChecked || strict;
 	const restrictedSyntaxGroups = [];
 	const agentOptions = agent === true ? {} : agent || {};
 	const agentEnabled = Boolean(agent);
@@ -228,8 +229,18 @@ function createConfig(options = {}) {
 					testing,
 					typeAware,
 					fast: preset === 'fast',
+					parserTsconfigProjects: options.tsconfigProjects,
 				});
 	const finalConfig = [...presetConfig];
+
+	if (preset === 'base' && typeAware && !typeChecked) {
+		finalConfig.push({
+			files: typeScriptFiles,
+			languageOptions: {
+				parserOptions: createTypeScriptParserOptions(options.tsconfigProjects),
+			},
+		});
+	}
 
 	if (effectiveAppGuardrails) {
 		const appGuardrailsConfig = require('./app-guardrails.js');
@@ -317,7 +328,7 @@ function createConfig(options = {}) {
 
 	if (effectiveReactCompiler) {
 		const reactCompilerConfig = require('./react-compiler.js');
-		finalConfig.push({ rules: { ...reactCompilerConfig.rules } });
+		finalConfig.push(...reactCompilerConfig);
 	}
 
 	if (effectiveReanimated) {
@@ -358,7 +369,7 @@ function createConfig(options = {}) {
 	}
 
 	if (typeChecked) {
-		finalConfig.push(...createTypeCheckedConfigs(tsconfigProjects));
+		finalConfig.push(...createTypeCheckedConfigs(options.tsconfigProjects));
 	}
 
 	if (prettier) {

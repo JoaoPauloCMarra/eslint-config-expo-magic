@@ -58,14 +58,17 @@ const typeAwareRules = {
 	'@typescript-eslint/prefer-readonly': 'warn',
 };
 
-function createTypeScriptConfig({ typeChecked = true } = {}) {
+function createTypeScriptConfig({
+	typeChecked = true,
+	parserOptions = typeChecked ? { projectService: true } : {},
+} = {}) {
 	return [
 		{
 			files: typeScriptFiles,
 			ignores: ['**/node_modules/**'],
 			languageOptions: {
 				parserOptions: {
-					...(typeChecked ? { projectService: true } : {}),
+					...parserOptions,
 					ecmaVersion: 'latest',
 					sourceType: 'module',
 					ecmaFeatures: {
