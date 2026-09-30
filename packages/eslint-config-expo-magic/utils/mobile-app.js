@@ -1,5 +1,8 @@
 const { createConfig } = require('./create-config.js');
 const { defaultRestrictions } = require('./native-ui.js');
+const { baseRestrictedImports } = require('./restricted-imports.js');
+
+const CODE = '{ts,tsx,js,jsx}';
 
 const featureElementTypes = [
 	'feature-screen',
@@ -85,6 +88,48 @@ const additionalNativeUiRestrictions = [
 const mobileAppNativeUiRestrictions = [
 	...defaultRestrictions,
 	...additionalNativeUiRestrictions,
+];
+
+const pressableWrapperFile = '**/uikit/components/pressables.tsx';
+const textWrapperFile = '**/uikit/components/text.tsx';
+
+const pressPrimitiveRestrictions = [
+	{
+		name: 'react-native',
+		importNames: ['Pressable', 'TouchableOpacity'],
+		message:
+			'Use your UIKit pressable wrapper. Raw React Native press primitives belong only inside that wrapper.',
+	},
+	{
+		name: 'react-native-gesture-handler',
+		importNames: ['Pressable', 'TouchableOpacity'],
+		message:
+			'Use your UIKit pressable wrapper for taps. Reserve Gesture Handler for composed gestures.',
+	},
+];
+
+const textPrimitiveRestrictions = [
+	{
+		name: 'react-native',
+		importNames: ['Text'],
+		message:
+			'Use your UIKit text wrapper. Raw React Native Text belongs only inside that wrapper.',
+	},
+];
+
+/**
+ * Wrappers may import the primitives they wrap. Every restriction that is not
+ * a wrapped primitive (SafeAreaView, third-party UI kits, the router hook)
+ * still applies inside them.
+ */
+const wrapperRestrictions = [
+	...baseRestrictedImports,
+	...defaultRestrictions.filter(
+		(restriction) => restriction.name === 'expo-router',
+	),
+	...additionalNativeUiRestrictions.filter(
+		(restriction) => restriction.importNames === undefined,
+	),
 ];
 
 const mobileAppStorageRestrictedImportPatterns = [
@@ -343,7 +388,7 @@ function createArchitectureConfigs() {
 		},
 		{
 			files: [
-				'{app,features,hooks,services,uikit,modules,utils}/**/*.{ts,tsx}',
+				`{app,features,hooks,services,types,uikit,modules,utils}/**/*.${CODE}`,
 			],
 			rules: {
 				'boundaries/dependencies': [
@@ -375,7 +420,7 @@ function createConventionConfigs() {
 						properties: true,
 					},
 				],
-				'no-empty': ['error', { allowEmptyCatch: false }],
+				'no-empty': 'error',
 				'react/jsx-boolean-value': ['error', 'never'],
 			},
 		},
@@ -407,6 +452,15 @@ function createMobileAppConfig(options = {}) {
 
 	const preset =
 		options.preset ?? process.env.ESLINT_CONFIG_PRESET ?? 'default';
+	if (!['default', 'fast'].includes(preset)) {
+		throw new RangeError(
+			`Unknown createMobileAppConfig preset: ${String(preset)}. Use "default" or "fast".`,
+		);
+	}
+	const wrapperFiles = [
+		...mobileAppNativeUiWrapperFiles,
+		...(options.additionalNativeUiWrapperFiles ?? []),
+	];
 	const extraIgnores = [...mobileAppIgnores, ...(options.extraIgnores ?? [])];
 	const config = createConfig({
 		preset,
@@ -416,10 +470,7 @@ function createMobileAppConfig(options = {}) {
 		agent: { semanticColors: true },
 		featureBoundaries: true,
 		nativeUi: {
-			allowFiles: [
-				...mobileAppNativeUiWrapperFiles,
-				'**/hooks/use-navigator.ts',
-			],
+			allowFiles: [...wrapperFiles, '**/hooks/use-navigator.ts'],
 			additionalRestrictions: additionalNativeUiRestrictions,
 		},
 	});
@@ -429,10 +480,13 @@ function createMobileAppConfig(options = {}) {
 		createConventionConfigs(),
 		createMobileAppRestrictedImportsConfig({
 			files: [
-				'app/**/*.{ts,tsx}',
-				'features/**/*.{ts,tsx}',
-				'hooks/**/*.{ts,tsx}',
-				'services/**/*.{ts,tsx}',
+				`app/**/*.${CODE}`,
+				`features/**/*.${CODE}`,
+				`hooks/**/*.${CODE}`,
+				`modules/**/*.${CODE}`,
+				`services/**/*.${CODE}`,
+				`uikit/**/*.${CODE}`,
+				`utils/**/*.${CODE}`,
 			],
 			ignores: [
 				'hooks/use-navigator.ts',
@@ -453,33 +507,32 @@ function createMobileAppConfig(options = {}) {
 				},
 			},
 			{
-				files: mobileAppNativeUiWrapperFiles,
-				ignores: [
-					'uikit/components/pressables.tsx',
-					'uikit/components/text.tsx',
-				],
+				files: wrapperFiles,
 				rules: {
 					'no-restricted-imports': createRestrictedImportsRule(
 						[
-							{
-								name: 'react-native',
-								importNames: ['Pressable', 'TouchableOpacity'],
-								message:
-									'Use your UIKit pressable wrapper. Raw React Native press primitives belong only inside that wrapper.',
-							},
-							{
-								name: 'react-native-gesture-handler',
-								importNames: ['Pressable', 'TouchableOpacity'],
-								message:
-									'Use your UIKit pressable wrapper for taps. Reserve Gesture Handler for composed gestures.',
-							},
-							{
-								name: 'react-native',
-								importNames: ['Text'],
-								message:
-									'Use your UIKit text wrapper. Raw React Native Text belongs only inside that wrapper.',
-							},
+							...wrapperRestrictions,
+							...pressPrimitiveRestrictions,
+							...textPrimitiveRestrictions,
 						],
+						mobileAppStorageRestrictedImportPatterns,
+					),
+				},
+			},
+			{
+				files: [pressableWrapperFile],
+				rules: {
+					'no-restricted-imports': createRestrictedImportsRule(
+						[...wrapperRestrictions, ...textPrimitiveRestrictions],
+						mobileAppStorageRestrictedImportPatterns,
+					),
+				},
+			},
+			{
+				files: [textWrapperFile],
+				rules: {
+					'no-restricted-imports': createRestrictedImportsRule(
+						[...wrapperRestrictions, ...pressPrimitiveRestrictions],
 						mobileAppStorageRestrictedImportPatterns,
 					),
 				},

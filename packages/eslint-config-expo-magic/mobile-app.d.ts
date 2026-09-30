@@ -4,6 +4,8 @@ type MobileAppConfigOptions = Readonly<{
 	preset?: 'default' | 'fast';
 	tsconfigProjects?: readonly string[];
 	extraIgnores?: readonly string[];
+	/** Extra files that may import the raw primitives they wrap. */
+	additionalNativeUiWrapperFiles?: readonly string[];
 }>;
 
 type MobileAppRestrictedImport = Readonly<{
