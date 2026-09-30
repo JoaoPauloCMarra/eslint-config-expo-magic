@@ -141,6 +141,30 @@ describe('createConfig option combinations', () => {
 		expect(tsxFile.rules['react-native/no-inline-styles']).toEqual([1]);
 	});
 
+	it('applies Jest rules to every test file extension', async () => {
+		const eslint = new ESLint({
+			overrideConfigFile: true,
+			overrideConfig: createConfig({ testing: true }),
+			cwd: testProjectDir,
+		});
+
+		for (const fileName of [
+			'src/a.test.js',
+			'src/a.spec.jsx',
+			'src/a.test.ts',
+			'src/a.spec.tsx',
+			'src/a.test.mts',
+			'src/a.spec.cts',
+			'jest.setup.js',
+		]) {
+			const calculated = await eslint.calculateConfigForFile(
+				path.join(testProjectDir, fileName),
+			);
+
+			expect(calculated.rules['jest/no-disabled-tests']).toEqual([2]);
+		}
+	});
+
 	it('keeps import cycles off by default for the base preset', async () => {
 		const eslint = new ESLint({
 			overrideConfigFile: true,

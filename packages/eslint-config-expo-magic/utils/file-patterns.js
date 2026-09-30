@@ -24,11 +24,21 @@ const tsxFiles = ['**/*.tsx'];
 const tsAndTsxFiles = ['**/*.ts', '**/*.tsx'];
 
 function createTestFilePatterns({
+	js = false,
+	jsx = false,
 	ts = false,
 	tsx = false,
 	moduleExtensions = false,
 } = {}) {
 	const extensions = [];
+
+	if (js) {
+		extensions.push('js');
+	}
+
+	if (jsx) {
+		extensions.push('jsx');
+	}
 
 	if (ts) {
 		extensions.push('ts');

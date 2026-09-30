@@ -1436,7 +1436,7 @@ describe('eslint-config-expo-magic', () => {
 				.find(
 					(c: FlatConfig) =>
 						c.files &&
-						c.files.includes('**/*.test.[jt]s') &&
+						c.files.includes('**/*.test.ts') &&
 						c.rules &&
 						c.rules['jest/no-disabled-tests'],
 				);
@@ -1450,7 +1450,7 @@ describe('eslint-config-expo-magic', () => {
 				.find(
 					(c: FlatConfig) =>
 						c.files &&
-						c.files.includes('**/*.test.[jt]s') &&
+						c.files.includes('**/*.test.ts') &&
 						c.rules &&
 						c.rules['testing-library/await-async-queries'],
 				);
