@@ -5,9 +5,19 @@ const path = require('node:path');
 
 const shouldWrite = process.argv.includes('--write');
 const cwd = process.cwd();
+const packageJsonPath = path.join(cwd, 'package.json');
 
 const eslintConfig =
 	"module.exports = require('eslint-config-expo-magic/mobile-app');\n";
+
+const eslintConfigNames = [
+	'eslint.config.js',
+	'eslint.config.mjs',
+	'eslint.config.cjs',
+	'eslint.config.ts',
+	'eslint.config.mts',
+	'eslint.config.cts',
+];
 
 const prGuardrailsConfig = `module.exports = {
 \tpreset: 'agentMobileApp',
@@ -15,17 +25,48 @@ const prGuardrailsConfig = `module.exports = {
 `;
 
 function readPackageJson() {
-	const packageJsonPath = path.join(cwd, 'package.json');
 	if (!fs.existsSync(packageJsonPath)) {
-		return {};
+		return null;
 	}
-	return JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+	const raw = fs.readFileSync(packageJsonPath, 'utf8');
+	return { raw, value: JSON.parse(raw) };
+}
+
+function detectIndent(raw) {
+	const match = /^([ \t]+)"/m.exec(raw);
+	return match ? match[1] : 2;
+}
+
+function findExistingEslintConfig() {
+	return eslintConfigNames.find((fileName) =>
+		fs.existsSync(path.join(cwd, fileName)),
+	);
+}
+
+function findExistingPrettierConfig(packageJson) {
+	if (packageJson.prettier !== undefined) {
+		return 'package.json "prettier" key';
+	}
+
+	return fs
+		.readdirSync(cwd)
+		.find(
+			(fileName) =>
+				fileName === '.prettierrc' ||
+				fileName.startsWith('.prettierrc.') ||
+				fileName.startsWith('prettier.config.'),
+		);
+}
+
+function eslintConfigNameFor(packageJson) {
+	return packageJson.type === 'module'
+		? 'eslint.config.cjs'
+		: 'eslint.config.js';
 }
 
 function withRecommendedScripts(packageJson) {
-	return {
+	const next = {
 		...packageJson,
-		prettier: packageJson.prettier ?? 'eslint-config-expo-magic/prettier',
 		scripts: {
 			...(packageJson.scripts ?? {}),
 			lint: packageJson.scripts?.lint ?? 'eslint .',
@@ -35,18 +76,25 @@ function withRecommendedScripts(packageJson) {
 				'expo-magic-pr-guardrails',
 		},
 	};
+
+	if (!findExistingPrettierConfig(packageJson)) {
+		next.prettier = 'eslint-config-expo-magic/prettier';
+	}
+
+	return next;
 }
 
 function printPlan() {
-	const packageJson = withRecommendedScripts(readPackageJson());
-	console.log('Recommended eslint.config.js:\n');
+	const packageJson = readPackageJson()?.value ?? {};
+	const recommended = withRecommendedScripts(packageJson);
+	console.log(`Recommended ${eslintConfigNameFor(packageJson)}:\n`);
 	console.log(eslintConfig);
 	console.log('Recommended expo-magic.pr-guardrails.cjs:\n');
 	console.log(prGuardrailsConfig);
 	console.log('Recommended package.json scripts:\n');
-	console.log(JSON.stringify(packageJson.scripts ?? {}, null, 2));
+	console.log(JSON.stringify(recommended.scripts ?? {}, null, 2));
 	console.log(
-		'\nRun `expo-magic-init-agent --write` to write missing files/scripts.',
+		'\nRun `expo-magic-init --write` to write missing files/scripts.',
 	);
 }
 
@@ -60,14 +108,46 @@ function writeIfMissing(fileName, contents) {
 	console.log(`Wrote ${fileName}`);
 }
 
+function writeEslintConfig(packageJson) {
+	const existing = findExistingEslintConfig();
+	if (existing) {
+		console.log(`Skipped ESLint config: found existing ${existing}`);
+		return;
+	}
+	writeIfMissing(eslintConfigNameFor(packageJson), eslintConfig);
+}
+
 function writePlan() {
-	writeIfMissing('eslint.config.js', eslintConfig);
+	const packageJsonFile = readPackageJson();
+	if (!packageJsonFile) {
+		console.error(
+			`No package.json found in ${cwd}. Run expo-magic-init from the project root.`,
+		);
+		process.exitCode = 1;
+		return;
+	}
+
+	const packageJson = packageJsonFile.value;
+	writeEslintConfig(packageJson);
 	writeIfMissing('expo-magic.pr-guardrails.cjs', prGuardrailsConfig);
-	const packageJsonPath = path.join(cwd, 'package.json');
-	const packageJson = withRecommendedScripts(readPackageJson());
+
+	const existingPrettierConfig = findExistingPrettierConfig(packageJson);
+	if (existingPrettierConfig) {
+		console.log(
+			`Skipped package.json "prettier": found existing ${existingPrettierConfig}`,
+		);
+	}
+
+	const nextPackageJson = withRecommendedScripts(packageJson);
+	if (JSON.stringify(nextPackageJson) === JSON.stringify(packageJson)) {
+		console.log('Skipped package.json: recommended settings already present');
+		return;
+	}
+
+	const trailingNewline = packageJsonFile.raw.endsWith('\n') ? '\n' : '';
 	fs.writeFileSync(
 		packageJsonPath,
-		`${JSON.stringify(packageJson, null, 2)}\n`,
+		`${JSON.stringify(nextPackageJson, null, detectIndent(packageJsonFile.raw))}${trailingNewline}`,
 	);
 	console.log('Updated package.json scripts');
 }
