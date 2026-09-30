@@ -67,6 +67,12 @@ ruleTester.run('no-cross-feature-imports', rule, {
 	],
 	invalid: [
 		{
+			code: "import x from '../billing/total';",
+			filename: '/repo/apps/mobile/src/features/cart/cart.ts',
+			options: [{ srcRoot: 'apps/mobile/src' }],
+			errors: [{ messageId: 'crossFeature' }],
+		},
+		{
 			code: "import x from '@/features/auth/hooks/use-session';",
 			filename: billingFile,
 			errors: [{ messageId: 'crossFeature' }],
