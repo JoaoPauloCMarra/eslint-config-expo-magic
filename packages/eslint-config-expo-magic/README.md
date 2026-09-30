@@ -28,7 +28,7 @@ Type-safe flat ESLint configuration for Expo, React Native, and TypeScript proje
 The package owns ESLint, Prettier, and all ESLint integration plugins. TypeScript remains a required peer because the application owns its compiler version. Expo and React are optional peers because an Expo application normally already owns them:
 
 ```bash
-bun add --dev eslint-config-expo-magic typescript@^6.0.3
+bun add --dev eslint-config-expo-magic typescript@~6.0.3
 ```
 
 The repository uses Bun 1.4.0. Consumer projects may use Bun, npm, pnpm, or Yarn. They do not need separate ESLint, Prettier, config, or plugin dependencies.
@@ -87,7 +87,7 @@ The root export is a flat config array and also exposes the named presets below.
 | Agent      | `eslint-config-expo-magic/agent`      | Default rules plus agent-safe suppression, test, type, and patch guardrails                                                        |
 | Mobile app | `eslint-config-expo-magic/mobile-app` | Opinionated production Expo app profile with formatting, architecture, UIKit, storage, naming, and agent guardrails                |
 
-The fast preset still includes the core React and React Native hooks. It checks `./tsconfig.json` by default and skips project-wide type-aware parsing, compiler diagnostics, and cycle traversal. Pass `tsconfigProjects` or use `createConfig` when the project needs a different syntax-only scope.
+The fast preset still includes the core React and React Native hooks. It resolves imports against `./tsconfig.json` by default and skips project-wide type-aware parsing, compiler diagnostics, and cycle traversal. Pass `tsconfigProjects` when imports resolve through other TypeScript projects.
 
 ```js
 const { createConfig } = require('eslint-config-expo-magic');
@@ -95,36 +95,48 @@ const { createConfig } = require('eslint-config-expo-magic');
 module.exports = createConfig({ preset: 'fast' });
 ```
 
+The base preset does no type-aware parsing by itself. `createConfig({ preset: 'base', strict: true })` or `typeChecked: true` turns it on through the TypeScript project service, so each linted file needs a `tsconfig.json` that the service can find. The `testing`, `importCycles`, and `inlineStyles` options also work with `preset: 'base'`.
+
 Typed and strict configurations require a compatible TypeScript installation. Their type-aware rules can add startup cost and should be used where the project wants those diagnostics.
 
 ## Options
 
 `createConfig(options)` accepts these top-level options:
 
-| Option               | Default            | Purpose                                                          |
-| -------------------- | ------------------ | ---------------------------------------------------------------- |
-| `preset`             | `'default'`        | Select `'base'`, `'default'`, or `'fast'` composition            |
-| `prettier`           | `false`            | Enable `eslint-plugin-prettier` and the `prettier/prettier` rule |
-| `testing`            | `false`            | Enable Jest and Testing Library rules                            |
-| `typeChecked`        | `false`            | Add TypeScript ESLint type-checked rules                         |
-| `strict`             | `false`            | Add strict TypeScript rules and `no-console: error`              |
-| `importCycles`       | `true` except fast | Enable graph-wide `import-x/no-cycle` traversal                  |
-| `tsconfigProjects`   | Project globs      | Override TypeScript project discovery                            |
-| `extraIgnores`       | `[]`               | Add ignore globs to the shared configuration                     |
-| `agent`              | `false`            | Enable agent-safe defaults or provide agent options              |
-| `appGuardrails`      | `false`            | Enable application guardrails                                    |
-| `componentStructure` | `false`            | Enforce component structure conventions                          |
-| `deprecatedApis`     | `false`            | Restrict deprecated React and React Native APIs                  |
-| `featureBoundaries`  | `false`            | Enable feature and service boundary policies                     |
-| `inlineStyles`       | `false`            | Warn or error on inline styles in TSX                            |
-| `nativeUi`           | `false`            | Restrict native primitive imports                                |
-| `reactCompiler`      | `false`            | Enable React Compiler diagnostics                                |
-| `reanimated`         | `false`            | Enable Reanimated hardening                                      |
-| `semanticColors`     | `false`            | Enforce semantic color tokens                                    |
-| `storybook`          | `false`            | Apply Storybook file overrides                                   |
-| `worklets`           | `false`            | Enable Worklets scheduling hardening                             |
+| Option               | Default                 | Purpose                                                          |
+| -------------------- | ----------------------- | ---------------------------------------------------------------- |
+| `preset`             | `'default'`             | Select `'base'`, `'default'`, or `'fast'` composition            |
+| `prettier`           | `false`                 | Enable `eslint-plugin-prettier` and the `prettier/prettier` rule |
+| `testing`            | `false`                 | Enable Jest and Testing Library rules                            |
+| `typeChecked`        | `false`                 | Add TypeScript ESLint type-checked rules                         |
+| `strict`             | `false`                 | Add strict TypeScript rules and `no-console: error`              |
+| `importCycles`       | `true` for default only | Enable graph-wide `import-x/no-cycle` traversal                  |
+| `tsconfigProjects`   | Project globs           | Set the TypeScript projects for import resolution                |
+| `extraIgnores`       | `[]`                    | Add ignore globs to the shared configuration                     |
+| `agent`              | `false`                 | Enable agent-safe defaults or provide agent options              |
+| `appGuardrails`      | `false`                 | Enable application guardrails                                    |
+| `componentStructure` | `false`                 | Enforce component structure conventions                          |
+| `deprecatedApis`     | `false`                 | Restrict deprecated React and React Native APIs                  |
+| `featureBoundaries`  | `false`                 | Enable feature and service boundary policies                     |
+| `inlineStyles`       | `false`                 | Warn or error on inline styles in TSX                            |
+| `nativeUi`           | `false`                 | Restrict native primitive imports                                |
+| `reactCompiler`      | `false`                 | Promote React Compiler diagnostics to `error`                    |
+| `reanimated`         | `false`                 | Enable Reanimated hardening                                      |
+| `semanticColors`     | `false`                 | Enforce semantic color tokens                                    |
+| `storybook`          | `false`                 | Apply Storybook file overrides                                   |
+| `worklets`           | `false`                 | Enable Worklets scheduling hardening                             |
 
-Options that accept `true` also accept a focused options object where that configuration supports one. Agent mode supplies the default app, deprecated-API, Reanimated, and Worklets hardening; explicit top-level values still take precedence.
+Options that accept `true` also accept a focused options object where that configuration supports one. Agent mode supplies the default app, deprecated-API, Reanimated, and Worklets hardening, and turns on `reactCompiler` when the preset is type-aware. An explicit top-level option always wins over the agent value, for example `createConfig({ agent: true, reanimated: false })`.
+
+`importCycles` defaults to `true` only for `preset: 'default'` and the presets built on it (typed, strict, agent). It defaults to `false` for base and fast.
+
+`tsconfigProjects` paths are relative to the directory ESLint runs from. The list always goes to the import resolvers. It goes to the parser as `parserOptions.project` only when `typeChecked` is `true`. In all other cases, type-aware parsing keeps `projectService`, which finds the nearest `tsconfig.json` for each file. When the option is not passed, the default and base presets use `./tsconfig.json`, `./apps/*/tsconfig.json`, `./packages/*/tsconfig.json`, and `./test-project/tsconfig.json`, and fast uses `./tsconfig.json`.
+
+`typeChecked` adds the `recommendedTypeChecked` and `stylisticTypeChecked` configs from TypeScript ESLint. Among other changes, this raises `@typescript-eslint/no-require-imports` from the `warn` level set by `eslint-config-expo` to `error`.
+
+In the default preset, most React Compiler diagnostics are already `error`. `reactCompiler: true` promotes only `react-hooks/incompatible-library` and `react-hooks/unsupported-syntax` from `warn` to `error`. The option matters most with `preset: 'fast'`, which has no compiler diagnostics: there it adds `incompatible-library`, `unsupported-syntax`, `immutability`, `purity`, `preserve-manual-memoization`, `set-state-in-render`, and `static-components` at `error`.
+
+`nativeUi: { restrictions }` replaces only the native-UI import list. The `SafeAreaView` import ban from `react-native` always stays. Use `additionalRestrictions` to extend the default list instead of replacing it.
 
 ## Included integrations
 
@@ -146,6 +158,7 @@ The default and fast presets keep these rule families disabled. This preserves t
 
 The root export exposes focused factories and configs for projects that want to compose one guardrail at a time:
 
+- `createAgentGuardrailsConfig()` / `agentGuardrails`
 - `createAppGuardrailsConfig()` / `appGuardrails`
 - `createComponentStructureConfig()` / `componentStructure`
 - `createDeprecatedApiConfig()` / `deprecatedApis`
@@ -157,6 +170,41 @@ The root export exposes focused factories and configs for projects that want to 
 - `reactCompiler`, `storybook`, and `worklets`
 
 Focused configurations remain opt-in so a project can adopt a rule family incrementally.
+
+Several layers (agent and app guardrails, Reanimated, semantic colors, and Worklets) set `no-restricted-syntax`. ESLint flat config replaces a rule's options when a later entry sets the same rule, so if you spread two of these standalone configs into one array, only the last one's selectors apply to a file. Enable them through `createConfig` options instead, which composes their selectors into one rule entry:
+
+```js
+const { createConfig } = require('eslint-config-expo-magic');
+
+module.exports = createConfig({ semanticColors: true, worklets: true });
+```
+
+### Subpath exports
+
+Each entry below is also available as `eslint-config-expo-magic/<subpath>` for both `require` and `import`, with TypeScript declarations.
+
+| Subpath               | Export                                                                                          |
+| --------------------- | ----------------------------------------------------------------------------------------------- |
+| `base`                | Base preset config array                                                                        |
+| `fast`                | Fast preset config array                                                                        |
+| `typed`               | Typed preset config array                                                                       |
+| `strict`              | Strict preset config array                                                                      |
+| `agent`               | Agent preset config array                                                                       |
+| `mobile-app`          | Mobile-app profile; see [Quick start](#quick-start)                                             |
+| `architecture`        | See [Layered architecture](#layered-architecture)                                               |
+| `agent-guardrails`    | Config array plus `createAgentGuardrailsConfig`, `base`, `syntaxBase`, `restrictedSyntaxGroups` |
+| `app-guardrails`      | Config array plus `createAppGuardrailsConfig`, `base`, `restrictedSyntaxGroups`                 |
+| `component-structure` | Config array plus `createComponentStructureConfig`, `plugin`, `recommended`                     |
+| `deprecated-apis`     | Config array plus `createDeprecatedApiConfig`, `recommended`                                    |
+| `feature-boundaries`  | `createFeatureBoundaryConfig`, `recommended`                                                    |
+| `native-ui`           | `createNativeUiConfig`, `defaultRestrictions`, `recommended`                                    |
+| `react-compiler`      | Config array                                                                                    |
+| `reanimated`          | Config array plus `createReanimatedConfig`, `createSharedValueUsageConfig`                      |
+| `semantic-colors`     | Config array plus `createSemanticColorsConfig`, `createAllowConfig`                             |
+| `storybook`           | Config array                                                                                    |
+| `worklets`            | Config array                                                                                    |
+| `prettier`            | Shared Prettier options                                                                         |
+| `pr-guardrails`       | `validateGuardrails`, `runCli`, presets, and helpers; see [Agent setup](#agent-setup)           |
 
 ## Layered architecture
 
@@ -233,13 +281,27 @@ bunx expo-magic-init
 bunx expo-magic-init --write
 ```
 
-The generated ESLint file uses the mobile-app profile and adds the shared Prettier setting. Existing files and script values are preserved.
+With `--write`, the command:
 
-The package also exports `agent-guardrails` and `pr-guardrails` surfaces for repositories that need guardrail-only composition.
+- Writes `eslint.config.js` with the mobile-app profile, or `eslint.config.cjs` when `package.json` sets `"type": "module"`. It skips this step when any `eslint.config.{js,mjs,cjs,ts,mts,cts}` file exists.
+- Writes `expo-magic.pr-guardrails.cjs` with the `agentMobileApp` preset when that file is missing.
+- Adds the `lint`, `typecheck`, and `validate:pr-guardrails` scripts when they are missing. Existing script values are preserved.
+- Adds `"prettier": "eslint-config-expo-magic/prettier"` unless `package.json` already has a `prettier` key or the project has a `.prettierrc*` or `prettier.config.*` file.
+- Keeps the indentation and trailing newline of `package.json`.
+- Exits with an error when the current directory has no `package.json`. Run it from the project root.
+
+The package also exports `agent-guardrails` and `pr-guardrails` surfaces for repositories that need guardrail-only composition. The `expo-magic-pr-guardrails` CLI checks pull requests in CI:
+
+- A broad ESLint disable is a directive without a rule name, or any file-level `eslint-disable` comment. `eslint-disable-line` and `eslint-disable-next-line` that name a rule are allowed.
+- When runtime files change, the PR body must name the simulator, emulator, or device. Only prose or a checked custom checklist item counts. The preset's own checklist labels and unchecked items do not.
+- Each changed screen or component file needs a changed test or story nearby: in the same directory, in a `__tests__` or `__stories__` folder there, or in the same `features/<name>` root. Test and story files end in `.test`, `.spec`, or `.stories` with a `js`, `jsx`, `ts`, `tsx`, `mjs`, `cjs`, `mts`, or `cts` extension, or sit in a `__tests__` or `__stories__` folder. The owner-approval label skips this check.
+- The `mobileApp` and `agentMobileApp` presets match both root paths and `src/` paths, for example `features/` and `src/features/`.
+
+See [docs/RECIPES.md](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/docs/RECIPES.md#pr-guardrails-cli) for CI setup.
 
 ## Compatibility
 
-Version 5.0.0 supports the following tested range:
+The 5.x release line supports the following tested range:
 
 | Surface               | Supported range or lane                                                      |
 | --------------------- | ---------------------------------------------------------------------------- |
@@ -248,13 +310,13 @@ Version 5.0.0 supports the following tested range:
 | ESLint                | `^10.10.0`                                                                   |
 | TypeScript            | `>=5.9.3 <6.1.0`                                                             |
 | TypeScript ESLint     | `^8.69.0`                                                                    |
-| Expo                  | SDK 54, 55, 56, and 57 smoke lanes; SDK 57 fixture is 57.0.22                |
-| React Native          | Expo-coupled; SDK 57.0.22 uses RN 0.86.3                                     |
-| React                 | SDK 57.0.22 fixture uses React 19.2.3                                        |
-| React Test Renderer   | SDK 57.0.22 fixture uses 19.2.3                                              |
+| Expo                  | SDK 54, 55, 56, and 57 smoke lanes; SDK 57 fixture is 57.0.26                |
+| React Native          | Expo-coupled; SDK 57.0.26 uses RN 0.86.3                                     |
+| React                 | SDK 57.0.26 fixture uses React 19.2.3                                        |
+| React Test Renderer   | SDK 57.0.26 fixture uses 19.2.3                                              |
 | Jest Expo / RN preset | `jest-expo` 57.0.5 / `@react-native/jest-preset` 0.86.3 in the SDK57 fixture |
 
-The SDK57 fixture intentionally stays on Expo Doctor's verified React 19.2.3 and React Test Renderer 19.2.3 tuple; newer React patch releases shown by `bun outdated` are not promoted without matching fixture proof.
+The SDK 57 smoke lanes read these versions from `test-project/package.json`, so the fixture is the single source for the SDK 57 tuple. The SDK57 fixture intentionally stays on Expo Doctor's verified React 19.2.3 and React Test Renderer 19.2.3 tuple; newer React patch releases shown by `bun outdated` are not promoted without matching fixture proof.
 
 TypeScript 7 and the React Native/Jest preset 0.87 line remain intentional future holds until the matching compatibility proof is available. React Native support is advertised through Expo SDK lanes rather than as an independent version promise.
 
@@ -263,7 +325,7 @@ TypeScript 7 and the React Native/Jest preset 0.87 line remain intentional futur
 Install the new package and its TypeScript peer explicitly:
 
 ```bash
-bun add --dev eslint-config-expo-magic typescript@^6.0.3
+bun add --dev eslint-config-expo-magic typescript@~6.0.3
 ```
 
 Mobile apps can replace their package-owned integration configuration with:
@@ -290,7 +352,7 @@ Install a compatible TypeScript version explicitly. ESLint, Prettier, and the in
 
 ### Type-aware linting is slow
 
-Use `eslint-config-expo-magic/fast` or `createConfig({ preset: 'fast' })` for syntax-focused checks. It uses only `./tsconfig.json` by default and skips project services, compiler diagnostics, and import-cycle traversal.
+Use `eslint-config-expo-magic/fast` or `createConfig({ preset: 'fast' })` for syntax-focused checks. It resolves imports against `./tsconfig.json` by default and skips project services, compiler diagnostics, and import-cycle traversal.
 
 ### TypeScript ESLint version mismatch
 

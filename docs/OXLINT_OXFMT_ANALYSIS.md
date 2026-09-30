@@ -1,5 +1,7 @@
 # Oxlint + Oxfmt vs ESLint + Prettier — Analysis & Recommendation
 
+> **Status:** Written in February 2026 against the configuration before 4.0.0. It is kept for reference and is not updated. The rule inventory below does not match the current presets: Prettier, Jest, and Testing Library are now opt-in, and the mobile-app, architecture, and React Compiler layers are not covered. See [README](../README.md) and [RULES](../RULES.md) for current behavior.
+
 This document compares replacing ESLint and Prettier with **Oxlint** and **Oxfmt** ([Oxc](https://oxc.rs/docs/guide/introduction.html)) for `eslint-config-expo-magic`, and gives options plus a recommendation.
 
 ---

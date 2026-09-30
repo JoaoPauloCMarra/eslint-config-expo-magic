@@ -15,6 +15,9 @@ declare namespace prGuardrails {
 	export type RiskyPattern = import('./types').RiskyPattern;
 	export type ResolvedGuardrailOptions = import('./types').ResolvedGuardrailOptions;
 	export type GuardrailOptions = import('./types').GuardrailOptions;
+	export type PrGuardrailsInputDeps = import('./types').PrGuardrailsInputDeps;
+	export type PrGuardrailsCliDeps = import('./types').PrGuardrailsCliDeps;
+	export type PrGuardrailsSpawnResult = import('./types').PrGuardrailsSpawnResult;
 }
 
 export = prGuardrails;

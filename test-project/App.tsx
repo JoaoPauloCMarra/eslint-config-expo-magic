@@ -619,7 +619,7 @@ void console.log('meaningless');
 const assertionVal: string = 'hi';
 const _assertionVal2 = assertionVal as string;
 
-// ❌ Avoided by find-missing-rules? but let's try again for no-unsafe-negation
+// ✅ Parenthesized negation is explicit, so no-unsafe-negation allows it
 const _negation = (!'a') in { a: 1 };
 
 export const exportedA = 1;

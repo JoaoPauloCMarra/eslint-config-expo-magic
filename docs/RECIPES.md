@@ -38,7 +38,7 @@ module.exports = [
 
 ## Enable formatting and testing integrations
 
-The v4 root preset leaves formatting and testing rules off. Their dependencies ship with the package, so enable either integration directly:
+The root preset leaves formatting and testing rules off. Their dependencies ship with the package, so enable either integration directly:
 
 ```js
 const { createConfig } = require('eslint-config-expo-magic');
@@ -106,6 +106,8 @@ module.exports = [
 	}),
 ];
 ```
+
+Paths are relative to the directory ESLint runs from. The import resolvers always use this list. Type-aware parsing keeps `projectService` unless `typeChecked: true` is also set; then the parser uses this list as `parserOptions.project`.
 
 ## Base preset first, then re-add only the rules you want
 
@@ -243,7 +245,11 @@ module.exports = createConfig({
 }
 ```
 
-The CLI reads `GITHUB_EVENT_NAME`, `GITHUB_EVENT_PATH`, and the pull request diff from Git. For local tests or custom CI integrations, import `validateGuardrails` from `eslint-config-expo-magic/pr-guardrails`.
+The CLI reads `GITHUB_EVENT_NAME`, `GITHUB_EVENT_PATH`, and the pull request diff from Git. Events other than `pull_request` pass without checks. When `GITHUB_REPOSITORY` and `GITHUB_TOKEN` are set, the CLI reads the current PR body and labels from the GitHub API instead of the event payload. For local tests or custom CI integrations, import `validateGuardrails` from `eslint-config-expo-magic/pr-guardrails`.
+
+Set `fetch-depth: 0` on the `actions/checkout` step so the CLI can find the merge base. The CLI fetches the base branch from `origin`. In a shallow checkout it tries `git fetch --unshallow` when it finds no merge base. If there is still no merge base, it compares the base and head trees directly and prints a warning, so the diff can include changes from the base branch.
+
+`ignoredRiskyFilePatterns` match the repository-relative file path from the diff, for example `scripts/validate-pr-guardrails.ts`, so patterns anchored with `^` work.
 
 The default CLI configuration is intentionally generic. Expo app repositories can opt into the stricter mobile-app preset with an environment variable:
 
