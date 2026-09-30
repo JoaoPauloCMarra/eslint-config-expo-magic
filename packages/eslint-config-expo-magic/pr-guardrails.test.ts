@@ -94,3 +94,55 @@ describe('pr guardrails runtime target evidence', () => {
 		).toEqual([]);
 	});
 });
+
+function riskyNamesFor(addedLine: string, preset: string): string[] {
+	const options = prGuardrails.createPrGuardrailOptions({ preset });
+	const patch = `${addedLine}\n@@ -1 +1 @@\n+const value = 1;`;
+	return options.riskyPatterns
+		.filter((risky: { pattern: RegExp }) => risky.pattern.test(patch))
+		.map((risky: { name: string }) => risky.name);
+}
+
+describe('pr guardrails broad eslint disables', () => {
+	const targeted = [
+		'+// eslint-disable-next-line no-console',
+		'+console.log(value); // eslint-disable-line no-console',
+		'+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- boundary type',
+	];
+	const broad = [
+		'+// eslint-disable-next-line',
+		'+console.log(value); // eslint-disable-line',
+		'+// eslint-disable-line -- no rule named',
+		'+/* eslint-disable */',
+		'+/* eslint-disable no-console */',
+	];
+
+	for (const preset of ['default', 'agentMobileApp']) {
+		for (const line of targeted) {
+			it(`${preset} allows targeted disable: ${line}`, () => {
+				const names = riskyNamesFor(line, preset);
+				expect(names).not.toContain('broad eslint disable');
+				expect(names).not.toContain('broad ignore');
+			});
+		}
+
+		for (const line of broad) {
+			it(`${preset} flags broad disable: ${line}`, () => {
+				const names = riskyNamesFor(line, preset);
+				expect(names).toContain('broad eslint disable');
+				if (preset === 'agentMobileApp') {
+					expect(names).toContain('broad ignore');
+				}
+			});
+		}
+	}
+
+	it('keeps ts-ignore and ts-nocheck flagged for the agent preset', () => {
+		expect(riskyNamesFor('+// @ts-ignore', 'agentMobileApp')).toEqual(
+			expect.arrayContaining(['ts-ignore', 'broad ignore']),
+		);
+		expect(riskyNamesFor('+// @ts-nocheck', 'agentMobileApp')).toEqual(
+			expect.arrayContaining(['ts-nocheck', 'broad ignore']),
+		);
+	});
+});

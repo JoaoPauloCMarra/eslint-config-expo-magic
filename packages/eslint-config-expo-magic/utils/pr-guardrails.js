@@ -96,12 +96,15 @@ const mobileAppScreenOrComponentPatterns = [
 	/^uikit\/.*\.(ts|tsx)$/,
 ];
 
+const broadEslintDisablePattern =
+	/^\+.*eslint-disable(?!-(?:next-)?line[ \t]+(?!--)[\w@/-])/m;
+
 const defaultRiskyPatterns = [
 	{ name: 'focused test', pattern: /^\+.*\b(describe|test|it)\.only\s*\(/m },
 	{ name: 'skipped test', pattern: /^\+.*\b(describe|test|it)\.skip\s*\(/m },
 	{
 		name: 'broad eslint disable',
-		pattern: /^\+.*eslint-disable(?!-next-line\s+[\w@/-])/m,
+		pattern: broadEslintDisablePattern,
 	},
 	{ name: 'explicit any', pattern: /^\+.*:\s*any\b/m },
 	{ name: 'generic any', pattern: /^\+.*<any\b/m },
@@ -124,7 +127,8 @@ const agentRiskyPatterns = [
 	{ name: 'fake mock', pattern: /^\+.*jest\.mock\([^)]*,\s*\(\)\s*=>\s*\(\{\s*\}\)/m },
 	{
 		name: 'broad ignore',
-		pattern: /^\+.*(eslint-disable|@ts-ignore|@ts-nocheck)/m,
+		pattern:
+			/^\+.*(eslint-disable(?!-(?:next-)?line[ \t]+(?!--)[\w@/-])|@ts-ignore|@ts-nocheck)/m,
 	},
 ];
 
