@@ -4,6 +4,10 @@ const { fixupPluginRules } = require('@eslint/compat');
 const importX = require('eslint-plugin-import-x');
 const unusedImports = require('eslint-plugin-unused-imports');
 
+// The base config owns `import-x/resolver`; the plugin's `{ typescript: true }` would replace its options.
+const { 'import-x/resolver': _resolver, ...typeScriptImportSettings } =
+	importX.configs.typescript.settings;
+
 function createImportConfig({ noCycle = true } = {}) {
 	return [
 		{
@@ -13,7 +17,7 @@ function createImportConfig({ noCycle = true } = {}) {
 			},
 			settings: {
 				...importX.configs.recommended.settings,
-				...importX.configs.typescript.settings,
+				...typeScriptImportSettings,
 			},
 			rules: {
 				...importX.configs.recommended.rules,

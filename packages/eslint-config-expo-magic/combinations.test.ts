@@ -177,6 +177,21 @@ describe('createConfig option combinations', () => {
 		expect(calculated.rules['import-x/no-cycle']).toBeUndefined();
 	});
 
+	it('keeps the configured TypeScript import resolver options', async () => {
+		const eslint = new ESLint({
+			overrideConfigFile: true,
+			overrideConfig: createConfig({ tsconfigProjects: ['./tsconfig.json'] }),
+			cwd: testProjectDir,
+		});
+		const calculated = await eslint.calculateConfigForFile(
+			path.join(testProjectDir, 'module.ts'),
+		);
+
+		expect(calculated.settings['import-x/resolver'].typescript).toEqual(
+			expect.objectContaining({ project: ['./tsconfig.json'] }),
+		);
+	});
+
 	it('keeps projectService for custom tsconfigProjects without typeChecked', async () => {
 		for (const options of [
 			{ tsconfigProjects: ['./tsconfig.json'] },
