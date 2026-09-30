@@ -81,10 +81,10 @@ The `no-prettier` export and subpath were removed. The `strictNoPrettier` and `t
 ### Runtime and toolchain requirements
 
 - Node.js `^20.19.0 || ^22.13.0 || >=24`
-- Bun `>=1.4.0`; this repository uses `bun@1.4.0`
-- ESLint `^10.10.0`
+- Bun `>=1.4.0`; this repository uses `bun@1.4.2`
+- ESLint `^10.11.0`
 - TypeScript `>=5.9.3 <6.1.0`
-- TypeScript ESLint `^8.69.0`
+- TypeScript ESLint `^8.71.0`
 
 TypeScript 7 and the React Native/Jest preset 0.87 line remain intentional holds until the matching compatibility proof is available. Expo SDK 54 through 57 remain the supported smoke lanes. The SDK 57 lanes read their versions from `test-project/package.json`: Expo 57.0.26, React 19.2.3, React Native 0.86.3, React Test Renderer 19.2.3, `jest-expo` 57.0.5, and `@react-native/jest-preset` 0.86.3.
 

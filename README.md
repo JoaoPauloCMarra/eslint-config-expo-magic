@@ -341,10 +341,10 @@ The 5.x release line supports the following tested range:
 | Surface               | Supported range or lane                                                      |
 | --------------------- | ---------------------------------------------------------------------------- |
 | Node.js               | `^20.19.0 \|\| ^22.13.0 \|\| >=24`                                           |
-| Bun                   | `>=1.4.0`; repository package manager is `bun@1.4.0`                         |
-| ESLint                | `^10.10.0`                                                                   |
+| Bun                   | `>=1.4.0`; repository package manager is `bun@1.4.2`                         |
+| ESLint                | `^10.11.0`                                                                   |
 | TypeScript            | `>=5.9.3 <6.1.0`                                                             |
-| TypeScript ESLint     | `^8.69.0`                                                                    |
+| TypeScript ESLint     | `^8.71.0`                                                                    |
 | Expo                  | SDK 54, 55, 56, and 57 smoke lanes; SDK 57 fixture is 57.0.26                |
 | React Native          | Expo-coupled; SDK 57.0.26 uses RN 0.86.3                                     |
 | React                 | SDK 57.0.26 fixture uses React 19.2.3                                        |

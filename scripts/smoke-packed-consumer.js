@@ -21,22 +21,22 @@ const sdk57Versions = readSdk57FixtureVersions();
 const smokeLanes = [
 	{
 		name: 'sdk-54',
-		expo: '54.0.33',
+		expo: '54.0.37',
 		react: '19.1.0',
 		reactNative: '0.81.5',
 		reactTestRenderer: '19.1.0',
 	},
 	{
 		name: 'sdk-55',
-		expo: '55.0.9',
+		expo: '55.0.31',
 		react: '19.2.0',
-		reactNative: '0.83.4',
+		reactNative: '0.83.10',
 		reactTestRenderer: '19.2.0',
 		typescript: '^5.9.3',
 	},
 	{
 		name: 'sdk-56',
-		expo: '56.0.9',
+		expo: '56.0.23',
 		react: '19.2.3',
 		reactNative: '0.85.3',
 		reactTestRenderer: '19.2.3',
@@ -129,7 +129,7 @@ function createFixturePackageJson(tarballPath, lane) {
 			'react-test-renderer': lane.reactTestRenderer,
 			typescript: lane.typescript ?? '^5.9.3',
 			'eslint-config-expo-magic': `file:${tarballPath}`,
-			jest: '^30.5.1',
+			jest: '^30.5.2',
 		},
 	};
 }
