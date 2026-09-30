@@ -570,17 +570,24 @@ function hasMergeBase(run, baseRemoteRef) {
 function resolveDiffRange(baseRef, run, warn) {
 	const baseRemoteRef = `origin/${baseRef}`;
 	const baseRefspec = `+refs/heads/${baseRef}:refs/remotes/${baseRemoteRef}`;
-	run(['git', 'fetch', '--no-tags', '--depth=1', 'origin', baseRefspec]);
-	if (hasMergeBase(run, baseRemoteRef)) {
-		return `${baseRemoteRef}...HEAD`;
-	}
-
 	const isShallow =
 		tryRunCommand(run, [
 			'git',
 			'rev-parse',
 			'--is-shallow-repository',
 		])?.trim() === 'true';
+	run([
+		'git',
+		'fetch',
+		'--no-tags',
+		...(isShallow ? ['--depth=1'] : []),
+		'origin',
+		baseRefspec,
+	]);
+	if (hasMergeBase(run, baseRemoteRef)) {
+		return `${baseRemoteRef}...HEAD`;
+	}
+
 	if (isShallow) {
 		tryRunCommand(run, [
 			'git',

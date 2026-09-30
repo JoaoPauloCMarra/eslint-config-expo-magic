@@ -554,73 +554,118 @@ describe('pr guardrails shallow checkout', () => {
 		git(cwd, ['commit', '-q', '-m', message]);
 	}
 
+	function createPullRequestOrigin(root: string): string {
+		const origin = path.join(root, 'origin.git');
+		const work = path.join(root, 'work');
+		git(root, ['init', '-q', '--bare', '-b', 'main', origin]);
+		git(root, ['init', '-q', '-b', 'main', work]);
+		commitFile(work, 'base.ts', 'base');
+		git(work, ['checkout', '-q', '-b', 'feature']);
+		commitFile(work, 'feature-one.ts', 'feature one');
+		commitFile(work, 'feature-two.ts', 'feature two');
+		git(work, ['checkout', '-q', 'main']);
+		commitFile(work, 'main-later.ts', 'main later');
+		git(work, ['checkout', '-q', '--detach', 'main']);
+		git(work, ['merge', '-q', '--no-ff', '-m', 'merge', 'feature']);
+		git(work, ['remote', 'add', 'origin', origin]);
+		git(work, [
+			'push',
+			'-q',
+			'origin',
+			'main',
+			'feature',
+			'HEAD:refs/pull/1/merge',
+		]);
+		return origin;
+	}
+
+	function checkoutMergeRef(root: string, origin: string, depth: string[]) {
+		const checkout = path.join(root, 'checkout');
+		fs.mkdirSync(checkout);
+		git(checkout, ['init', '-q']);
+		git(checkout, ['remote', 'add', 'origin', `file://${origin}`]);
+		git(checkout, [
+			'fetch',
+			'-q',
+			'--no-tags',
+			...depth,
+			'origin',
+			'+refs/heads/*:refs/remotes/origin/*',
+			'+refs/pull/1/merge:refs/remotes/pull/1/merge',
+		]);
+		git(checkout, ['checkout', '-q', '--detach', 'refs/remotes/pull/1/merge']);
+		return checkout;
+	}
+
+	async function readInput(checkout: string) {
+		const warnings: string[] = [];
+		const calls: string[] = [];
+		const input = await prGuardrails.readPullRequestInputFromEnv({
+			env: {
+				GITHUB_EVENT_NAME: 'pull_request',
+				GITHUB_EVENT_PATH: 'event.json',
+			},
+			readFile: () =>
+				JSON.stringify({
+					number: 1,
+					pull_request: { base: { ref: 'main' } },
+				}),
+			spawn: (command: string, args: string[], options: object) => {
+				calls.push(args.join(' '));
+				return spawnSync(command, args, {
+					...options,
+					cwd: checkout,
+					env: gitEnv,
+				});
+			},
+			warn: (message: string) => warnings.push(message),
+		});
+		return { input, warnings, calls };
+	}
+
 	it('finds the PR diff from a depth=1 checkout of the merge ref', async () => {
 		const root = fs.mkdtempSync(path.join(os.tmpdir(), 'pr-guardrails-git-'));
 		try {
-			const origin = path.join(root, 'origin.git');
-			const work = path.join(root, 'work');
-			const checkout = path.join(root, 'checkout');
-			git(root, ['init', '-q', '--bare', '-b', 'main', origin]);
-			git(root, ['init', '-q', '-b', 'main', work]);
-			commitFile(work, 'base.ts', 'base');
-			git(work, ['checkout', '-q', '-b', 'feature']);
-			commitFile(work, 'feature-one.ts', 'feature one');
-			commitFile(work, 'feature-two.ts', 'feature two');
-			git(work, ['checkout', '-q', 'main']);
-			commitFile(work, 'main-later.ts', 'main later');
-			git(work, ['checkout', '-q', '--detach', 'main']);
-			git(work, ['merge', '-q', '--no-ff', '-m', 'merge', 'feature']);
-			git(work, ['remote', 'add', 'origin', origin]);
-			git(work, [
-				'push',
-				'-q',
-				'origin',
-				'main',
-				'feature',
-				'HEAD:refs/pull/1/merge',
-			]);
-			fs.mkdirSync(checkout);
-			git(checkout, ['init', '-q']);
-			git(checkout, ['remote', 'add', 'origin', `file://${origin}`]);
-			git(checkout, [
-				'fetch',
-				'-q',
-				'--no-tags',
+			const checkout = checkoutMergeRef(root, createPullRequestOrigin(root), [
 				'--depth=1',
-				'origin',
-				'+refs/pull/1/merge:refs/remotes/pull/1/merge',
-			]);
-			git(checkout, [
-				'checkout',
-				'-q',
-				'--detach',
-				'refs/remotes/pull/1/merge',
 			]);
 
-			const warnings: string[] = [];
-			const calls: string[] = [];
-			const input = await prGuardrails.readPullRequestInputFromEnv({
-				env: {
-					GITHUB_EVENT_NAME: 'pull_request',
-					GITHUB_EVENT_PATH: 'event.json',
-				},
-				readFile: () =>
-					JSON.stringify({
-						number: 1,
-						pull_request: { base: { ref: 'main' } },
-					}),
-				spawn: (command: string, args: string[], options: object) => {
-					calls.push(args.join(' '));
-					return spawnSync(command, args, {
-						...options,
-						cwd: checkout,
-						env: gitEnv,
-					});
-				},
-				warn: (message: string) => warnings.push(message),
-			});
+			const { input, warnings, calls } = await readInput(checkout);
 
 			expect(calls.some((call) => call.includes('--unshallow'))).toBe(true);
+			expect(input.changedFiles.sort()).toEqual([
+				'feature-one.ts',
+				'feature-two.ts',
+			]);
+			expect(warnings).toEqual([]);
+		} finally {
+			fs.rmSync(root, { recursive: true, force: true });
+		}
+	}, 15_000);
+
+	it('keeps a full checkout complete', async () => {
+		const root = fs.mkdtempSync(path.join(os.tmpdir(), 'pr-guardrails-git-'));
+		try {
+			const checkout = checkoutMergeRef(
+				root,
+				createPullRequestOrigin(root),
+				[],
+			);
+			const work = path.join(root, 'work');
+			git(work, ['checkout', '-q', 'main']);
+			commitFile(work, 'main-after-checkout.ts', 'main after checkout');
+			git(work, ['push', '-q', 'origin', 'main']);
+
+			const { input, warnings, calls } = await readInput(checkout);
+
+			expect(
+				calls.some(
+					(call) => call.includes('--depth') || call.includes('--unshallow'),
+				),
+			).toBe(false);
+			expect(
+				git(checkout, ['rev-parse', '--is-shallow-repository']).trim(),
+			).toBe('false');
 			expect(input.changedFiles.sort()).toEqual([
 				'feature-one.ts',
 				'feature-two.ts',
@@ -655,18 +700,23 @@ describe('pr guardrails CLI', () => {
 	}
 
 	it('runs the bin entry outside pull_request events', () => {
-		const result = spawnSync(
-			process.execPath,
-			[path.join(__dirname, 'bin/pr-guardrails.js')],
-			{
-				cwd: os.tmpdir(),
-				env: { ...process.env, GITHUB_EVENT_NAME: 'push' },
-				encoding: 'utf8',
-			},
-		);
+		const root = fs.mkdtempSync(path.join(os.tmpdir(), 'pr-guardrails-bin-'));
+		try {
+			const result = spawnSync(
+				process.execPath,
+				[path.join(__dirname, 'bin/pr-guardrails.js')],
+				{
+					cwd: root,
+					env: { ...process.env, GITHUB_EVENT_NAME: 'push' },
+					encoding: 'utf8',
+				},
+			);
 
-		expect(result.status).toBe(0);
-		expect(result.stdout).toContain('PR guardrails passed.');
+			expect(result.status).toBe(0);
+			expect(result.stdout).toContain('PR guardrails passed.');
+		} finally {
+			fs.rmSync(root, { recursive: true, force: true });
+		}
 	});
 
 	it('exits the bin entry with 1 and a short error when git fails', () => {
