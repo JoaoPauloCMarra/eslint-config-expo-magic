@@ -32,12 +32,15 @@ function featureOfFile(filePath, options) {
 
 /** Parses `@/features/<name>/<rest...>` from an aliased import specifier. */
 function parseAliased(source, options) {
-	const prefix = `${options.aliasPrefix}/${options.featuresSegment}/`;
+	const prefix = `${options.aliasPrefix}/`;
 	if (!source.startsWith(prefix)) {
 		return null;
 	}
 
-	const rest = source.slice(prefix.length).split('/');
+	const rest = normalizeSegments(source.slice(prefix.length).split('/'), true);
+	if (rest.shift() !== options.featuresSegment) {
+		return null;
+	}
 	const feature = rest.shift();
 	if (!feature) {
 		return null;
@@ -47,14 +50,18 @@ function parseAliased(source, options) {
 }
 
 /** Collapses `.` and `..` without touching the filesystem. */
-function normalizeSegments(segments) {
+function normalizeSegments(segments, preserveParents = false) {
 	const out = [];
 	for (const segment of segments) {
 		if (segment === '' || segment === '.') {
 			continue;
 		}
 		if (segment === '..') {
-			out.pop();
+			if (preserveParents && (out.length === 0 || out.at(-1) === '..')) {
+				out.push(segment);
+			} else {
+				out.pop();
+			}
 			continue;
 		}
 		out.push(segment);

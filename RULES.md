@@ -132,7 +132,7 @@ These layers are off by default and enabled per project via `createConfig({ ... 
 - **`expo-magic/props-type-order`**: orders the members of `*Props` type aliases and interfaces as required, optional, then function props, alphabetized within each group. Method signatures count as function props.
 - **`expo-magic/default-export-placement`**: requires `export default Component;` immediately after the component declaration.
 - **`expo-magic/no-inline-props`**: requires a named `type ...Props` alias instead of an inline object type on a `props` parameter. It also flags an inline type on the destructured first parameter of a component (a PascalCase function or a default export), with or without a default value.
-- **`expo-magic/require-children-usage`**: flags a declared `children` prop (or `PropsWithChildren`) that the component never renders. It follows type aliases and interface `extends` in the same file. Spreading the props object or its rest binding (`{...props}`, `{...rest}`), or passing it to `cloneElement(element, props)`, counts as using `children`.
+- **`expo-magic/require-children-usage`**: flags a declared `children` prop (or `PropsWithChildren`) that the component never renders. It follows type aliases and interface `extends` in the same file using lexical scope, so unrelated shadowed type or props names do not count as caller content. Block-local destructuring of `children` is supported. Spreading the props object or its rest binding (`{...props}`, `{...rest}`), or passing it to `cloneElement(element, props)`, counts as using `children`.
 
 **Rationale**: Encodes component-authoring conventions that keep prop contracts and exports predictable across a large app.
 
@@ -140,7 +140,7 @@ These layers are off by default and enabled per project via `createConfig({ ... 
 
 - Flags raw color literals (`#rrggbb`, `rgba()`, `hsla()`) and direct access to the raw color token map outside the token file.
 
-**Rationale**: Forces colors through semantic tokens so theming stays centralized. Configure `tokenModule`, `importName`, and `allowFiles` for your project layout.
+**Rationale**: Forces colors through semantic tokens so theming stays centralized. Configure `tokenModule`, `importName`, and `allowFiles` for your project layout. Source color restrictions remain active in test files when combined with test-only app or agent guardrails.
 
 ### `inlineStyles`
 
@@ -320,6 +320,7 @@ subfolders misses root-level files entirely.
 
 The rule resolves relative specifiers against the importing file, so
 `../../billing/total` is caught as readily as `@/features/billing/total`.
+Aliased paths normalize `.` and `..` before applying feature and contract exceptions.
 
 ### `expo-magic/kebab-case-filenames`
 

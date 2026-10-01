@@ -30,7 +30,7 @@
     },
     "packages/eslint-config-expo-magic": {
       "name": "eslint-config-expo-magic",
-      "version": "5.2.0",
+      "version": "5.2.1",
       "bin": {
         "eslint": "bin/eslint.js",
         "expo-magic-init": "bin/init-agent.js",

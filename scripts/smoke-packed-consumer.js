@@ -6,6 +6,7 @@ const { spawnSync } = require('child_process');
 const { createRequire } = require('node:module');
 const {
 	readSdk57FixtureVersions,
+	validateToolVersion,
 	run,
 	withPackedTarball,
 	withTempConsumer,
@@ -64,6 +65,8 @@ function runLint(tempProjectDir, configFile, targetFile) {
 		{
 			cwd: tempProjectDir,
 			encoding: 'utf8',
+			timeout: 120_000,
+			killSignal: 'SIGKILL',
 		},
 	);
 
@@ -138,6 +141,7 @@ function createNpmFixturePackageJson(tarballPath) {
 		dependencies: {
 			expo: sdk57Versions.expo,
 			react: sdk57Versions.react,
+			'react-native': sdk57Versions['react-native'],
 			typescript: '6.0.3',
 			'eslint-config-expo-magic': `file:${tarballPath}`,
 		},
@@ -352,9 +356,21 @@ function validatePackageContract(tempProjectDir) {
 	});
 }
 
+function reportToolVersions(tempProjectDir, command, prefix = []) {
+	const eslint = validateToolVersion(tempProjectDir, 'eslint', command, prefix);
+	const prettier = validateToolVersion(
+		tempProjectDir,
+		'prettier',
+		command,
+		prefix,
+	);
+	console.log(
+		`[${command}] package-owned ESLint ${eslint}, Prettier ${prettier}`,
+	);
+}
+
 function validatePackageExecutables(tempProjectDir) {
-	run('bunx', ['eslint', '--version'], { cwd: tempProjectDir });
-	run('bunx', ['prettier', '--version'], { cwd: tempProjectDir });
+	reportToolVersions(tempProjectDir, 'bunx');
 
 	const formatSmokePath = path.join(tempProjectDir, 'format-smoke.js');
 	fs.writeFileSync(formatSmokePath, 'const value={answer:42}\n');
@@ -399,12 +415,7 @@ function validateNpmConsumer(tarballPath) {
 			includeOptionalIntegrations: false,
 		});
 		run('node', ['package-runtime-contract.mjs'], { cwd: tempProjectDir });
-		run('npx', ['--no-install', 'eslint', '--version'], {
-			cwd: tempProjectDir,
-		});
-		run('npx', ['--no-install', 'prettier', '--version'], {
-			cwd: tempProjectDir,
-		});
+		reportToolVersions(tempProjectDir, 'npx', ['--no-install']);
 	});
 }
 

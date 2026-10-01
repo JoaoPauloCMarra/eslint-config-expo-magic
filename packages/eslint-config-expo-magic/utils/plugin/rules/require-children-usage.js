@@ -30,16 +30,22 @@ function getPropertyName(property) {
 }
 
 function hasChildrenDeclaration(node) {
-	return node.type === 'TSPropertySignature' && getPropertyName(node) === CHILDREN_PROP;
+	return (
+		node.type === 'TSPropertySignature' &&
+		getPropertyName(node) === CHILDREN_PROP
+	);
 }
 
-function isPropsAliasDefinition(definition, propsName) {
+function isPropsAliasDefinition(definition, propsVariable, scope) {
 	if (definition.type !== 'Variable') {
 		return false;
 	}
 
 	const init = definition.node?.init;
-	return init?.type === 'Identifier' && init.name === propsName;
+	return (
+		init?.type === 'Identifier' &&
+		findVariable(scope, init.name) === propsVariable
+	);
 }
 
 function getPatternIdentifier(pattern) {
@@ -67,7 +73,8 @@ function getObjectPatternProperty(pattern, name) {
 
 	return (
 		pattern.properties.find(
-			(property) => property.type === 'Property' && getPropertyName(property) === name,
+			(property) =>
+				property.type === 'Property' && getPropertyName(property) === name,
 		) ?? null
 	);
 }
@@ -91,7 +98,12 @@ function getPropertyBinding(property) {
 	return getPatternIdentifier(property.value);
 }
 
-function typeDeclaresChildren(typeNode, typeDeclarations, seen = new Set()) {
+function typeDeclaresChildren(
+	typeNode,
+	typeDeclarations,
+	sourceCode,
+	seen = new Set(),
+) {
 	if (!typeNode) {
 		return false;
 	}
@@ -100,6 +112,7 @@ function typeDeclaresChildren(typeNode, typeDeclarations, seen = new Set()) {
 		return typeDeclaresChildren(
 			typeNode.typeAnnotation,
 			typeDeclarations,
+			sourceCode,
 			seen,
 		);
 	}
@@ -117,7 +130,7 @@ function typeDeclaresChildren(typeNode, typeDeclarations, seen = new Set()) {
 		typeNode.type === 'TSUnionType'
 	) {
 		return typeNode.types.some((member) =>
-			typeDeclaresChildren(member, typeDeclarations, seen),
+			typeDeclaresChildren(member, typeDeclarations, sourceCode, seen),
 		);
 	}
 
@@ -125,6 +138,7 @@ function typeDeclaresChildren(typeNode, typeDeclarations, seen = new Set()) {
 		return typeDeclaresChildren(
 			typeNode.typeAnnotation,
 			typeDeclarations,
+			sourceCode,
 			seen,
 		);
 	}
@@ -141,18 +155,28 @@ function typeDeclaresChildren(typeNode, typeDeclarations, seen = new Set()) {
 			return true;
 		}
 
-		if (!referenceName || seen.has(referenceName)) {
+		const variable = findVariable(
+			sourceCode.getScope(typeNode),
+			referenceName,
+			true,
+		);
+		if (!variable || seen.has(variable)) {
 			return false;
 		}
 
-		const declaration = typeDeclarations.get(referenceName);
+		const declaration = typeDeclarations.get(variable);
 		if (!declaration) {
 			return false;
 		}
 
 		const nextSeen = new Set(seen);
-		nextSeen.add(referenceName);
-		return typeDeclaresChildren(declaration, typeDeclarations, nextSeen);
+		nextSeen.add(variable);
+		return typeDeclaresChildren(
+			declaration,
+			typeDeclarations,
+			sourceCode,
+			nextSeen,
+		);
 	}
 
 	return false;
@@ -194,11 +218,11 @@ function unwrapParameter(parameter) {
 	return parameter;
 }
 
-function findVariable(scope, name) {
+function findVariable(scope, name, typeOnly = false) {
 	let currentScope = scope;
 	while (currentScope) {
 		const variable = currentScope.set.get(name);
-		if (variable) {
+		if (variable && (!typeOnly || variable.isTypeVariable)) {
 			return variable;
 		}
 		currentScope = currentScope.upper;
@@ -211,14 +235,18 @@ function variableHasRead(variable) {
 	return variable?.references.some((reference) => reference.isRead()) ?? false;
 }
 
-function collectChildrenAliasBindings(scope, propsName, aliases) {
+function collectChildrenAliasBindings(scope, propsVariable, aliases) {
 	for (const variable of scope.variables) {
-		if (variable.name === propsName) {
+		if (variable === propsVariable) {
 			continue;
 		}
 
-		if (variable.defs.some((definition) => isPropsAliasDefinition(definition, propsName))) {
-			aliases.add(variable.name);
+		if (
+			variable.defs.some((definition) =>
+				isPropsAliasDefinition(definition, propsVariable, scope),
+			)
+		) {
+			aliases.add(variable);
 		}
 	}
 
@@ -226,13 +254,13 @@ function collectChildrenAliasBindings(scope, propsName, aliases) {
 		if (childScope.type === 'function') {
 			continue;
 		}
-		collectChildrenAliasBindings(childScope, propsName, aliases);
+		collectChildrenAliasBindings(childScope, propsVariable, aliases);
 	}
 }
 
 function collectChildrenReferences(scope, aliases, references) {
 	for (const variable of scope.variables) {
-		if (aliases.has(variable.name)) {
+		if (aliases.has(variable)) {
 			for (const reference of variable.references) {
 				references.add(reference);
 			}
@@ -350,20 +378,24 @@ function componentUsesChildren(node, parameter, sourceCode) {
 		return false;
 	}
 
-	const aliases = new Set([propsBinding.name]);
-	collectChildrenAliasBindings(scope, propsBinding.name, aliases);
+	const aliases = new Set([propsVariable]);
+	collectChildrenAliasBindings(scope, propsVariable, aliases);
 	const references = new Set();
 	collectChildrenReferences(scope, aliases, references);
 
 	return Array.from(references).some((reference) =>
-		referenceUsesChildren(reference, scope),
+		referenceUsesChildren(reference, reference.from),
 	);
 }
 
-function parameterDeclaresChildren(parameter, typeDeclarations) {
+function parameterDeclaresChildren(parameter, typeDeclarations, sourceCode) {
 	return (
 		Boolean(getObjectPatternProperty(parameter, CHILDREN_PROP)) ||
-		typeDeclaresChildren(parameter?.typeAnnotation, typeDeclarations)
+		typeDeclaresChildren(
+			parameter?.typeAnnotation,
+			typeDeclarations,
+			sourceCode,
+		)
 	);
 }
 
@@ -387,20 +419,23 @@ module.exports = {
 
 		function recordComponent(node) {
 			if (
-			node.parent?.type === 'ExportDefaultDeclaration' ||
-			/^[A-Z]/u.test(getComponentName(node))
-		) {
+				node.parent?.type === 'ExportDefaultDeclaration' ||
+				/^[A-Z]/u.test(getComponentName(node))
+			) {
 				components.push(node);
 			}
 		}
 
 		return {
 			TSTypeAliasDeclaration(node) {
-				typeDeclarations.set(node.id.name, node.typeAnnotation);
+				typeDeclarations.set(
+					sourceCode.getDeclaredVariables(node)[0],
+					node.typeAnnotation,
+				);
 			},
 			TSInterfaceDeclaration(node) {
 				const inheritedTypes = node.extends ?? [];
-				typeDeclarations.set(node.id.name, {
+				typeDeclarations.set(sourceCode.getDeclaredVariables(node)[0], {
 					type: 'TSIntersectionType',
 					types: [node.body, ...inheritedTypes],
 				});
@@ -413,7 +448,11 @@ module.exports = {
 					const parameter = unwrapParameter(component.params[0]);
 					if (
 						!parameter ||
-						!parameterDeclaresChildren(parameter, typeDeclarations) ||
+						!parameterDeclaresChildren(
+							parameter,
+							typeDeclarations,
+							sourceCode,
+						) ||
 						componentUsesChildren(component, parameter, sourceCode)
 					) {
 						continue;

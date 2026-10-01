@@ -34,6 +34,9 @@ jobs:
       - name: Run unit tests
         run: bun run test
 
+      - name: Check committed release reports
+        run: bun run report:check
+
   fixture-validation:
     runs-on: ubuntu-latest
     steps:

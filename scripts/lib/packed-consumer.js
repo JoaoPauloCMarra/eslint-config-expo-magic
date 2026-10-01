@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { createRequire } = require('node:module');
 
 const rootDir = path.resolve(__dirname, '../..');
 const packageDir = path.join(rootDir, 'packages', 'eslint-config-expo-magic');
@@ -22,6 +23,8 @@ function run(command, args, options = {}) {
 	const result = spawnSync(command, args, {
 		encoding: 'utf8',
 		stdio: 'pipe',
+		timeout: 300_000,
+		killSignal: 'SIGKILL',
 		...options,
 	});
 
@@ -38,6 +41,92 @@ function run(command, args, options = {}) {
 	}
 
 	return result;
+}
+
+// Resolve from the installed config, never from the consumer's potentially older tool.
+function validateToolVersion(consumerDir, tool, command, prefix = []) {
+	const consumerRequire = createRequire(path.join(consumerDir, 'package.json'));
+	const manifestPath = consumerRequire.resolve(
+		'eslint-config-expo-magic/package.json',
+	);
+	const packageRequire = createRequire(manifestPath);
+	const manifest = packageRequire(manifestPath);
+	const toolManifestPath = packageRequire.resolve(`${tool}/package.json`);
+	const toolManifest = packageRequire(toolManifestPath);
+	const toolBin =
+		typeof toolManifest.bin === 'string'
+			? toolManifest.bin
+			: toolManifest.bin?.[tool];
+	if (typeof toolBin !== 'string' || !toolBin) {
+		throw new Error(
+			`${toolManifestPath} does not declare the ${tool} executable.`,
+		);
+	}
+	const toolExecutable = path.resolve(path.dirname(toolManifestPath), toolBin);
+	const wrapper = path.resolve(path.dirname(manifestPath), manifest.bin[tool]);
+	const installedBin = path.join(consumerDir, 'node_modules', '.bin', tool);
+	const actualTarget = fs.realpathSync(installedBin);
+	const allowedTargets = [wrapper, toolExecutable].map((target) =>
+		fs.realpathSync(target),
+	);
+	if (!allowedTargets.includes(actualTarget)) {
+		throw new Error(
+			`${tool} consumer bin ${installedBin} resolves to ${actualTarget}; expected the package-owned launcher or bundled executable: ${allowedTargets.join(' or ')} (resolved from ${toolManifestPath}).`,
+		);
+	}
+	const expected =
+		tool === 'eslint' ? `v${toolManifest.version}` : toolManifest.version;
+	// Verify both the launcher itself and the command consumers actually run.
+	for (const [executable, args] of [
+		['node', [wrapper, '--version']],
+		[command, [...prefix, tool, '--version']],
+	]) {
+		const actual = run(executable, args, { cwd: consumerDir }).stdout.trim();
+		if (actual !== expected) {
+			throw new Error(
+				`${tool} version mismatch: expected ${expected}, got ${JSON.stringify(actual)} (${executable}).`,
+			);
+		}
+	}
+	return toolManifest.version;
+}
+
+function validatePackedFiles(manifest, entries) {
+	const files = new Set(
+		entries.map((entry) => entry.replace(/^package\//, '')),
+	);
+	function targets(value) {
+		if (typeof value === 'string') return [value];
+		if (!value) return [];
+		return Object.values(value).flatMap(targets);
+	}
+	const required = [
+		'package.json',
+		'README.md',
+		'types.d.ts',
+		'.prettierrc.js',
+		...targets(manifest.exports),
+		...targets(manifest.bin),
+		...targets(manifest.main),
+		...targets(manifest.module),
+		...targets(manifest.types),
+	];
+	for (const target of required) {
+		if (!files.has(target.replace(/^\.\//, ''))) {
+			throw new Error(`Packed package is missing declared target: ${target}.`);
+		}
+	}
+	for (const file of files) {
+		if (
+			/(?:^|\/)(?:node_modules|test-project|__tests__)(?:\/|$)|\.(?:test|spec)\.[cm]?[jt]sx?$|(?:^|\/)(?:AGENTS\.md|check-pm\.js|type-tests\.ts)$/.test(
+				file,
+			)
+		) {
+			throw new Error(
+				`Packed package contains development-only file: ${file}.`,
+			);
+		}
+	}
 }
 
 function createUniqueTempDir(name) {
@@ -104,6 +193,8 @@ function withPackedTarball(callback) {
 			throw new Error(`Packed tarball missing at ${tarballPath}.`);
 		}
 
+		const entries = run('tar', ['-tzf', tarballPath]).stdout.trim().split('\n');
+		validatePackedFiles(packageJson, entries);
 		return callback(tarballPath);
 	});
 }
@@ -135,6 +226,8 @@ function writeJson(filePath, value) {
 }
 
 module.exports = {
+	validateToolVersion,
+	validatePackedFiles,
 	packageDir,
 	readSdk57FixtureVersions,
 	rootDir,

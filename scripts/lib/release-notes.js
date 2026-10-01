@@ -302,7 +302,17 @@ function runGit(args, options = {}) {
 function findLatestReleaseTag(options = {}) {
 	const result = spawnSync(
 		'git',
-		['describe', '--tags', '--match', 'v[0-9]*', '--abbrev=0', 'HEAD'],
+		[
+			'describe',
+			'--tags',
+			'--match',
+			'v[0-9]*',
+			...(options.excludeVersion
+				? ['--exclude', `v${options.excludeVersion}`]
+				: []),
+			'--abbrev=0',
+			'HEAD',
+		],
 		{
 			cwd: options.cwd ?? rootDir,
 			encoding: 'utf8',
@@ -371,8 +381,14 @@ async function loadReleaseComparison({
 	currentReport,
 	previousReport,
 } = {}) {
+	const resolvedCurrentManifest =
+		currentManifest ?? readJson(path.join(projectRoot, packagePath));
 	const previousRefToUse =
-		previousRef ?? findLatestReleaseTag({ cwd: projectRoot });
+		previousRef ??
+		findLatestReleaseTag({
+			cwd: projectRoot,
+			excludeVersion: resolvedCurrentManifest.version,
+		});
 	if (!previousRefToUse) {
 		throw new Error(
 			'No release tag found. Pass --previous-ref <git-ref> to select comparison baseline.',
@@ -386,17 +402,13 @@ async function loadReleaseComparison({
 	try {
 		const [resolvedCurrentReport, resolvedPreviousReport] = await Promise.all([
 			currentReport ?? createConfigReport({ projectRoot }),
-			previousReport ??
-				createConfigReport({ projectRoot: previousRoot }),
+			previousReport ?? createConfigReport({ projectRoot: previousRoot }),
 		]);
 		return {
-			currentManifest:
-				currentManifest ??
-				readJson(path.join(projectRoot, packagePath)),
+			currentManifest: resolvedCurrentManifest,
 			currentReport: resolvedCurrentReport,
 			previousManifest:
-				previousManifest ??
-				readJson(path.join(previousRoot, packagePath)),
+				previousManifest ?? readJson(path.join(previousRoot, packagePath)),
 			previousRef: previousRefToUse,
 			previousReport: resolvedPreviousReport,
 		};

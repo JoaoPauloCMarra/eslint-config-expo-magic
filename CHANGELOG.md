@@ -2,6 +2,27 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
+## 5.2.1
+
+Released: 2026-10-01
+
+### Breaking Changes
+
+- None. Existing restrictions now report cases previously missed: raw colors in test files, alias paths crossing feature boundaries, and unused caller children hidden by shadowing. Public options, exports, and dependency ranges are unchanged.
+
+### Fixed
+
+- Preserve semantic-color restrictions when app or agent test-only guardrails are composed.
+- Normalize aliased import paths before applying same-feature and contracts exceptions, including traversal above the alias root.
+- Resolve children props, destructuring, and local type declarations in their lexical scopes. Rendered block-local children no longer receive a false warning, and unrelated shadowed props/types no longer hide unused children.
+
+### Validation
+
+- Cover every pair of boolean configuration switches in both states for all three presets across JavaScript, JSX, TypeScript, TSX, MTS and CTS fixtures.
+- Check ignore/story precedence, representative autofix idempotence and runtime preservation, and non-fixable component diagnostics.
+- Require packed entrypoints and exact package-owned ESLint/Prettier launcher versions in Bun and npm consumers, with bounded subprocesses and cleanup tests.
+- Check generated release reports against the candidate commit during CI before merging, with a stable previous-version baseline after publication.
+
 ## 5.2.0
 
 Released: 2026-09-30
