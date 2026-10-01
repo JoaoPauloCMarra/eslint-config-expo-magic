@@ -6,6 +6,8 @@ const { spawnSync } = require('child_process');
 const { createRequire } = require('node:module');
 const {
 	readSdk57FixtureVersions,
+	validateToolVersion,
+	validateLauncherVersion,
 	run,
 	withPackedTarball,
 	withTempConsumer,
@@ -64,6 +66,8 @@ function runLint(tempProjectDir, configFile, targetFile) {
 		{
 			cwd: tempProjectDir,
 			encoding: 'utf8',
+			timeout: 120_000,
+			killSignal: 'SIGKILL',
 		},
 	);
 
@@ -138,6 +142,7 @@ function createNpmFixturePackageJson(tarballPath) {
 		dependencies: {
 			expo: sdk57Versions.expo,
 			react: sdk57Versions.react,
+			'react-native': sdk57Versions['react-native'],
 			typescript: '6.0.3',
 			'eslint-config-expo-magic': `file:${tarballPath}`,
 		},
@@ -352,9 +357,21 @@ function validatePackageContract(tempProjectDir) {
 	});
 }
 
+function reportToolVersions(tempProjectDir, command, prefix = []) {
+	const eslint = validateToolVersion(tempProjectDir, 'eslint', command, prefix);
+	const prettier = validateToolVersion(
+		tempProjectDir,
+		'prettier',
+		command,
+		prefix,
+	);
+	console.log(
+		`[${command}] package-owned ESLint ${eslint}, Prettier ${prettier}`,
+	);
+}
+
 function validatePackageExecutables(tempProjectDir) {
-	run('bunx', ['eslint', '--version'], { cwd: tempProjectDir });
-	run('bunx', ['prettier', '--version'], { cwd: tempProjectDir });
+	reportToolVersions(tempProjectDir, 'bunx');
 
 	const formatSmokePath = path.join(tempProjectDir, 'format-smoke.js');
 	fs.writeFileSync(formatSmokePath, 'const value={answer:42}\n');
@@ -399,10 +416,67 @@ function validateNpmConsumer(tarballPath) {
 			includeOptionalIntegrations: false,
 		});
 		run('node', ['package-runtime-contract.mjs'], { cwd: tempProjectDir });
-		run('npx', ['--no-install', 'eslint', '--version'], {
+		// npm can hoist ESLint 9 for a transitive peer and give it the generic bin.
+		// Test the documented explicit scripts, never label that generic bin package-owned.
+		for (const tool of ['eslint', 'prettier']) {
+			const version = validateLauncherVersion(tempProjectDir, tool);
+			console.log(`[npm explicit launcher] package-owned ${tool} ${version}`);
+		}
+		const launcher = (tool) =>
+			path.join(
+				'node_modules',
+				'eslint-config-expo-magic',
+				'bin',
+				`${tool}.js`,
+			);
+		const binTarget = fs.realpathSync(
+			path.join(tempProjectDir, 'node_modules', '.bin', 'eslint'),
+		);
+		console.log(
+			`[npm generic eslint bin; not the supported dispatch contract] ${binTarget}`,
+		);
+		fs.writeFileSync(
+			path.join(tempProjectDir, 'eslint.config.cjs'),
+			"module.exports = [...require('eslint-config-expo-magic').createConfig({ preset: 'base' }), { rules: { 'no-debugger': 'error' } }];\n",
+		);
+		fs.writeFileSync(path.join(tempProjectDir, 'lint-smoke.js'), 'debugger;\n');
+		const lint = spawnSync(
+			'node',
+			[launcher('eslint'), 'lint-smoke.js', '--format=json'],
+			{
+				cwd: tempProjectDir,
+				encoding: 'utf8',
+				timeout: 120_000,
+				killSignal: 'SIGKILL',
+			},
+		);
+		if (lint.error) throw lint.error;
+		if (
+			lint.status !== 1 ||
+			!JSON.parse(lint.stdout).some((result) =>
+				result.messages.some((message) => message.ruleId === 'no-debugger'),
+			)
+		) {
+			throw new Error(
+				`Explicit npm ESLint launcher did not report the intentional violation: ${lint.stderr || lint.stdout}`,
+			);
+		}
+		fs.writeFileSync(
+			path.join(tempProjectDir, 'format-smoke.js'),
+			'const value={answer:42}\n',
+		);
+		run('node', [launcher('prettier'), '--write', 'format-smoke.js'], {
 			cwd: tempProjectDir,
 		});
-		run('npx', ['--no-install', 'prettier', '--version'], {
+		if (
+			fs.readFileSync(path.join(tempProjectDir, 'format-smoke.js'), 'utf8') !==
+			'const value = { answer: 42 };\n'
+		) {
+			throw new Error(
+				'Explicit npm Prettier launcher did not format the fixture.',
+			);
+		}
+		run('node', [launcher('prettier'), '--check', 'format-smoke.js'], {
 			cwd: tempProjectDir,
 		});
 	});

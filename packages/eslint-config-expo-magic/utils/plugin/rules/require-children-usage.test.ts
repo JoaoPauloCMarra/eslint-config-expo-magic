@@ -23,6 +23,9 @@ const ruleTester = new RuleTester({
 
 ruleTester.run('require-children-usage component ownership', rule, {
 	valid: [
+		'type Props = { children: unknown }; function Box(props: Props) { if (true) { const { children } = props; return <View>{children}</View>; } return null; }',
+		'type Props = { title: string }; const Box = (props: Props) => null; function helper() { type Props = { children: unknown }; }',
+
 		[
 			'type Props = { children: unknown };',
 			'const Forwarding = (props: Props) => <View {...props} />;',
@@ -62,6 +65,19 @@ ruleTester.run('require-children-usage component ownership', rule, {
 		].join('\n'),
 	],
 	invalid: [
+		{
+			code: 'type Props = { children: unknown }; function Box(props: Props) { const Props = 0; return null; }',
+			errors: [{ messageId: 'unused' }],
+		},
+		{
+			code: 'type Props = { children: unknown }; function Box(props: Props) { { const props = { children: null }; return <View>{props.children}</View>; } }',
+			errors: [{ messageId: 'unused' }],
+		},
+		{
+			code: 'type Props = { children: unknown }; const Box = (props: Props) => null; function helper() { type Props = { title: string }; }',
+			errors: [{ messageId: 'unused' }],
+		},
+
 		{
 			code: [
 				'interface Props extends PropsWithChildren<{ a: string }> {}',

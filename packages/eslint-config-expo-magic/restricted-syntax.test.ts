@@ -257,3 +257,23 @@ describe('standalone restricted syntax subpaths', () => {
 		}
 	});
 });
+
+describe('audit composition regressions', () => {
+	it('keeps semantic colors alongside test-only guardrails', async () => {
+		for (const options of [{ appGuardrails: true }, { agent: true }]) {
+			for (const extension of ['ts', 'tsx', 'mts', 'cts']) {
+				const messages = await lint(
+					{ ...options, semanticColors: true },
+					`src/palette.test.${extension}`,
+					'export const color = "#fff";\nexpect(color).toMatchSnapshot();\n',
+				);
+				expect(
+					messages.some((message) => message.includes('raw color literals')),
+				).toBe(true);
+				expect(messages.some((message) => message.includes('snapshot'))).toBe(
+					true,
+				);
+			}
+		}
+	});
+});

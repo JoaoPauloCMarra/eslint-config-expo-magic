@@ -24,6 +24,18 @@ const billingFile = '/r/src/features/billing/screens/a.ts';
 
 ruleTester.run('no-cross-feature-imports', rule, {
 	valid: [
+		{
+			code: "import x from '@/../features/auth/private';",
+			filename: billingFile,
+		},
+		{
+			code: "import x from '@/features/auth/../billing/private';",
+			filename: billingFile,
+		},
+		{
+			code: "import x from '@/features/auth/internal/../contracts/session';",
+			filename: billingFile,
+		},
 		{ code: "import x from './total';", filename: billingFile },
 		{ code: "import x from '../hooks/use-total';", filename: billingFile },
 		{
@@ -66,6 +78,15 @@ ruleTester.run('no-cross-feature-imports', rule, {
 		},
 	],
 	invalid: [
+		...[
+			'@/features/auth/contracts/../private',
+			'@/features/billing/../auth/private',
+			'@/lib/../features/auth/private',
+		].map((source) => ({
+			code: `import x from '${source}';`,
+			filename: billingFile,
+			errors: [{ messageId: 'crossFeature' }],
+		})),
 		{
 			code: "import x from '../billing/total';",
 			filename: '/repo/apps/mobile/src/features/cart/cart.ts',

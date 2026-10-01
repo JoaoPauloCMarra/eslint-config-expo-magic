@@ -196,3 +196,7 @@ The repo keeps the fixture in the root Bun workspace. Use the root `bun.lock` an
 3. Install the required TypeScript peer and enable only the integrations selected in the config.
 4. Run the full lint and typecheck commands in CI before enabling autofix.
 5. Use `base`, `fast`, or explicit `createConfig` options to stage adoption when a project needs a smaller first step.
+
+## Deterministic tool commands in 5.2.1
+
+The package-owned launchers have always resolved their bundled tool dependencies. Generic `eslint` or `prettier` commands can instead select another dependency's bin, especially under npm. Replace generic lint/format scripts with `node node_modules/eslint-config-expo-magic/bin/eslint.js .` and `node node_modules/eslint-config-expo-magic/bin/prettier.js . --check` for conventional `node_modules` installs. No direct tool dependency is needed. The initializer only adds this lint command when it is missing; it preserves existing scripts.

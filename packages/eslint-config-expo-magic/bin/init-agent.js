@@ -69,7 +69,9 @@ function withRecommendedScripts(packageJson) {
 		...packageJson,
 		scripts: {
 			...(packageJson.scripts ?? {}),
-			lint: packageJson.scripts?.lint ?? 'eslint .',
+			lint:
+				packageJson.scripts?.lint ??
+				'node node_modules/eslint-config-expo-magic/bin/eslint.js .',
 			typecheck: packageJson.scripts?.typecheck ?? 'tsc --noEmit',
 			'validate:pr-guardrails':
 				packageJson.scripts?.['validate:pr-guardrails'] ??

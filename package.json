@@ -7,7 +7,7 @@
 	"packageManager": "bun@1.4.0",
 	"private": true,
 	"scripts": {
-		"test": "bun test packages/eslint-config-expo-magic scripts/lib/audit-dependencies.test.js scripts/lib/packed-consumer.test.js scripts/lib/config-report.test.js scripts/lib/documentation.test.js scripts/lib/release-notes.test.js test-project/validation-results.test.js",
+		"test": "bun test packages/eslint-config-expo-magic scripts/lib/audit-dependencies.test.js scripts/lib/packed-consumer.test.js scripts/lib/config-report.test.js scripts/lib/documentation.test.js scripts/lib/release-notes.test.js scripts/lib/release-gate.test.js test-project/validation-results.test.js",
 		"typecheck": "cd packages/eslint-config-expo-magic && bun run typecheck",
 		"audit:deps": "bun scripts/audit-dependencies.js",
 		"check-pm": "node packages/eslint-config-expo-magic/check-pm.js",
@@ -20,6 +20,7 @@
 		"smoke:release": "bun scripts/smoke-packed-consumer.js",
 		"report:config": "node scripts/generate-config-report.js",
 		"report:release-notes": "node scripts/generate-release-notes.js",
+		"report:check": "node scripts/release-check.js --reports-only",
 		"release:check": "node scripts/release-check.js",
 		"cleanup:npm": "rimraf node_modules packages/**/node_modules test-project/node_modules",
 		"publish-package": "bun scripts/publish-package.js"

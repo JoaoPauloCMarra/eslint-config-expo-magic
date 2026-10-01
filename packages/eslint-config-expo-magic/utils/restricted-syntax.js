@@ -202,14 +202,6 @@ function getScopeBuckets() {
 			scope: RESTRICTED_SYNTAX_SCOPES.TEST_TSX,
 			files: testTsxFiles,
 		},
-		{
-			scope: RESTRICTED_SYNTAX_SCOPES.TYPESCRIPT,
-			files: [...typeScriptFilesWithoutTsx, ...tsxFiles],
-		},
-		{
-			scope: RESTRICTED_SYNTAX_SCOPES.TEST,
-			files: [...testTypeScriptFiles, ...testTsxFiles],
-		},
 	];
 }
 
@@ -220,7 +212,19 @@ function bucketAppliesToGroup(bucket, group, knownScopeOnly) {
 
 	const scopeSet = normalizeScope(group.scope);
 	if (scopeSet) {
-		return scopeSet.has(bucket.scope);
+		const inheritedScopes = {
+			[RESTRICTED_SYNTAX_SCOPES.TYPESCRIPT_WITHOUT_TSX]: ['typescript'],
+			[RESTRICTED_SYNTAX_SCOPES.TSX]: ['typescript'],
+			[RESTRICTED_SYNTAX_SCOPES.TEST_TYPESCRIPT]: [
+				'typescript',
+				'typescript-without-tsx',
+				'test',
+			],
+			[RESTRICTED_SYNTAX_SCOPES.TEST_TSX]: ['typescript', 'tsx', 'test'],
+		};
+		return [bucket.scope, ...inheritedScopes[bucket.scope]].some((scope) =>
+			scopeSet.has(scope),
+		);
 	}
 
 	return hasPatternIntersection(group.files, bucket.files);
@@ -257,7 +261,7 @@ function collectSelectorsForAllowedFilePatterns(
 
 		if (scopeSet) {
 			for (const bucket of bucketGroups) {
-				if (!scopeSet.has(bucket.scope)) {
+				if (!bucketAppliesToGroup(bucket, group, true)) {
 					continue;
 				}
 

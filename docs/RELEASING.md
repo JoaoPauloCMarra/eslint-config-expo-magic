@@ -29,3 +29,7 @@ Because npm runs with `--ignore-scripts`, the package `prepublishOnly` script do
 Commit the regenerated report files before you release. Otherwise step 2 fails. `smoke:clean-sdk57` runs Expo Doctor against the SDK 57 versions in `test-project/package.json`, so that pin must match the patch that Expo Doctor expects.
 
 To publish manually, run `bun run publish-package --publish`. `bun run publish-package -- --publish` is the same, because `bun run` removes the `--` separator. Other arguments go to both `npm publish` commands.
+
+## Candidate validation
+
+See [TESTING.md](TESTING.md) for executable coverage, release decisions, and sampling limits. CI runs `bun run report:check` against the current commit, in addition to tests, fixtures, public types, dependency audit, packed consumers and the clean SDK57 consumer. `report:check` regenerates only the release reports and checks them against HEAD; `release:check` performs the full gate before publication.

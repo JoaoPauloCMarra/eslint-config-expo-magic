@@ -33,7 +33,6 @@ describe('release notes', () => {
 	test('compares the current release candidate with the latest release tag', async () => {
 		const comparison = await loadReleaseComparison({ rootDir: projectRoot });
 
-		const latestTag = findLatestReleaseTag({ cwd: projectRoot });
 		const currentVersion = JSON.parse(
 			fs.readFileSync(
 				path.join(
@@ -44,6 +43,10 @@ describe('release notes', () => {
 			),
 		).version;
 
+		const latestTag = findLatestReleaseTag({
+			cwd: projectRoot,
+			excludeVersion: currentVersion,
+		});
 		expect(latestTag).toMatch(/^v\d+\.\d+\.\d+/);
 		expect(comparison.previousRef).toBe(latestTag);
 		expect(comparison.previousManifest.version).toBe(latestTag.slice(1));
@@ -190,11 +193,53 @@ describe('release notes', () => {
 		);
 
 		try {
-			await expect(loadReleaseComparison({ rootDir })).rejects.toThrow(
-				'Pass --previous-ref <git-ref>',
-			);
+			await expect(
+				loadReleaseComparison({
+					rootDir,
+					currentManifest: { version: '5.2.1' },
+				}),
+			).rejects.toThrow('Pass --previous-ref <git-ref>');
 		} finally {
 			fs.rmSync(rootDir, { force: true, recursive: true });
 		}
 	});
+});
+
+test('tagging the current candidate does not move its release comparison baseline', () => {
+	const { spawnSync } = require('node:child_process');
+	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'expo-release-baseline-'));
+	function git(...args) {
+		const result = spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
+		if (result.status !== 0) throw new Error(result.stderr);
+	}
+	try {
+		git('init', '-q');
+		git(
+			'-c',
+			'user.name=Release fixture',
+			'-c',
+			'user.email=fixture@example.invalid',
+			'commit',
+			'--allow-empty',
+			'-m',
+			'previous',
+		);
+		git('tag', 'v5.2.0');
+		git(
+			'-c',
+			'user.name=Release fixture',
+			'-c',
+			'user.email=fixture@example.invalid',
+			'commit',
+			'--allow-empty',
+			'-m',
+			'candidate',
+		);
+		const options = { cwd: dir, excludeVersion: '5.2.1' };
+		expect(findLatestReleaseTag(options)).toBe('v5.2.0');
+		git('tag', 'v5.2.1');
+		expect(findLatestReleaseTag(options)).toBe('v5.2.0');
+	} finally {
+		fs.rmSync(dir, { recursive: true, force: true });
+	}
 });

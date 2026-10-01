@@ -25,7 +25,7 @@ const reportFiles = [
 function assertReportsCommitted() {
 	const result = spawnSync(
 		'git',
-		['diff', '--exit-code', '--', ...reportFiles],
+		['diff', 'HEAD', '--exit-code', '--', ...reportFiles],
 		{
 			cwd: rootDir,
 			stdio: 'inherit',
@@ -59,6 +59,10 @@ for (const script of reportChecks) {
 }
 
 assertReportsCommitted();
+
+if (process.argv.includes('--reports-only')) {
+	process.exit(0);
+}
 
 for (const script of checks) {
 	run('bun', ['run', script]);
