@@ -2,6 +2,22 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
+## 5.2.2
+
+### Breaking Changes
+
+- None. Public options, exports, dependency ranges and rule severity are unchanged. Corrected unused-children warnings may affect consumers using warning budgets or overriding the rule severity.
+
+### Fixed
+
+- Resolve qualified same-file children types through their namespace instead of borrowing an unrelated outer type with the same terminal name. This removes false warnings and restores warnings missed by 5.2.1.
+- Follow exported members across nested, dotted and merged namespace declarations, including local namespace aliases, while preserving private-member and lexical shadowing boundaries.
+- Recognize renamed React `PropsWithChildren` imports and React import-equals helpers without treating unrelated local or external types as React helpers.
+
+### Validation
+
+- Add 53 focused children-usage regression cases covering namespace visibility, declaration merging, alias cycles, helper imports and shadowing. Full release validation is required before publication.
+
 ## 5.2.1
 
 Released: 2026-10-01
