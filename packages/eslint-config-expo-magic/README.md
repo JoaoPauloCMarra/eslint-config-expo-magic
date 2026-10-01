@@ -51,16 +51,22 @@ Then point Prettier at the shared config in `package.json`:
 
 The mobile-app profile owns formatting, semantic colors, native UI boundaries, feature architecture, storage boundaries, naming conventions, and focused console allowances. Set `ESLINT_CONFIG_PRESET=fast` for the syntax-focused lane. The generic root configuration remains available for libraries and incremental adoption.
 
-Run the package-owned tools with normal project scripts:
+Use these project scripts to select the package-owned tools deterministically in a conventional `node_modules` installation:
 
-```bash
-bunx eslint .
-bunx eslint . --fix
-bunx prettier . --check
-bunx prettier . --write
+```json
+{
+ "scripts": {
+  "lint": "node node_modules/eslint-config-expo-magic/bin/eslint.js .",
+  "lint:fix": "node node_modules/eslint-config-expo-magic/bin/eslint.js . --fix",
+  "format:check": "node node_modules/eslint-config-expo-magic/bin/prettier.js . --check",
+  "format": "node node_modules/eslint-config-expo-magic/bin/prettier.js . --write"
+ }
+}
 ```
 
-These commands use the package-owned ESLint and Prettier versions. Existing `eslint` and `prettier` package scripts continue to work without direct tool dependencies in the consumer.
+Run them with your package manager, for example `npm run lint` or `bun run lint`. Generic `eslint` / `prettier` commands (including `npx` and `bunx`) use whichever executable the package manager linked into `.bin`; another dependency can own that name. In a clean npm consumer, a transitive ESLint 9 can take the generic bin while this config owns ESLint 10. The explicit launchers resolve the tools from this package instead.
+
+Existing scripts are preserved by `expo-magic-init`; migrate generic tool scripts to the explicit paths above when package-owned dispatch is required. The initializer uses the explicit ESLint launcher only when adding a missing `lint` script. These paths assume project-root `node_modules`; Yarn Plug'n'Play is not covered by this invocation example.
 
 Formatting and testing integrations are included. Opt in only when the project wants their rules:
 
@@ -369,7 +375,7 @@ Review any local ESLint config that imports a removed export, then run:
 
 ```bash
 bun install
-bunx eslint .
+bun run lint
 bunx tsc --noEmit
 ```
 

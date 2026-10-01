@@ -145,7 +145,9 @@ describe('mobile app initializer', () => {
 					expect(result.stdout).toContain(prettierFile);
 					const packageJson = readJson(path.join(tempDir, 'package.json'));
 					expect(packageJson.prettier).toBeUndefined();
-					expect(packageJson.scripts.lint).toBe('eslint .');
+					expect(packageJson.scripts.lint).toBe(
+						'node node_modules/eslint-config-expo-magic/bin/eslint.js .',
+					);
 				},
 			);
 		});

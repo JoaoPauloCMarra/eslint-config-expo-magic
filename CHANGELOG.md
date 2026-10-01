@@ -12,6 +12,7 @@ Released: 2026-10-01
 
 ### Fixed
 
+- Correct npm command guidance to use the existing explicit package-owned launchers. Generic bins can belong to other dependencies; launcher dispatch itself was correct. The initializer uses the deterministic command for a missing lint script and preserves existing scripts.
 - Preserve semantic-color restrictions when app or agent test-only guardrails are composed.
 - Normalize aliased import paths before applying same-feature and contracts exceptions, including traversal above the alias root.
 - Resolve children props, destructuring, and local type declarations in their lexical scopes. Rendered block-local children no longer receive a false warning, and unrelated shadowed props/types no longer hide unused children.
@@ -20,7 +21,7 @@ Released: 2026-10-01
 
 - Cover every pair of boolean configuration switches in both states for all three presets across JavaScript, JSX, TypeScript, TSX, MTS and CTS fixtures.
 - Check ignore/story precedence, representative autofix idempotence and runtime preservation, and non-fixable component diagnostics.
-- Require packed entrypoints and exact package-owned ESLint/Prettier launcher versions in Bun and npm consumers, with bounded subprocesses and cleanup tests.
+- Require packed entrypoints and exact package-owned ESLint/Prettier launcher versions in Bun and explicit npm scripts, with bounded subprocesses and cleanup tests.
 - Check generated release reports against the candidate commit during CI before merging, with a stable previous-version baseline after publication.
 
 ## 5.2.0

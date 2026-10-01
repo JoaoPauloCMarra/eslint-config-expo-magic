@@ -5,6 +5,7 @@ const {
 	readSdk57FixtureVersions,
 	run,
 	validateToolVersion,
+	validateLauncherVersion,
 	validatePackedFiles,
 	withTempConsumer,
 	writeJson,
@@ -137,6 +138,9 @@ describe('package-owned CLI contracts', () => {
 			expect(() =>
 				validateToolVersion(dir, 'prettier', process.execPath, [command]),
 			).toThrow(/version mismatch/);
+			expect(() => validateLauncherVersion(dir, 'prettier')).toThrow(
+				/launcher version mismatch/,
+			);
 		});
 	});
 
@@ -208,4 +212,27 @@ test('temporary consumers are removed when a subprocess times out', () => {
 		}),
 	).toThrow();
 	expect(fs.existsSync(tempDir)).toBe(false);
+});
+
+test('explicit launcher remains package-owned when the generic bin belongs to ESLint 9', () => {
+	withTempConsumer('generic-bin-collision', (dir) => {
+		const { root, command } = toolFixture(dir, 'eslint', '10.10.0');
+		// Exercise the shipped launcher, not a stand-in, against the colliding bin.
+		fs.copyFileSync(
+			path.join(rootDir, 'packages/eslint-config-expo-magic/bin/eslint.js'),
+			path.join(root, 'launcher.js'),
+		);
+		fs.copyFileSync(
+			path.join(rootDir, 'packages/eslint-config-expo-magic/bin/run-tool.js'),
+			path.join(root, 'run-tool.js'),
+		);
+		fs.writeFileSync(command, "console.log('v9.39.5');");
+		const bin = path.join(dir, 'node_modules', '.bin', 'eslint');
+		fs.unlinkSync(bin);
+		fs.symlinkSync(command, bin);
+		expect(() =>
+			validateToolVersion(dir, 'eslint', process.execPath, [command]),
+		).toThrow(/package-owned launcher/);
+		expect(validateLauncherVersion(dir, 'eslint')).toBe('10.10.0');
+	});
 });

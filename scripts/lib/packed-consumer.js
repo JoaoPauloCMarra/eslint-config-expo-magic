@@ -43,6 +43,29 @@ function run(command, args, options = {}) {
 	return result;
 }
 
+// Explicit launchers are deterministic even when npm hoists another tool's bin.
+function validateLauncherVersion(consumerDir, tool) {
+	const consumerRequire = createRequire(path.join(consumerDir, 'package.json'));
+	const manifestPath = consumerRequire.resolve(
+		'eslint-config-expo-magic/package.json',
+	);
+	const packageRequire = createRequire(manifestPath);
+	const manifest = packageRequire(manifestPath);
+	const toolManifest = packageRequire(`${tool}/package.json`);
+	const wrapper = path.resolve(path.dirname(manifestPath), manifest.bin[tool]);
+	const expected =
+		tool === 'eslint' ? `v${toolManifest.version}` : toolManifest.version;
+	const actual = run('node', [wrapper, '--version'], {
+		cwd: consumerDir,
+	}).stdout.trim();
+	if (actual !== expected) {
+		throw new Error(
+			`${tool} launcher version mismatch: expected ${expected}, got ${JSON.stringify(actual)}.`,
+		);
+	}
+	return toolManifest.version;
+}
+
 // Resolve from the installed config, never from the consumer's potentially older tool.
 function validateToolVersion(consumerDir, tool, command, prefix = []) {
 	const consumerRequire = createRequire(path.join(consumerDir, 'package.json'));
@@ -226,6 +249,7 @@ function writeJson(filePath, value) {
 }
 
 module.exports = {
+	validateLauncherVersion,
 	validateToolVersion,
 	validatePackedFiles,
 	packageDir,
