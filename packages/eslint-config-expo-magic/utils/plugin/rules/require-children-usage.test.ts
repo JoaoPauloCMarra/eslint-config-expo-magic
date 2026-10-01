@@ -568,3 +568,317 @@ ruleTester.run('require-children-usage merged member bindings', rule, {
 		},
 	],
 });
+
+ruleTester.run('require-children-usage transitive value aliases', rule, {
+	valid: [
+		{
+			name: 'second identity alias reads children member',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const first = props; const second = first; return second.children;',
+				'};',
+			].join('\n'),
+		},
+		{
+			name: 'second identity alias reads computed children member',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const first = props; const second = first; return second["children"];',
+				'};',
+			].join('\n'),
+		},
+		{
+			name: 'three identity aliases read children',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const first = props; const second = first; const third = second; return third.children;',
+				'};',
+			].join('\n'),
+		},
+		{
+			name: 'identity alias chain crosses a block',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const first = props; { const second = first; return second.children; }',
+				'};',
+			].join('\n'),
+		},
+		{
+			name: 'second identity alias supplies destructured children',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const first = props; const second = first; const { children: content } = second; return <View>{content}</View>;',
+				'};',
+			].join('\n'),
+		},
+		{
+			name: 'second identity alias forwards JSX props',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const first = props; const second = first; return <View {...second} />;',
+				'};',
+			].join('\n'),
+		},
+		{
+			name: 'second identity alias forwards cloneElement props',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const first = props; const second = first; return cloneElement(<View />, second);',
+				'};',
+			].join('\n'),
+		},
+		{
+			name: 'second identity alias forwards React cloneElement props',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const first = props; const second = first; return React.cloneElement(<View />, second);',
+				'};',
+			].join('\n'),
+		},
+		{
+			name: 'local rest retaining children forwards JSX props',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const { title, ...rest } = props; return <View {...rest} />;',
+				'};',
+			].join('\n'),
+		},
+		{
+			name: 'local rest retaining children reads children',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const { title, ...rest } = props; return rest.children;',
+				'};',
+			].join('\n'),
+		},
+	],
+	invalid: [
+		{
+			name: 'unused identity alias chain still warns',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const first = props; const second = first; return null;',
+				'};',
+			].join('\n'),
+			errors: [{ messageId: 'unused' }],
+		},
+		{
+			name: 'second identity alias with unrelated property read still warns',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const first = props; const second = first; return second.title;',
+				'};',
+			].join('\n'),
+			errors: [{ messageId: 'unused' }],
+		},
+		{
+			name: 'shadowed second alias does not consume caller children',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const first = props; const second = first; { const second = { children: "other" }; return second.children; }',
+				'};',
+			].join('\n'),
+			errors: [{ messageId: 'unused' }],
+		},
+		{
+			name: 'alias chain in nested component does not consume parent children',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const first = props; const Child = () => { const second = first; return second.children; }; return <Child />;',
+				'};',
+			].join('\n'),
+			errors: [{ messageId: 'unused' }],
+		},
+		{
+			name: 'reassigned second alias does not consume caller children',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const first = props; let second = first; second = { children: "other", title: "replacement" }; return second.children;',
+				'};',
+			].join('\n'),
+			errors: [{ messageId: 'unused' }],
+		},
+		{
+			name: 'write-only children through second alias still warns',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const first = props; const second = first; second.children = "replacement"; return null;',
+				'};',
+			].join('\n'),
+			errors: [{ messageId: 'unused' }],
+		},
+		{
+			name: 'overwritten children through second alias still warns',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const first = props; const second = first; second.children = "replacement"; return second.children;',
+				'};',
+			].join('\n'),
+			errors: [{ messageId: 'unused' }],
+		},
+		{
+			name: 'unrelated destructured property is not a props identity alias',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const { title } = props; return title.children;',
+				'};',
+			].join('\n'),
+			errors: [{ messageId: 'unused' }],
+		},
+		{
+			name: 'local rest excluding children is not a props identity alias',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const { children, ...rest } = props; return <View {...rest} />;',
+				'};',
+			].join('\n'),
+			errors: [{ messageId: 'unused' }],
+		},
+		{
+			name: 'alias of local rest excluding children still warns',
+			code: [
+				'type Props = { children: unknown; title: any };',
+				'const Box = (props: Props) => {',
+				'  const { children, ...rest } = props; const second = rest; return <View {...second} />;',
+				'};',
+			].join('\n'),
+			errors: [{ messageId: 'unused' }],
+		},
+	],
+});
+
+const aliasGuardCode = (body: string) =>
+	`type Props = { children: unknown; title?: string }; function mutate(value: Props) { value.children = null; } class Mutator { constructor(value: Props) { value.children = null; } } const Box = (props: Props) => { ${body} };`;
+ruleTester.run(
+	'require-children-usage alias mutation and escape boundaries',
+	rule,
+	{
+		valid: [
+			{
+				name: 'computed non-children string key retains rest children',
+				code: aliasGuardCode(
+					"const { ['title']: title, ...rest } = props; return rest.children;",
+				),
+			},
+			{
+				name: 'computed numeric key retains rest children',
+				code: aliasGuardCode(
+					'const { [0]: item, ...rest } = props; return rest.children;',
+				),
+			},
+			{
+				name: 'unrelated call does not prevent a safe identity chain',
+				code: aliasGuardCode(
+					'const first = props; const second = first; Math.abs(1); return second.children;',
+				),
+			},
+			{
+				name: 'legacy direct alias read stays recognized before later reassignment',
+				code: aliasGuardCode(
+					'let first = props; const result = first.children; first = { children: null }; return result;',
+				),
+			},
+		],
+		invalid: [
+			...[
+				[
+					'asserted alias mutation',
+					'(second as Props).children = null; return second.children;',
+				],
+				[
+					'non-null alias mutation',
+					'second!.children = null; return second.children;',
+				],
+				[
+					'asserted alias passed to mutator',
+					'mutate(second as Props); return second.children;',
+				],
+				[
+					'tagged method escape',
+					'second.mutate`OTHER`; return second.children;',
+				],
+				[
+					'wrapped tagged method escape',
+					'(second.mutate as any)`OTHER`; return second.children;',
+				],
+				['constructor escape', 'new Mutator(second); return second.children;'],
+				[
+					'object property escape',
+					'const holder = { second }; holder.second.children = null; return second.children;',
+				],
+				[
+					'assignment alias escape',
+					'let other: Props; other = second; other.children = null; return second.children;',
+				],
+				['direct call escape', 'mutate(second); return second.children;'],
+				[
+					'mutable sibling mutation',
+					'let other = props; other.children = null; return second.children;',
+				],
+				[
+					'captured alias mutation',
+					'const change = () => { first.children = null; }; change(); return second.children;',
+				],
+				[
+					'nested alias mutation',
+					'const change = () => { const inner = first; inner.children = null; }; change(); return second.children;',
+				],
+				[
+					'computed key mutation',
+					'const key = "children"; second[key] = null; return second.children;',
+				],
+				[
+					'destructuring assignment mutation',
+					'({ children: second.children } = { children: null }); return second.children;',
+				],
+			].map(([name, body]) => ({
+				name,
+				code: aliasGuardCode(
+					'const first = props; const second = first; ' + body,
+				),
+				errors: [{ messageId: 'unused' }],
+			})),
+			...[
+				[
+					'direct write-only member',
+					'const first = props; first.children = null; return null;',
+				],
+				[
+					'direct delete-only member',
+					'const first = props; delete first.children; return null;',
+				],
+				[
+					'direct destructuring write-only member',
+					'const first = props; ({ children: first.children } = { children: null }); return null;',
+				],
+				[
+					'computed children key removes rest children',
+					"const { ['children']: ignored, ...rest } = props; return <View {...rest} />;",
+				],
+			].map(([name, body]) => ({
+				name,
+				code: aliasGuardCode(body),
+				errors: [{ messageId: 'unused' }],
+			})),
+		],
+	},
+);

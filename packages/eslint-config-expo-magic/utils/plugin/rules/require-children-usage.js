@@ -227,15 +227,28 @@ function hasChildrenDeclaration(node) {
 	);
 }
 
-function isPropsAliasDefinition(definition, propsVariable, scope) {
-	if (definition.type !== 'Variable') {
+function isPropsAliasDefinition(definition, propsVariable, scope, variable) {
+	if (definition.type !== 'Variable') return false;
+	const { id, init } = definition.node;
+	if (
+		init?.type !== 'Identifier' ||
+		findVariable(scope, init.name) !== propsVariable
+	)
 		return false;
-	}
-
-	const init = definition.node?.init;
+	if (id.type === 'Identifier') return true;
+	// A rest copy retains children only when the pattern did not remove them.
+	// Destructured properties themselves are never identity aliases of props.
 	return (
-		init?.type === 'Identifier' &&
-		findVariable(scope, init.name) === propsVariable
+		id.type === 'ObjectPattern' &&
+		getRestBinding(id)?.name === variable.name &&
+		!id.properties.some(
+			(property) =>
+				property.type === 'Property' &&
+				(property.computed
+					? property.key.type === 'Literal' &&
+						String(property.key.value) === CHILDREN_PROP
+					: getPropertyName(property) === CHILDREN_PROP),
+		)
 	);
 }
 
@@ -410,27 +423,143 @@ function variableHasRead(variable) {
 	return variable?.references.some((reference) => reference.isRead()) ?? false;
 }
 
-function collectChildrenAliasBindings(scope, propsVariable, aliases) {
-	for (const variable of scope.variables) {
-		if (variable === propsVariable) {
-			continue;
-		}
-
+function isWriteTarget(node) {
+	let current = node;
+	while (current.parent) {
+		const parent = current.parent;
 		if (
-			variable.defs.some((definition) =>
-				isPropsAliasDefinition(definition, propsVariable, scope),
-			)
+			(parent.type === 'AssignmentExpression' && parent.left === current) ||
+			(parent.type === 'UpdateExpression' && parent.argument === current) ||
+			(parent.type === 'UnaryExpression' && parent.operator === 'delete') ||
+			(['ForInStatement', 'ForOfStatement'].includes(parent.type) &&
+				parent.left === current)
+		)
+			return true;
+		if (
+			(parent.type === 'Property' &&
+				parent.value === current &&
+				parent.parent.type === 'ObjectPattern') ||
+			[
+				'ObjectPattern',
+				'ArrayPattern',
+				'RestElement',
+				'TSAsExpression',
+				'TSNonNullExpression',
+				'TSTypeAssertion',
+				'TSSatisfiesExpression',
+			].includes(parent.type) ||
+			(parent.type === 'AssignmentPattern' && parent.left === current)
 		) {
-			aliases.add(variable);
-		}
-	}
-
-	for (const childScope of scope.childScopes) {
-		if (childScope.type === 'function') {
+			current = parent;
 			continue;
 		}
-		collectChildrenAliasBindings(childScope, propsVariable, aliases);
+		return false;
 	}
+	return false;
+}
+
+function collectChildrenAliasBindings(scope, propsVariable, aliases) {
+	const edges = new Map();
+	function collect(current) {
+		for (const variable of current.variables) {
+			for (const definition of variable.defs) {
+				if (
+					isPropsAliasDefinition(definition, propsVariable, current, variable)
+				)
+					aliases.add(variable);
+				if (
+					definition.type !== 'Variable' ||
+					definition.node.id.type !== 'Identifier' ||
+					definition.node.init?.type !== 'Identifier'
+				)
+					continue;
+				const source = findVariable(current, definition.node.init.name);
+				const next = edges.get(source) ?? [];
+				next.push({ variable, constant: definition.parent.kind === 'const' });
+				edges.set(source, next);
+			}
+		}
+		for (const child of current.childScopes)
+			if (child.type !== 'function') collect(child);
+	}
+	collect(scope);
+
+	function reachable(constantsOnly) {
+		const found = new Set([propsVariable]);
+		for (const source of found) {
+			for (const edge of edges.get(source) ?? []) {
+				if (!constantsOnly || edge.constant) found.add(edge.variable);
+			}
+		}
+		return found;
+	}
+	// Inspect all local identity aliases, including mutable siblings and captured
+	// references, before recognizing additional const chains. This is deliberately
+	// conservative; it does not attempt to order writes or analyze function calls.
+	const group = reachable(false);
+	for (const variable of group) {
+		if (
+			variable.references.some(
+				(reference) => !isSafeAliasReference(reference, group),
+			)
+		)
+			return;
+	}
+	for (const variable of reachable(true)) aliases.add(variable);
+}
+
+function outerTypeExpression(node) {
+	while (
+		[
+			'TSAsExpression',
+			'TSNonNullExpression',
+			'TSTypeAssertion',
+			'TSSatisfiesExpression',
+			'ChainExpression',
+		].includes(node.parent?.type)
+	)
+		node = node.parent;
+	return node;
+}
+
+function isSafeAliasReference(reference, group) {
+	if (reference.isWrite()) return Boolean(reference.init);
+	const expression = outerTypeExpression(reference.identifier);
+	const parent = expression.parent;
+	if (parent?.type === 'MemberExpression' && parent.object === expression) {
+		const member = outerTypeExpression(parent);
+		return (
+			!isWriteTarget(parent) &&
+			!(
+				member.parent?.type === 'CallExpression' &&
+				member.parent.callee === member
+			) &&
+			!(
+				member.parent?.type === 'NewExpression' &&
+				member.parent.callee === member
+			) &&
+			!(
+				member.parent?.type === 'TaggedTemplateExpression' &&
+				member.parent.tag === member
+			)
+		);
+	}
+	if (parent?.type === 'VariableDeclarator' && parent.init === expression) {
+		return (
+			parent.id.type === 'ObjectPattern' ||
+			(parent.id.type === 'Identifier' &&
+				group.has(findVariable(reference.from, parent.id.name)))
+		);
+	}
+	if (parent?.type === 'AssignmentExpression' && parent.right === expression)
+		return parent.left.type === 'ObjectPattern';
+	if (parent?.type === 'JSXSpreadAttribute' && parent.argument === expression)
+		return true;
+	if (parent?.type === 'SpreadElement' && parent.argument === expression)
+		return parent.parent?.type === 'ObjectExpression';
+	// Unknown escapes (calls, constructors, assignments, returned objects, etc.)
+	// cannot establish that a later alias still carries the original children.
+	return isCloneElementCall(expression, parent);
 }
 
 function collectChildrenReferences(scope, aliases, references) {
@@ -496,7 +625,7 @@ function referenceUsesChildren(reference, scope) {
 	const parent = identifier.parent;
 
 	if (isChildrenMemberAccess(identifier, parent)) {
-		return true;
+		return !isWriteTarget(parent);
 	}
 
 	if (
