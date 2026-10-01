@@ -1,19 +1,210 @@
 const CHILDREN_PROP = 'children';
 
-function getReferenceName(typeName) {
-	if (typeName?.type === 'Identifier') {
-		return typeName.name;
+function referenceParts(node) {
+	if (node?.type === 'Identifier') return [node.name];
+	if (node?.type === 'TSQualifiedName') {
+		return [...referenceParts(node.left), node.right.name];
+	}
+	if (node?.type === 'MemberExpression' && !node.computed) {
+		return [...referenceParts(node.object), node.property.name];
+	}
+	return [];
+}
+
+function isAmbientNamespace(node) {
+	for (let current = node; current; current = current.parent) {
+		if (current.type === 'TSModuleDeclaration' && current.declare) return true;
+	}
+	return false;
+}
+
+function isExportedDeclaration(node) {
+	return node.parent?.type === 'ExportNamedDeclaration';
+}
+
+function createTypeLookup(sourceCode) {
+	// Keep namespace declarations in their lexical scope. The parser does not
+	// create a Variable for the root of `namespace UI.Layout { ... }`.
+	const namespacesByScope = new Map();
+	const namespaceIdentity = new Map();
+	const mergedNamespaces = new Map();
+	function recordNamespace(node) {
+		const parts = referenceParts(node.id);
+		const scope = sourceCode.scopeManager.acquire(node);
+		if (!parts.length || !scope) return;
+		let names = namespacesByScope.get(scope.upper);
+		if (!names) namespacesByScope.set(scope.upper, (names = new Map()));
+		const declarations = names.get(parts[0]) ?? [];
+		declarations.push({ node, scope, remaining: parts.slice(1) });
+		names.set(parts[0], declarations);
+		const parent = namespaceIdentity.get(scope.upper);
+		const joinsParent =
+			parent && (isExportedDeclaration(node) || isAmbientNamespace(node));
+		const root = joinsParent ? parent.root : scope.upper;
+		const path = joinsParent ? [...parent.path, ...parts] : parts;
+		namespaceIdentity.set(scope, { root, path, ownParts: parts.length });
+		let groups = mergedNamespaces.get(root);
+		if (!groups) mergedNamespaces.set(root, (groups = new Map()));
+		const key = JSON.stringify(path);
+		const scopes = groups.get(key) ?? [];
+		scopes.push(scope);
+		groups.set(key, scopes);
 	}
 
-	if (typeName?.type === 'TSQualifiedName') {
-		return typeName.right.name;
+	function inScope(scope, name, publicOnly = false, ambient = false) {
+		const candidate = scope.set.get(name);
+		const variable =
+			candidate?.isTypeVariable &&
+			(!publicOnly ||
+				ambient ||
+				candidate.defs.some((def) => isExportedDeclaration(def.node)))
+				? candidate
+				: null;
+		const namespaces = (namespacesByScope.get(scope)?.get(name) ?? []).filter(
+			(entry) => !publicOnly || ambient || isExportedDeclaration(entry.node),
+		);
+		return variable || namespaces.length ? { variable, namespaces } : null;
 	}
 
-	if (typeName?.type === 'MemberExpression' && !typeName.computed) {
-		return typeName.property.name ?? '';
+	function findName(scope, name) {
+		for (let current = scope; current; current = current.upper) {
+			const target = inScope(current, name);
+			const identity = namespaceIdentity.get(current);
+			if (
+				target &&
+				(!identity ||
+					!inScope(current, name, true, isAmbientNamespace(current.block)))
+			)
+				return [target];
+			if (!identity) continue;
+			// Other declarations share exported members, but never their private
+			// bindings. Dotted declarations also have implicit namespace parents.
+			for (let depth = 0; depth < identity.ownParts; depth++) {
+				const path = identity.path.slice(0, identity.path.length - depth);
+				const siblings =
+					mergedNamespaces.get(identity.root)?.get(JSON.stringify(path)) ?? [];
+				const found = siblings
+					.filter((sibling) => sibling !== current)
+					.map((sibling) =>
+						inScope(sibling, name, true, isAmbientNamespace(sibling.block)),
+					)
+					.filter(Boolean);
+				if (depth === 0 && target) found.unshift(target);
+				// A dotted declaration creates namespace parents without parser
+				// scopes. Recover their child edges from the qualified identity.
+				for (const [key, scopes] of mergedNamespaces.get(identity.root) ?? []) {
+					const childPath = JSON.parse(key);
+					if (
+						childPath.length <= path.length ||
+						childPath[path.length] !== name ||
+						!path.every((part, index) => childPath[index] === part)
+					)
+						continue;
+					found.push({
+						variable: null,
+						namespaces: scopes.map((scope) => ({
+							node: scope.block,
+							scope,
+							remaining: childPath.slice(path.length + 1),
+						})),
+					});
+				}
+				if (found.length) return found;
+			}
+		}
+		return [];
 	}
 
-	return '';
+	function followAlias(target, seen) {
+		if (!target) return [];
+		const alias = target.variable?.defs.find(
+			(def) =>
+				def.node.type === 'TSImportEqualsDeclaration' &&
+				def.node.moduleReference.type !== 'TSExternalModuleReference',
+		);
+		if (!alias) return [target];
+		if (seen.has(target.variable)) return [];
+		return resolve(
+			alias.node.moduleReference,
+			new Set([...seen, target.variable]),
+		);
+	}
+
+	function member(target, name) {
+		return target.namespaces.flatMap((entry) => {
+			if (entry.remaining.length) {
+				return entry.remaining[0] === name
+					? [
+							{
+								variable: null,
+								namespaces: [{ ...entry, remaining: entry.remaining.slice(1) }],
+							},
+						]
+					: [];
+			}
+			const found = inScope(
+				entry.scope,
+				name,
+				true,
+				isAmbientNamespace(entry.node),
+			);
+			return found ? [found] : [];
+		});
+	}
+
+	function resolve(node, seen = new Set()) {
+		const parts = referenceParts(node);
+		if (!parts.length) return [];
+		let targets = findName(sourceCode.getScope(node), parts[0]).flatMap(
+			(target) => followAlias(target, seen),
+		);
+		for (const name of parts.slice(1)) {
+			targets = targets
+				.flatMap((target) => member(target, name))
+				.flatMap((target) => followAlias(target, seen));
+		}
+		return targets;
+	}
+
+	function isReactChildrenHelper(node) {
+		const parts = referenceParts(node);
+		const targets = findName(sourceCode.getScope(node), parts[0]);
+		// Preserve the existing implicit React helper forms, but let real local
+		// declarations and imports shadow them instead of matching only a suffix.
+		if (!targets.length) {
+			return (
+				parts.join('.') === 'PropsWithChildren' ||
+				parts.join('.') === 'React.PropsWithChildren'
+			);
+		}
+		return targets.some((target) =>
+			target.variable?.defs.some((def) => {
+				if (def.node.type === 'TSImportEqualsDeclaration') {
+					return (
+						parts.length === 2 &&
+						parts[1] === 'PropsWithChildren' &&
+						def.node.moduleReference.type === 'TSExternalModuleReference' &&
+						def.node.moduleReference.expression.value === 'react'
+					);
+				}
+				if (def.parent?.source?.value !== 'react') return false;
+				if (parts.length === 1) {
+					return (
+						def.node.type === 'ImportSpecifier' &&
+						(def.node.imported.name ?? def.node.imported.value) ===
+							'PropsWithChildren'
+					);
+				}
+				return (
+					parts.length === 2 &&
+					parts[1] === 'PropsWithChildren' &&
+					(def.node.type === 'ImportNamespaceSpecifier' ||
+						def.node.type === 'ImportDefaultSpecifier')
+				);
+			}),
+		);
+	}
+	return { recordNamespace, resolve, isReactChildrenHelper };
 }
 
 function getPropertyName(property) {
@@ -101,7 +292,7 @@ function getPropertyBinding(property) {
 function typeDeclaresChildren(
 	typeNode,
 	typeDeclarations,
-	sourceCode,
+	typeLookup,
 	seen = new Set(),
 ) {
 	if (!typeNode) {
@@ -112,7 +303,7 @@ function typeDeclaresChildren(
 		return typeDeclaresChildren(
 			typeNode.typeAnnotation,
 			typeDeclarations,
-			sourceCode,
+			typeLookup,
 			seen,
 		);
 	}
@@ -130,7 +321,7 @@ function typeDeclaresChildren(
 		typeNode.type === 'TSUnionType'
 	) {
 		return typeNode.types.some((member) =>
-			typeDeclaresChildren(member, typeDeclarations, sourceCode, seen),
+			typeDeclaresChildren(member, typeDeclarations, typeLookup, seen),
 		);
 	}
 
@@ -138,7 +329,7 @@ function typeDeclaresChildren(
 		return typeDeclaresChildren(
 			typeNode.typeAnnotation,
 			typeDeclarations,
-			sourceCode,
+			typeLookup,
 			seen,
 		);
 	}
@@ -148,35 +339,19 @@ function typeDeclaresChildren(
 		typeNode.type === 'TSExpressionWithTypeArguments' ||
 		typeNode.type === 'TSInterfaceHeritage'
 	) {
-		const referenceName = getReferenceName(
-			typeNode.typeName ?? typeNode.expression,
-		);
-		if (referenceName === 'PropsWithChildren') {
-			return true;
-		}
-
-		const variable = findVariable(
-			sourceCode.getScope(typeNode),
-			referenceName,
-			true,
-		);
-		if (!variable || seen.has(variable)) {
-			return false;
-		}
-
-		const declaration = typeDeclarations.get(variable);
-		if (!declaration) {
-			return false;
-		}
-
-		const nextSeen = new Set(seen);
-		nextSeen.add(variable);
-		return typeDeclaresChildren(
-			declaration,
-			typeDeclarations,
-			sourceCode,
-			nextSeen,
-		);
+		const reference = typeNode.typeName ?? typeNode.expression;
+		if (typeLookup.isReactChildrenHelper(reference)) return true;
+		return typeLookup.resolve(reference).some(({ variable }) => {
+			if (!variable || seen.has(variable)) return false;
+			const declaration = typeDeclarations.get(variable);
+			if (!declaration) return false;
+			return typeDeclaresChildren(
+				declaration,
+				typeDeclarations,
+				typeLookup,
+				new Set([...seen, variable]),
+			);
+		});
 	}
 
 	return false;
@@ -388,13 +563,13 @@ function componentUsesChildren(node, parameter, sourceCode) {
 	);
 }
 
-function parameterDeclaresChildren(parameter, typeDeclarations, sourceCode) {
+function parameterDeclaresChildren(parameter, typeDeclarations, typeLookup) {
 	return (
 		Boolean(getObjectPatternProperty(parameter, CHILDREN_PROP)) ||
 		typeDeclaresChildren(
 			parameter?.typeAnnotation,
 			typeDeclarations,
-			sourceCode,
+			typeLookup,
 		)
 	);
 }
@@ -415,6 +590,7 @@ module.exports = {
 	create(context) {
 		const sourceCode = context.sourceCode;
 		const typeDeclarations = new Map();
+		const typeLookup = createTypeLookup(sourceCode);
 		const components = [];
 
 		function recordComponent(node) {
@@ -427,6 +603,7 @@ module.exports = {
 		}
 
 		return {
+			TSModuleDeclaration: typeLookup.recordNamespace,
 			TSTypeAliasDeclaration(node) {
 				typeDeclarations.set(
 					sourceCode.getDeclaredVariables(node)[0],
@@ -451,7 +628,7 @@ module.exports = {
 						!parameterDeclaresChildren(
 							parameter,
 							typeDeclarations,
-							sourceCode,
+							typeLookup,
 						) ||
 						componentUsesChildren(component, parameter, sourceCode)
 					) {
