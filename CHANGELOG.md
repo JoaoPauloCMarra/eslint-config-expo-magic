@@ -2,6 +2,22 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
+## 5.2.3
+
+### Breaking Changes
+
+- None. Public options, exports, dependency ranges and rule severity are unchanged. Corrected unused-children warnings can affect warning budgets or consumers overriding the rule severity.
+
+### Fixed
+
+- Follow read-only `const` identity chains for children props within component scopes, removing false unused-children warnings for member reads, destructuring and supported forwarding patterns.
+- Guard additional alias expansion against reassignment, property mutation, nested alias creation and unknown escapes, including TypeScript-wrapped calls and tagged methods. This remains conservative syntactic analysis rather than general dataflow tracking.
+- Stop treating unrelated destructured properties, rest bindings known to exclude children, and write-only member access as evidence that caller children are used. Preserve rest forwarding through known non-children literal keys.
+
+### Validation
+
+- Add 42 focused cases and compare them against 5.2.0, 5.2.1 and 5.2.2; the candidate corrects 17 outcomes without regressions in that sample. Full release validation remains required before publication.
+
 ## 5.2.2
 
 ### Breaking Changes
