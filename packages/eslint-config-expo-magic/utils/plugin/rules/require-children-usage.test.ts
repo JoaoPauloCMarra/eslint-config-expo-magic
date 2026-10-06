@@ -568,3 +568,49 @@ ruleTester.run('require-children-usage merged member bindings', rule, {
 		},
 	],
 });
+
+const aliasComponent = (body: string) =>
+	`type Props = { children: unknown; title?: string }; const Box = (props: Props) => { ${body} };`;
+
+ruleTester.run('require-children-usage alias and write targets', rule, {
+	valid: [
+		aliasComponent(
+			'const { title, ...rest } = props; return <View {...rest} />;',
+		),
+		aliasComponent('const { title, ...rest } = props; return rest.children;'),
+		aliasComponent(
+			"const { ['title']: title, ...rest } = props; return rest.children;",
+		),
+		aliasComponent('props.children = null; return props.children;'),
+	],
+	invalid: [
+		{
+			code: aliasComponent('const { title } = props; return title.children;'),
+			errors: [{ messageId: 'unused' }],
+		},
+		{
+			code: aliasComponent(
+				'const { children, ...rest } = props; return <View {...rest} />;',
+			),
+			errors: [{ messageId: 'unused' }],
+		},
+		{
+			code: aliasComponent(
+				"const { ['children']: ignored, ...rest } = props; return <View {...rest} />;",
+			),
+			errors: [{ messageId: 'unused' }],
+		},
+		{
+			code: aliasComponent('props.children = null; return null;'),
+			errors: [{ messageId: 'unused' }],
+		},
+		{
+			code: aliasComponent('delete props.children; return null;'),
+			errors: [{ messageId: 'unused' }],
+		},
+		{
+			code: aliasComponent('[props.children] = [null]; return null;'),
+			errors: [{ messageId: 'unused' }],
+		},
+	],
+});

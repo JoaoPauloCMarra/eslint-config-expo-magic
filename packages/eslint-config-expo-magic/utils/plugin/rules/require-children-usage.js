@@ -227,16 +227,89 @@ function hasChildrenDeclaration(node) {
 	);
 }
 
-function isPropsAliasDefinition(definition, propsVariable, scope) {
+function isPropsAliasDefinition(definition, propsVariable, scope, variable) {
 	if (definition.type !== 'Variable') {
 		return false;
 	}
 
-	const init = definition.node?.init;
+	const { id, init } = definition.node;
+	if (
+		init?.type !== 'Identifier' ||
+		findVariable(scope, init.name) !== propsVariable
+	) {
+		return false;
+	}
+
+	if (id.type === 'Identifier') {
+		return true;
+	}
+
+	// Destructured properties are never aliases of props. A rest binding keeps
+	// children only when the pattern did not take them out.
 	return (
-		init?.type === 'Identifier' &&
-		findVariable(scope, init.name) === propsVariable
+		id.type === 'ObjectPattern' &&
+		getRestBinding(id)?.name === variable.name &&
+		!id.properties.some(isChildrenPatternProperty)
 	);
+}
+
+function isChildrenPatternProperty(property) {
+	if (property.type !== 'Property') {
+		return false;
+	}
+
+	if (property.computed) {
+		return (
+			property.key.type === 'Literal' &&
+			String(property.key.value) === CHILDREN_PROP
+		);
+	}
+
+	return getPropertyName(property) === CHILDREN_PROP;
+}
+
+const WRITE_PATTERN_WRAPPERS = new Set([
+	'ObjectPattern',
+	'ArrayPattern',
+	'RestElement',
+	'TSAsExpression',
+	'TSNonNullExpression',
+	'TSTypeAssertion',
+	'TSSatisfiesExpression',
+]);
+
+function isWriteTarget(node) {
+	let current = node;
+	while (current.parent) {
+		const parent = current.parent;
+		if (
+			(parent.type === 'AssignmentExpression' && parent.left === current) ||
+			(parent.type === 'UpdateExpression' && parent.argument === current) ||
+			(parent.type === 'UnaryExpression' && parent.operator === 'delete') ||
+			((parent.type === 'ForInStatement' || parent.type === 'ForOfStatement') &&
+				parent.left === current)
+		) {
+			return true;
+		}
+
+		const isPatternValue =
+			parent.type === 'Property' &&
+			parent.value === current &&
+			parent.parent.type === 'ObjectPattern';
+		const isDefaultTarget =
+			parent.type === 'AssignmentPattern' && parent.left === current;
+		if (
+			!isPatternValue &&
+			!isDefaultTarget &&
+			!WRITE_PATTERN_WRAPPERS.has(parent.type)
+		) {
+			return false;
+		}
+
+		current = parent;
+	}
+
+	return false;
 }
 
 function getPatternIdentifier(pattern) {
@@ -418,7 +491,7 @@ function collectChildrenAliasBindings(scope, propsVariable, aliases) {
 
 		if (
 			variable.defs.some((definition) =>
-				isPropsAliasDefinition(definition, propsVariable, scope),
+				isPropsAliasDefinition(definition, propsVariable, scope, variable),
 			)
 		) {
 			aliases.add(variable);
@@ -496,7 +569,7 @@ function referenceUsesChildren(reference, scope) {
 	const parent = identifier.parent;
 
 	if (isChildrenMemberAccess(identifier, parent)) {
-		return true;
+		return !isWriteTarget(parent);
 	}
 
 	if (
