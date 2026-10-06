@@ -276,8 +276,22 @@ describe('audit composition regressions', () => {
 			}
 		}
 	});
-});
 
+	it('enforces compiler restrictions through the public subpath', async () => {
+		const config = [
+			...createConfig({ preset: 'fast' }),
+			...require('./react-compiler.js'),
+		];
+		const messages = await lintWith(
+			config,
+			'src/widget.tsx',
+			'export function Widget() { try { run(); } finally { cleanup(); } return null; }',
+		);
+		expect(messages.some((message) => message.includes('without catch'))).toBe(
+			true,
+		);
+	});
+});
 
 describe('react compiler try/finally without catch', () => {
 	const missingCatch = [

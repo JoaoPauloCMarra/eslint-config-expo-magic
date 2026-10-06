@@ -35,6 +35,11 @@ const restrictedSyntaxGroups = [
 	},
 ];
 
+const {
+	createComposedRestrictedSyntaxConfigs,
+} = require('./restricted-syntax.js');
+config.push(...createComposedRestrictedSyntaxConfigs(restrictedSyntaxGroups));
+
 module.exports = config;
 module.exports.rules = rules;
 module.exports.restrictedSyntaxGroups = restrictedSyntaxGroups;
