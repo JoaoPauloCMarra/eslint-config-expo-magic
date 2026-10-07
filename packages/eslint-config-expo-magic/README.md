@@ -345,10 +345,10 @@ The 5.x release line supports the following tested range:
 | ESLint                | `^10.11.0`                                                                   |
 | TypeScript            | `>=5.9.3 <6.1.0`                                                             |
 | TypeScript ESLint     | `^8.71.0`                                                                    |
-| Expo                  | SDK 54, 55, 56, and 57 smoke lanes; SDK 57 fixture is 57.0.26                |
-| React Native          | Expo-coupled; SDK 57.0.26 uses RN 0.86.3                                     |
-| React                 | SDK 57.0.26 fixture uses React 19.2.3                                        |
-| React Test Renderer   | SDK 57.0.26 fixture uses 19.2.3                                              |
+| Expo                  | SDK 54, 55, 56, and 57 smoke lanes; SDK 57 fixture is 57.0.27                |
+| React Native          | Expo-coupled; SDK 57.0.27 uses RN 0.86.3                                     |
+| React                 | SDK 57.0.27 fixture uses React 19.2.3                                        |
+| React Test Renderer   | SDK 57.0.27 fixture uses 19.2.3                                              |
 | Jest Expo / RN preset | `jest-expo` 57.0.5 / `@react-native/jest-preset` 0.86.3 in the SDK57 fixture |
 
 The SDK 57 smoke lanes read these versions from `test-project/package.json`, so the fixture is the single source for the SDK 57 tuple. The SDK57 fixture intentionally stays on Expo Doctor's verified React 19.2.3 and React Test Renderer 19.2.3 tuple; newer React patch releases shown by `bun outdated` are not promoted without matching fixture proof.

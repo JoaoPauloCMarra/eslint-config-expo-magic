@@ -86,7 +86,7 @@ The `no-prettier` export and subpath were removed. The `strictNoPrettier` and `t
 - TypeScript `>=5.9.3 <6.1.0`
 - TypeScript ESLint `^8.71.0`
 
-TypeScript 7 and the React Native/Jest preset 0.87 line remain intentional holds until the matching compatibility proof is available. Expo SDK 54 through 57 remain the supported smoke lanes. The SDK 57 lanes read their versions from `test-project/package.json`: Expo 57.0.26, React 19.2.3, React Native 0.86.3, React Test Renderer 19.2.3, `jest-expo` 57.0.5, and `@react-native/jest-preset` 0.86.3.
+TypeScript 7 and the React Native/Jest preset 0.87 line remain intentional holds until the matching compatibility proof is available. Expo SDK 54 through 57 remain the supported smoke lanes. The SDK 57 lanes read their versions from `test-project/package.json`: Expo 57.0.27, React 19.2.3, React Native 0.86.3, React Test Renderer 19.2.3, `jest-expo` 57.0.5, and `@react-native/jest-preset` 0.86.3.
 
 ### v4 verification
 
@@ -185,7 +185,7 @@ Enable `reactCompiler`, `nativeUi`, `storybook`, and `featureBoundaries` directl
 
 ## Expo SDK lanes
 
-The 5.x release line validates SDK 54, 55, 56, and 57 through packed-consumer smoke lanes. The SDK 57 lanes, including the clean SDK57 consumer that runs Expo Doctor, read their versions from `test-project/package.json`: Expo 57.0.26, React 19.2.3, React Native 0.86.3, React Test Renderer 19.2.3, `jest-expo` 57.0.5, and `@react-native/jest-preset` 0.86.3. Keep the SDK and React Native versions coupled to the Expo lane; do not advertise an independent React Native 0.87 support line until Expo publishes a matching stable lane.
+The 5.x release line validates SDK 54, 55, 56, and 57 through packed-consumer smoke lanes. The SDK 57 lanes, including the clean SDK57 consumer that runs Expo Doctor, read their versions from `test-project/package.json`: Expo 57.0.27, React 19.2.3, React Native 0.86.3, React Test Renderer 19.2.3, `jest-expo` 57.0.5, and `@react-native/jest-preset` 0.86.3. Keep the SDK and React Native versions coupled to the Expo lane; do not advertise an independent React Native 0.87 support line until Expo publishes a matching stable lane.
 
 The repo keeps the fixture in the root Bun workspace. Use the root `bun.lock` and the packed-consumer smoke tests rather than a nested fixture lockfile.
 

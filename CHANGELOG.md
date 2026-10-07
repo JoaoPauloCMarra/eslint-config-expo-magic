@@ -2,6 +2,29 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
+## 5.3.0
+
+Released: 2026-10-07
+
+### Breaking Changes
+
+- None. Public options and exports are unchanged. `reactCompiler: true` and the `react-compiler` subpath now report a new error, and `require-children-usage` now reports unused children it missed before. Projects using those may need code changes.
+
+### Added
+
+- `reactCompiler: true` and the `react-compiler` subpath error on `try`/`finally` without a `catch`. The React Compiler cannot lower that form and skips the whole function. `try`/`catch`/`finally` is not affected.
+
+### Fixed
+
+- `require-children-usage` no longer treats destructured properties as aliases of `props`. `const { style } = props; style.children` no longer counts as rendering children.
+- `require-children-usage` no longer counts a rest binding that takes `children` out, such as `const { children, ...rest } = props; <View {...rest} />`, as forwarding children.
+- `require-children-usage` no longer counts writing or deleting `props.children` as using it.
+
+### Dependencies
+
+- Bundle ESLint 10.11, typescript-eslint 8.71, eslint-plugin-react-19-upgrade 1.11 and Prettier 3.9.9.
+- The Expo SDK 57 fixture uses Expo 57.0.27.
+
 ## 5.2.2
 
 ### Breaking Changes

@@ -1,6 +1,6 @@
 # Config Diff
 
-Package version: `5.2.2`
+Package version: `5.3.0`
 Expo config version: `57.0.2`
 
 ## Effective Rule Counts
@@ -71,7 +71,7 @@ Expo config version: `57.0.2`
 | componentStructure | 4 |
 | deprecatedApis | 2 |
 | nativeUi | 1 |
-| reactCompiler | 7 |
+| reactCompiler | 8 |
 | reanimated | 2 |
 | semanticColors | 1 |
 | storybook | 1 |
