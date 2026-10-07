@@ -5,6 +5,14 @@
 		"expo-sdk-fixture-tooling": {
 			"reason": "Transitive Expo SDK fixture and CLI tooling. Keep Expo-managed versions aligned; do not apply broad overrides.",
 			"mayAppearInPublishedDependencyTree": false
+		},
+		"dev-test-tooling": {
+			"reason": "Transitive Jest tooling used only by this repository's tests. Not shipped to consumers.",
+			"mayAppearInPublishedDependencyTree": false
+		},
+		"lint-time-glob-matching": {
+			"reason": "Glob matching inside bundled ESLint plugins. Patterns come from the consumer's own lint configuration, not from untrusted input, and run only at lint time.",
+			"mayAppearInPublishedDependencyTree": true
 		}
 	},
 	"allowlist": {
@@ -13,7 +21,36 @@
 			"advisories": {
 				"GHSA-w5hq-g745-h8pq": "moderate"
 			}
+		},
+		"node-forge": {
+			"classification": "expo-sdk-fixture-tooling",
+			"advisories": {
+				"GHSA-86w9-cpqp-85rv": "high"
+			}
+		},
+		"sprintf-js": {
+			"classification": "dev-test-tooling",
+			"advisories": {
+				"GHSA-hp3w-g68c-fv3c": "moderate"
+			}
+		},
+		"braces": {
+			"classification": "lint-time-glob-matching",
+			"advisories": {
+				"GHSA-vfj7-8cjw-p6xm": "high"
+			}
 		}
 	},
-	"contracts": {}
+	"contracts": {
+		"node-forge:GHSA-86w9-cpqp-85rv": {
+			"owner": "Joao Paulo Costa Marra",
+			"remediation": "No patched node-forge release. Reached only through the Expo SDK 57 fixture's @expo/cli. Take the Expo patch or node-forge release that fixes it.",
+			"expiry": "2026-12-29"
+		},
+		"braces:GHSA-vfj7-8cjw-p6xm": {
+			"owner": "Joao Paulo Costa Marra",
+			"remediation": "No patched braces release. Reached through eslint-plugin-boundaries -> micromatch with trusted, config-authored patterns. Update when braces, micromatch or eslint-plugin-boundaries ships a fix.",
+			"expiry": "2026-12-29"
+		}
+	}
 }
