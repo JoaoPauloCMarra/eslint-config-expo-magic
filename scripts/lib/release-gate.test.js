@@ -56,6 +56,7 @@ describe('release gate execution', () => {
 		const result = exercise({ reportsOnly: true });
 		expect(result.status).toBe(0);
 		expect(result.commands).toEqual([
+			'git fetch --quiet --tags origin',
 			'bun run check-pm',
 			'bun run report:config',
 			'bun run report:release-notes',
@@ -66,7 +67,7 @@ describe('release gate execution', () => {
 	test('full release check keeps all required gates before packing', () => {
 		const result = exercise();
 		expect(result.status).toBe(0);
-		expect(result.commands.slice(4)).toEqual([
+		expect(result.commands.slice(5)).toEqual([
 			'bun run audit:deps',
 			'bun run test',
 			'bun run typecheck',
