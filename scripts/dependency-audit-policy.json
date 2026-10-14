@@ -13,6 +13,10 @@
 		"lint-time-glob-matching": {
 			"reason": "Glob matching inside bundled ESLint plugins. Patterns come from the consumer's own lint configuration, not from untrusted input, and run only at lint time.",
 			"mayAppearInPublishedDependencyTree": true
+		},
+		"lint-time-message-templates": {
+			"reason": "Handlebars inside eslint-plugin-boundaries compiles only the rule message templates authored in the consumer's own lint configuration, with file and element paths as data, at lint time.",
+			"mayAppearInPublishedDependencyTree": true
 		}
 	},
 	"allowlist": {
@@ -39,6 +43,14 @@
 			"advisories": {
 				"GHSA-vfj7-8cjw-p6xm": "high"
 			}
+		},
+		"handlebars": {
+			"classification": "lint-time-message-templates",
+			"advisories": {
+				"GHSA-p8wg-vrv2-v86f": "critical",
+				"GHSA-xw65-4hp5-5hc7": "moderate",
+				"GHSA-8r5x-fm3f-whwj": "critical"
+			}
 		}
 	},
 	"contracts": {
@@ -50,6 +62,21 @@
 		"braces:GHSA-vfj7-8cjw-p6xm": {
 			"owner": "Joao Paulo Costa Marra",
 			"remediation": "No patched braces release. Reached through eslint-plugin-boundaries -> micromatch with trusted, config-authored patterns. Update when braces, micromatch or eslint-plugin-boundaries ships a fix.",
+			"expiry": "2026-12-29"
+		},
+		"handlebars:GHSA-p8wg-vrv2-v86f": {
+			"owner": "Joao Paulo Costa Marra",
+			"remediation": "Fixed in handlebars 4.7.10, but @boundaries/elements 3.1.1 and eslint-plugin-boundaries 7.2.0 pin handlebars 4.7.9 exactly. Update when eslint-plugin-boundaries ships with handlebars >= 4.7.10.",
+			"expiry": "2026-12-29"
+		},
+		"handlebars:GHSA-xw65-4hp5-5hc7": {
+			"owner": "Joao Paulo Costa Marra",
+			"remediation": "Fixed in handlebars 4.7.10, but @boundaries/elements 3.1.1 and eslint-plugin-boundaries 7.2.0 pin handlebars 4.7.9 exactly. Update when eslint-plugin-boundaries ships with handlebars >= 4.7.10.",
+			"expiry": "2026-12-29"
+		},
+		"handlebars:GHSA-8r5x-fm3f-whwj": {
+			"owner": "Joao Paulo Costa Marra",
+			"remediation": "Fixed in handlebars 4.7.10, but @boundaries/elements 3.1.1 and eslint-plugin-boundaries 7.2.0 pin handlebars 4.7.9 exactly. Update when eslint-plugin-boundaries ships with handlebars >= 4.7.10.",
 			"expiry": "2026-12-29"
 		}
 	}
