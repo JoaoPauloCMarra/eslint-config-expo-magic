@@ -1,6 +1,6 @@
 # Config Diff
 
-Package version: `5.3.1`
+Package version: `5.4.0`
 Expo config version: `57.0.2`
 
 ## Effective Rule Counts
@@ -9,7 +9,7 @@ Expo config version: `57.0.2`
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | app | `apps/mobile/App.tsx` | 83 | 130 | 36 | 122 | 100 | 191 | 123 | 132 |
 | package | `packages/shared/src/index.ts` | 83 | 130 | 36 | 122 | 100 | 191 | 123 | 130 |
-| test | `apps/mobile/src/__tests__/App.test.tsx` | 83 | 130 | 36 | 122 | 100 | 191 | 123 | 132 |
+| test | `apps/mobile/src/__tests__/App.test.tsx` | 83 | 130 | 36 | 122 | 100 | 191 | 123 | 131 |
 | story | `apps/mobile/src/components/Button.stories.tsx` | 83 | 130 | 36 | 122 | 100 | 191 | 123 | 132 |
 | config | `metro.config.js` | 72 | 97 | 25 | 95 | 82 | 95 | 95 | 97 |
 | web | `apps/mobile/src/App.web.tsx` | 83 | 130 | 36 | 122 | 100 | 191 | 123 | 132 |
@@ -34,7 +34,7 @@ Expo config version: `57.0.2`
 | test | defaultVsExpo | 48 | 3 | 9 |
 | test | typedVsDefault | 69 | 7 | 0 |
 | test | strictVsDefault | 1 | 2 | 0 |
-| test | productionAppVsDefault | 10 | 5 | 0 |
+| test | productionAppVsDefault | 9 | 5 | 0 |
 | test | fastVsDefault | 0 | 1 | 22 |
 | story | baseVsExpo | 1 | 0 | 48 |
 | story | defaultVsExpo | 48 | 3 | 9 |

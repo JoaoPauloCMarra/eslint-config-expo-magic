@@ -94,6 +94,22 @@ describe('mobile app profile', () => {
 		expect(bansImport(rules, 'react-native', 'SafeAreaView')).toBe(true);
 	});
 
+	it('enforces strict TypeScript, test, inline-style and children checks', async () => {
+		const config = mobileApp.createMobileAppConfig({ preset: 'default' });
+		const component = (
+			await effectiveConfig('features/home/home-screen.tsx', config)
+		).rules;
+		const test = (
+			await effectiveConfig('features/home/__tests__/home.test.tsx', config)
+		).rules;
+
+		expect(component['@typescript-eslint/no-non-null-assertion']).toEqual([2]);
+		expect(component['react-native/no-inline-styles']).toBeDefined();
+		expect(component['expo-magic/require-children-usage']).toEqual([2]);
+		expect(test['testing-library/await-async-queries']).toBeDefined();
+		expect(test['expo-magic/require-children-usage']).toBeUndefined();
+	});
+
 	it('allows log and warn in scripts', async () => {
 		const { rules } = await effectiveConfig('scripts/release.ts');
 
@@ -113,6 +129,7 @@ describe('mobile app profile', () => {
 
 		expect(rules['prettier/prettier']).toEqual([2]);
 		expect(rules['react-hooks/purity']).toBeUndefined();
+		expect(rules['@typescript-eslint/no-floating-promises']).toBeUndefined();
 	});
 
 	it('rejects the base preset with a clear error', () => {

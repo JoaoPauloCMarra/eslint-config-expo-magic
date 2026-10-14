@@ -2,6 +2,23 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
+## 5.4.0
+
+Released: 2026-10-14
+
+### Breaking Changes
+
+- None. Public options and exports are unchanged. The `mobile-app` profile reports new errors, so projects using it may need code changes.
+
+### Added
+
+- The `mobile-app` profile enables Testing Library checks (`testing`), `react-native/no-inline-styles` (`inlineStyles`), and `expo-magic/require-children-usage` as an error outside test files.
+- The `mobile-app` default preset enables the strict TypeScript layer: `no-explicit-any`, `no-non-null-assertion`, `await-thenable`, `no-floating-promises` and `no-misused-promises` at `error`. The fast preset stays syntax-only.
+
+### Fixed
+
+- `componentStructure` no longer reports `require-children-usage` in test files, where mocks drop `children` on purpose.
+
 ## 5.3.1
 
 Released: 2026-10-14

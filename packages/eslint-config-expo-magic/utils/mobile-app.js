@@ -1,4 +1,6 @@
 const { createConfig } = require('./create-config.js');
+const expoMagicPlugin = require('./plugin/index.js');
+const { testTsxFiles } = require('./file-patterns.js');
 const { defaultRestrictions } = require('./native-ui.js');
 const { baseRestrictedImports } = require('./restricted-imports.js');
 
@@ -405,6 +407,14 @@ function createArchitectureConfigs() {
 function createConventionConfigs() {
 	return [
 		{
+			files: ['**/*.tsx'],
+			ignores: testTsxFiles,
+			plugins: { 'expo-magic': expoMagicPlugin },
+			rules: {
+				'expo-magic/require-children-usage': 'error',
+			},
+		},
+		{
 			files: ['**/*.{ts,tsx}'],
 			rules: {
 				'@typescript-eslint/naming-convention': [
@@ -467,6 +477,9 @@ function createMobileAppConfig(options = {}) {
 		tsconfigProjects: options.tsconfigProjects,
 		extraIgnores,
 		prettier: true,
+		strict: preset === 'default',
+		testing: true,
+		inlineStyles: true,
 		agent: { semanticColors: true },
 		featureBoundaries: true,
 		nativeUi: {
