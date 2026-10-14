@@ -20,6 +20,10 @@ Released: 2026-10-14
 - `props-type-order` treats members named `on` followed by an uppercase letter or digit as function props, so callbacks typed with aliases sort with the other callbacks.
 - `componentStructure` no longer reports in test files.
 
+### Dependencies
+
+- The Expo SDK 57 fixture uses Expo 57.0.29. The clean SDK 57 consumer smoke runs `expo install --fix` first, so a new SDK 57 patch no longer fails the release gate.
+
 ## 5.4.0
 
 Released: 2026-10-14

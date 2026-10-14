@@ -107,6 +107,9 @@ function main() {
 			console.log('Installing clean SDK 57 consumer...');
 			run('bun', ['install'], { cwd: tempProjectDir });
 
+			console.log('Aligning to the latest SDK 57 patch...');
+			run('bunx', ['expo', 'install', '--fix'], { cwd: tempProjectDir });
+
 			console.log(`Running Expo Doctor ${expoDoctorVersion}...`);
 			run('bunx', [`expo-doctor@${expoDoctorVersion}`], {
 				cwd: tempProjectDir,
