@@ -341,7 +341,7 @@ The 5.x release line supports the following tested range:
 | Surface               | Supported range or lane                                                      |
 | --------------------- | ---------------------------------------------------------------------------- |
 | Node.js               | `^20.19.0 \|\| ^22.13.0 \|\| >=24`                                           |
-| Bun                   | `>=1.4.0`; repository package manager is `bun@1.4.2`                         |
+| Bun                   | `>=1.4.0`; repository package manager is `bun@1.4.3`                         |
 | ESLint                | `^10.11.0`                                                                   |
 | TypeScript            | `>=5.9.3 <6.1.0`                                                             |
 | TypeScript ESLint     | `^8.71.0`                                                                    |

@@ -7,7 +7,7 @@
       "devDependencies": {
         "@types/react": "~19.2.18",
         "@typescript-eslint/parser": "^8.71.0",
-        "bun-types": "^1.4.2",
+        "bun-types": "^1.4.3",
         "eslint": "^10.11.0",
         "eslint-config-expo": "^57.0.2",
         "eslint-config-prettier": "^10.1.8",
@@ -59,7 +59,7 @@
       },
       "devDependencies": {
         "babel-jest": "^30.5.2",
-        "bun-types": "^1.4.2",
+        "bun-types": "^1.4.3",
         "jest": "^30.5.2",
       },
       "peerDependencies": {
@@ -722,7 +722,7 @@
 
     "buffer-from": ["buffer-from@1.1.2", "", {}, "sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ=="],
 
-    "bun-types": ["bun-types@1.4.2", "", { "dependencies": { "@types/node": "*" } }, "sha512-bxV1FgK7yBIzjRe5zBozIM4Bem11ZJcCXSrjWRG3YWLt8yFDePu4cLjpebO8OvPeIE9trbyPF4fuj3Cia4Fj3w=="],
+    "bun-types": ["bun-types@1.4.3", "", { "dependencies": { "@types/node": "*", "undici-types": "*" } }, "sha512-tinRJNGOmUN+tEAsn2y2e942n9JHRHR42iUYzDH75NmhJqVBokGSQkkfSFdNWwsANIdrK6ACH9t01M452YyTwg=="],
 
     "bytes": ["bytes@3.1.2", "", {}, "sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg=="],
 

@@ -177,10 +177,15 @@ function runReleaseCheck() {
 function main() {
 	const args = process.argv.slice(2);
 	const shouldPublish = args.includes('--publish');
-	const publishArgs = args.filter((arg) => arg !== '--publish');
+	const ciVerified = args.includes('--ci-verified');
+	const publishArgs = args.filter(
+		(arg) => arg !== '--publish' && arg !== '--ci-verified',
+	);
 
 	ensureRequiredFiles();
-	runReleaseCheck();
+	if (!ciVerified) {
+		runReleaseCheck();
+	}
 
 	console.log('\nRunning tarball dry-run...');
 	run('bun', ['pm', 'pack', '--dry-run']);

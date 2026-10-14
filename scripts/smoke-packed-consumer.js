@@ -990,10 +990,32 @@ function validateLane(tempProjectDir) {
 	);
 }
 
+function readLaneArgument() {
+	const index = process.argv.indexOf('--lane');
+	if (index === -1) {
+		return null;
+	}
+	const name = process.argv[index + 1];
+	if (!name || !smokeLanes.some((lane) => lane.name === name)) {
+		throw new Error(
+			`--lane needs one of: ${smokeLanes.map((lane) => lane.name).join(', ')}`,
+		);
+	}
+	return name;
+}
+
+function selectLanes(contractsOnly, laneName) {
+	if (laneName !== null) {
+		return smokeLanes.filter((lane) => lane.name === laneName);
+	}
+	return contractsOnly ? [smokeLanes.at(-1)] : smokeLanes;
+}
+
 function main() {
 	const contractsOnly = process.argv.includes('--contracts-only');
 	const npmOnly = process.argv.includes('--npm-only');
-	const lanes = contractsOnly ? [smokeLanes.at(-1)] : smokeLanes;
+	const laneName = readLaneArgument();
+	const lanes = selectLanes(contractsOnly, laneName);
 	console.log('Packing local tarball...');
 	withPackedTarball((tarballPath) => {
 		if (!npmOnly) {
@@ -1015,7 +1037,7 @@ function main() {
 			}
 		}
 
-		if (!contractsOnly) {
+		if (!contractsOnly && laneName === null) {
 			console.log('Installing isolated npm consumer...');
 			validateNpmConsumer(tarballPath);
 		}
