@@ -2018,14 +2018,17 @@ describe('eslint-config-expo-magic', () => {
 				invalid: [
 					{
 						code: 'type FooProps = { onPress: () => void; title: string; };',
+						output: 'type FooProps = { title: string; onPress: () => void; };',
 						errors: [{ messageId: 'order' }],
 					},
 					{
 						code: 'type BarProps = { b: string; a: string; };',
+						output: 'type BarProps = { a: string; b: string; };',
 						errors: [{ messageId: 'order' }],
 					},
 					{
 						code: 'type FooProps = { label?: string; id: string; };',
+						output: 'type FooProps = { id: string; label?: string; };',
 						errors: [{ messageId: 'order' }],
 					},
 				],
@@ -2045,10 +2048,14 @@ describe('eslint-config-expo-magic', () => {
 				invalid: [
 					{
 						code: 'const Foo = () => null;\nconst helper = () => null;\nexport default Foo;',
+						output:
+							'const Foo = () => null;\nexport default Foo;\nconst helper = () => null;',
 						errors: [{ messageId: 'placement' }],
 					},
 					{
 						code: 'function Foo() { return null; }\nconst styles = {};\nexport default Foo;',
+						output:
+							'function Foo() { return null; }\nexport default Foo;\nconst styles = {};',
 						errors: [{ messageId: 'placement' }],
 					},
 				],
@@ -2066,10 +2073,14 @@ describe('eslint-config-expo-magic', () => {
 				invalid: [
 					{
 						code: 'function Foo(props: { a: string }) { return props; }',
+						output:
+							'type FooProps = { a: string };\n\nfunction Foo(props: FooProps) { return props; }',
 						errors: [{ messageId: 'inline' }],
 					},
 					{
 						code: 'const Foo = (props: { a: string }) => props;',
+						output:
+							'type FooProps = { a: string };\n\nconst Foo = (props: FooProps) => props;',
 						errors: [{ messageId: 'inline' }],
 					},
 				],

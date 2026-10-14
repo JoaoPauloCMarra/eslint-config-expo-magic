@@ -480,6 +480,7 @@ function createMobileAppConfig(options = {}) {
 		strict: preset === 'default',
 		testing: true,
 		inlineStyles: true,
+		componentStructure: true,
 		agent: { semanticColors: true },
 		featureBoundaries: true,
 		nativeUi: {

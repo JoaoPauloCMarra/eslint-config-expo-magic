@@ -130,9 +130,11 @@ These layers are off by default and enabled per project via `createConfig({ ... 
 
 ### `componentStructure` (`expo-magic/*` plugin rules)
 
-- **`expo-magic/props-type-order`**: orders the members of `*Props` type aliases and interfaces as required, optional, then function props, alphabetized within each group. Method signatures count as function props.
-- **`expo-magic/default-export-placement`**: requires `export default Component;` immediately after the component declaration.
-- **`expo-magic/no-inline-props`**: requires a named `type ...Props` alias instead of an inline object type on a `props` parameter. It also flags an inline type on the destructured first parameter of a component (a PascalCase function or a default export), with or without a default value.
+These rules do not apply to test files, where local mock components are not public prop APIs.
+
+- **`expo-magic/props-type-order`**: orders the members of `*Props` type aliases and interfaces as required, optional, then function props, alphabetized within each group. Method signatures, function types, `*Handler` types and members named `on` + an uppercase letter or digit count as function props. Autofixes when the type has no comments inside it.
+- **`expo-magic/default-export-placement`**: requires `export default Component;` immediately after the component declaration. Autofixes a plain `export default Name;` without attached comments.
+- **`expo-magic/no-inline-props`**: requires a named `type ...Props` alias instead of an inline object type on a `props` parameter. It also flags an inline type on the destructured first parameter of a component (a PascalCase function or a default export), with or without a default value. Autofixes by extracting a `<Component>Props` alias above a top-level component when the name is free and the type does not use the component's type parameters.
 - **`expo-magic/require-children-usage`**: flags a declared `children` prop (or `PropsWithChildren`) that the component never renders. It follows type aliases and interface `extends` in the same file using lexical scope, so unrelated shadowed type or props names do not count as caller content. Qualified same-file namespace members and local namespace aliases are resolved without borrowing unrelated terminal names; private members remain scoped to their declaration. External types are not inspected, apart from recognized React `PropsWithChildren` imports. Block-local destructuring of `children` is supported. Spreading the props object or its rest binding (`{...props}`, `{...rest}`), or passing it to `cloneElement(element, props)`, counts as using `children`. Destructured properties are not props aliases, a rest binding that removes `children` does not forward it, and writing or deleting `props.children` is not a use.
 
 **Rationale**: Encodes component-authoring conventions that keep prop contracts and exports predictable across a large app.

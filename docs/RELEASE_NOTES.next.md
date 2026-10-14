@@ -1,11 +1,12 @@
 # Changes
 
-Compared `v5.3.1` package `5.3.1` with current package `5.4.0`.
+Compared `v5.4.0` package `5.4.0` with current package `5.5.0`.
 
 ## Package
 
-- Version: `5.3.1` → `5.4.0`
+- Version: `5.4.0` → `5.5.0`
 
 ## Effective rules
 
-- Omitted: rule diff unavailable because dependency graphs differ.
+- `productionApp` (`test`): 0 added, 0 changed, 3 removed.
+  - Removed: `expo-magic/default-export-placement`, `expo-magic/no-inline-props`, `expo-magic/props-type-order`

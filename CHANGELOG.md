@@ -2,6 +2,24 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
+## 5.5.0
+
+Released: 2026-10-14
+
+### Breaking Changes
+
+- None. Public options and exports are unchanged. The `mobile-app` profile now enables `componentStructure`, so projects using it get new errors; most fix themselves with `eslint --fix`.
+
+### Added
+
+- `no-inline-props`, `props-type-order` and `default-export-placement` autofix. `no-inline-props` extracts a `<Component>Props` alias above a top-level component; `props-type-order` reorders members when the type has no comments; `default-export-placement` moves a plain `export default Name;`. Unsafe cases stay report-only.
+- The `mobile-app` profile enables `componentStructure` outside test files.
+
+### Fixed
+
+- `props-type-order` treats members named `on` followed by an uppercase letter or digit as function props, so callbacks typed with aliases sort with the other callbacks.
+- `componentStructure` no longer reports in test files.
+
 ## 5.4.0
 
 Released: 2026-10-14

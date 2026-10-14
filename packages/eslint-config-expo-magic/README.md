@@ -49,7 +49,7 @@ Then point Prettier at the shared config in `package.json`:
 }
 ```
 
-The mobile-app profile owns formatting, semantic colors, native UI boundaries, feature architecture, storage boundaries, naming conventions, focused console allowances, Testing Library checks, `react-native/no-inline-styles`, and `expo-magic/require-children-usage` outside tests. The default preset also enables the strict TypeScript layer (`no-explicit-any`, `no-non-null-assertion`, `await-thenable`, `no-floating-promises`, `no-misused-promises`). Set `ESLINT_CONFIG_PRESET=fast` for the syntax-focused lane, which skips the type-aware strict layer. The generic root configuration remains available for libraries and incremental adoption.
+The mobile-app profile owns formatting, semantic colors, native UI boundaries, feature architecture, storage boundaries, naming conventions, focused console allowances, Testing Library checks, `react-native/no-inline-styles`, and the `componentStructure` rules outside tests (`no-inline-props`, `props-type-order`, `default-export-placement`, `require-children-usage`); the first three autofix with `eslint --fix`. The default preset also enables the strict TypeScript layer (`no-explicit-any`, `no-non-null-assertion`, `await-thenable`, `no-floating-promises`, `no-misused-promises`). Set `ESLINT_CONFIG_PRESET=fast` for the syntax-focused lane, which skips the type-aware strict layer. The generic root configuration remains available for libraries and incremental adoption.
 
 Use these project scripts to select the package-owned tools deterministically in a conventional `node_modules` installation:
 

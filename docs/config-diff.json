@@ -1,5 +1,5 @@
 {
-  "packageVersion": "5.4.0",
+  "packageVersion": "5.5.0",
   "expoConfigVersion": "57.0.2",
   "presets": {
     "expo": {
@@ -13946,7 +13946,7 @@
         },
         "productionApp": {
           "name": "productionApp",
-          "ruleCount": 131,
+          "ruleCount": 128,
           "rules": {
             "@typescript-eslint/array-type": [
               1,
@@ -14088,15 +14088,6 @@
             ],
             "expo-magic-reanimated/no-shared-value-misuse": [
               2
-            ],
-            "expo-magic/default-export-placement": [
-              2
-            ],
-            "expo-magic/no-inline-props": [
-              2
-            ],
-            "expo-magic/props-type-order": [
-              1
             ],
             "expo/no-dynamic-env-var": [
               2
@@ -26263,9 +26254,6 @@
           "@typescript-eslint/ban-ts-comment",
           "@typescript-eslint/no-restricted-types",
           "expo-magic-reanimated/no-shared-value-misuse",
-          "expo-magic/default-export-placement",
-          "expo-magic/no-inline-props",
-          "expo-magic/props-type-order",
           "no-restricted-properties",
           "no-restricted-syntax",
           "no-warning-comments"

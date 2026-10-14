@@ -45,9 +45,16 @@ function isFunctionType(typeNode) {
 	return false;
 }
 
+function isCallbackName(member) {
+	return (
+		member.key?.type === 'Identifier' && /^on[A-Z0-9]/.test(member.key.name)
+	);
+}
+
 function rankMember(member) {
 	if (
 		member.type === 'TSMethodSignature' ||
+		isCallbackName(member) ||
 		isFunctionType(member.typeAnnotation?.typeAnnotation)
 	) {
 		return 2;
@@ -78,6 +85,7 @@ function getExpectedOrder(members) {
 module.exports = {
 	meta: {
 		type: 'suggestion',
+		fixable: 'code',
 		docs: {
 			description:
 				'Enforce required, optional, then function prop ordering in component prop type aliases, alphabetized within each group.',
@@ -102,7 +110,36 @@ module.exports = {
 			? new RegExp(options.pattern)
 			: DEFAULT_PATTERN;
 
-		function checkMembers(node, members) {
+		const sourceCode = context.sourceCode;
+
+		function getCoreRange(member) {
+			const last = sourceCode.getLastToken(member);
+			const hasSeparator =
+				last.type === 'Punctuator' && (last.value === ';' || last.value === ',');
+			return [member.range[0], hasSeparator ? last.range[0] : member.range[1]];
+		}
+
+		function buildFix(container, members, expectedOrder) {
+			if (sourceCode.getCommentsInside(container).length > 0) {
+				return null;
+			}
+
+			const ranges = members.map(getCoreRange);
+			const texts = new Map(
+				members.map((member, index) => [
+					member,
+					sourceCode.text.slice(...ranges[index]),
+				]),
+			);
+			return (fixer) =>
+				members.flatMap((member, index) =>
+					expectedOrder[index] === member
+						? []
+						: [fixer.replaceTextRange(ranges[index], texts.get(expectedOrder[index]))],
+				);
+		}
+
+		function checkMembers(node, members, container) {
 			if (!pattern.test(node.id.name)) {
 				return;
 			}
@@ -128,10 +165,12 @@ module.exports = {
 				.map((member) => getPropertyName(member))
 				.join(', ');
 
+			const fix = buildFix(container, members, expectedOrder);
 			context.report({
 				node: node.id,
 				messageId: 'order',
 				data: { name: node.id.name, expected: expectedNames },
+				...(fix ? { fix } : {}),
 			});
 		}
 
@@ -142,10 +181,10 @@ module.exports = {
 					return;
 				}
 
-				checkMembers(node, typeNode.members);
+				checkMembers(node, typeNode.members, typeNode);
 			},
 			TSInterfaceDeclaration(node) {
-				checkMembers(node, node.body.body);
+				checkMembers(node, node.body.body, node.body);
 			},
 		};
 	},

@@ -148,7 +148,7 @@ describe('release scope and autofix contracts', () => {
 			],
 		});
 		const source =
-			'type Props = { children: unknown }; const Widget = (props: Props) => null; const helper = 1; export default Widget;';
+			'type Props = { children: unknown }; const Widget = (props: Props) => null; const helper = 1; /* entry */ export default Widget;';
 		const [result] = await eslint.lintText(source, { filePath: 'widget.tsx' });
 		expect(
 			result.messages.map((message: Linter.LintMessage) => message.ruleId),

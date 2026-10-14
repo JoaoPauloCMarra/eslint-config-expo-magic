@@ -106,8 +106,13 @@ describe('mobile app profile', () => {
 		expect(component['@typescript-eslint/no-non-null-assertion']).toEqual([2]);
 		expect(component['react-native/no-inline-styles']).toBeDefined();
 		expect(component['expo-magic/require-children-usage']).toEqual([2]);
+		expect(component['expo-magic/no-inline-props']).toEqual([2]);
+		expect(component['expo-magic/default-export-placement']).toEqual([2]);
+		expect(component['expo-magic/props-type-order']).toBeDefined();
 		expect(test['testing-library/await-async-queries']).toBeDefined();
 		expect(test['expo-magic/require-children-usage']).toBeUndefined();
+		expect(test['expo-magic/no-inline-props']).toBeUndefined();
+		expect(test['expo-magic/props-type-order']).toBeUndefined();
 	});
 
 	it('allows log and warn in scripts', async () => {

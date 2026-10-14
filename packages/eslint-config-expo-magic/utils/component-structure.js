@@ -1,5 +1,5 @@
 const plugin = require('./plugin/index.js');
-const { testTsxFiles } = require('./file-patterns.js');
+const { testFiles } = require('./file-patterns.js');
 
 const propTypeFiles = ['**/*.ts', '**/*.tsx'];
 const componentFiles = ['**/*.tsx'];
@@ -13,6 +13,7 @@ function createComponentStructureConfig(options = {}) {
 	return [
 		{
 			files: propTypeFiles,
+			ignores: testFiles,
 			plugins: {
 				'expo-magic': plugin,
 			},
@@ -23,20 +24,12 @@ function createComponentStructureConfig(options = {}) {
 		},
 		{
 			files: componentFiles,
+			ignores: testFiles,
 			plugins: {
 				'expo-magic': plugin,
 			},
 			rules: {
 				'expo-magic/default-export-placement': 'error',
-			},
-		},
-		{
-			files: componentFiles,
-			ignores: testTsxFiles,
-			plugins: {
-				'expo-magic': plugin,
-			},
-			rules: {
 				'expo-magic/require-children-usage': 'warn',
 			},
 		},
