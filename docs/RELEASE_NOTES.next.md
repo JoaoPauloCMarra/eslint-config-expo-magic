@@ -1,10 +1,10 @@
 # Changes
 
-Compared `v5.3.0` package `5.3.0` with current package `5.4.0`.
+Compared `v5.3.1` package `5.3.1` with current package `5.4.0`.
 
 ## Package
 
-- Version: `5.3.0` → `5.4.0`
+- Version: `5.3.1` → `5.4.0`
 
 ## Effective rules
 

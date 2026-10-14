@@ -54,6 +54,8 @@ const checks = [
 	'smoke:clean-sdk57',
 ];
 
+run('git', ['fetch', '--quiet', '--tags', 'origin']);
+
 for (const script of reportChecks) {
 	run('bun', ['run', script]);
 }
