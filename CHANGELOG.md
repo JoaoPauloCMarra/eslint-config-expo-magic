@@ -14,6 +14,11 @@ Released: 2026-10-14
 
 - The `reactCompiler` try/finally-without-catch error now applies only where the React Compiler runs: components (capitalized names that are not ALL_CAPS constants), hooks (`use` followed by a capital letter or digit), `memo`/`forwardRef` callbacks, and functions nested in them. 5.3.0 reported every try/finally in the project, including services, scripts, tests, and module-level code, which the compiler never compiles.
 
+### Dependencies
+
+- The Expo SDK 57 fixture uses Expo 57.0.28 and jest-expo 57.0.6.
+- `handlebars` advisories GHSA-p8wg-vrv2-v86f, GHSA-xw65-4hp5-5hc7 and GHSA-8r5x-fm3f-whwj are classified: `eslint-plugin-boundaries` 7.2.0 pins `handlebars` 4.7.9 and only compiles message templates from your own lint configuration.
+
 ## 5.3.0
 
 Released: 2026-10-07
