@@ -2,6 +2,18 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
+## 5.3.1
+
+Released: 2026-10-14
+
+### Breaking Changes
+
+- None.
+
+### Fixed
+
+- The `reactCompiler` try/finally-without-catch error now applies only where the React Compiler runs: components (capitalized names that are not ALL_CAPS constants), hooks (`use` followed by a capital letter or digit), `memo`/`forwardRef` callbacks, and functions nested in them. 5.3.0 reported every try/finally in the project, including services, scripts, tests, and module-level code, which the compiler never compiles.
+
 ## 5.3.0
 
 Released: 2026-10-07

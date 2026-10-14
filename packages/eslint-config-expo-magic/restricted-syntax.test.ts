@@ -341,4 +341,79 @@ describe('react compiler try/finally without catch', () => {
 			await lint({ reactCompiler: false }, 'src/Widget.tsx', missingCatch),
 		).toEqual([]);
 	});
+
+	const compiledSources: [string, string, string][] = [
+		[
+			'an arrow hook',
+			'src/use-load.ts',
+			'export const useLoad = () => {\n\ttry {\n\t\tdoWork();\n\t} finally {\n\t\tcleanup();\n\t}\n};\n',
+		],
+		[
+			'a hook declaration',
+			'src/use-load.ts',
+			'export function useLoad() {\n\ttry {\n\t\tdoWork();\n\t} finally {\n\t\tcleanup();\n\t}\n}\n',
+		],
+		[
+			'a callback nested in a component',
+			'src/Widget.tsx',
+			'export const Widget = () => {\n\tconst onPress = async () => {\n\t\ttry {\n\t\t\tawait doWork();\n\t\t} finally {\n\t\t\tcleanup();\n\t\t}\n\t};\n\treturn onPress;\n};\n',
+		],
+		[
+			'a memo component',
+			'src/Widget.tsx',
+			'export default memo(function Row() {\n\ttry {\n\t\tdoWork();\n\t} finally {\n\t\tcleanup();\n\t}\n\treturn null;\n});\n',
+		],
+		[
+			'a React.forwardRef component',
+			'src/Widget.tsx',
+			'export const Field = React.forwardRef((props, ref) => {\n\ttry {\n\t\tdoWork();\n\t} finally {\n\t\tcleanup();\n\t}\n\treturn null;\n});\n',
+		],
+	];
+
+	it.each(compiledSources)(
+		'errors in %s',
+		async (_name, filePath, source) => {
+			const messages = await lint({ reactCompiler: true }, filePath, source);
+			expect(
+				messages.some((message) => message.includes('without catch')),
+			).toBe(true);
+		},
+	);
+
+	const uncompiledSources: [string, string, string][] = [
+		[
+			'a service function',
+			'src/services/auth.ts',
+			'export async function refreshSession() {\n\ttry {\n\t\tawait doWork();\n\t} finally {\n\t\tcleanup();\n\t}\n}\n',
+		],
+		[
+			'a constant-named arrow',
+			'src/services/client.ts',
+			'export const API_CLIENT = async () => {\n\ttry {\n\t\tawait doWork();\n\t} finally {\n\t\tcleanup();\n\t}\n};\n',
+		],
+		[
+			'a test callback',
+			'src/__tests__/auth.test.ts',
+			"test('refreshes', async () => {\n\ttry {\n\t\tawait doWork();\n\t} finally {\n\t\tcleanup();\n\t}\n});\n",
+		],
+		[
+			'a module-level script',
+			'scripts/run.ts',
+			'try {\n\tdoWork();\n} finally {\n\tcleanup();\n}\n',
+		],
+		[
+			'a function named like a hook prefix only',
+			'src/user.ts',
+			'export function user() {\n\ttry {\n\t\tdoWork();\n\t} finally {\n\t\tcleanup();\n\t}\n}\n',
+		],
+	];
+
+	it.each(uncompiledSources)(
+		'allows try/finally in %s',
+		async (_name, filePath, source) => {
+			expect(await lint({ reactCompiler: true }, filePath, source)).toEqual(
+				[],
+			);
+		},
+	);
 });

@@ -1,5 +1,5 @@
 {
-  "packageVersion": "5.3.0",
+  "packageVersion": "5.3.1",
   "expoConfigVersion": "57.0.2",
   "presets": {
     "expo": {
@@ -387,7 +387,7 @@
             "message": "Do not commit skipped tests."
           },
           {
-            "selector": "TryStatement[handler=null]",
+            "selector": ":matches(FunctionDeclaration[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/], VariableDeclarator[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/] > :function, CallExpression[callee.name=/^(?:memo|forwardRef)$/] > :function, CallExpression[callee.property.name=/^(?:memo|forwardRef)$/] > :function) TryStatement[handler=null]",
             "message": "Never write try/finally without catch inside a React component or hook. The compiler cannot lower it (\"Handle TryStatement without a catch clause\") and skips the whole function. Use promise.finally() for async cleanup, or a real catch that handles or reports the error. try/catch/finally is not this bailout."
           },
           {
@@ -1874,7 +1874,7 @@
         "no-restricted-syntax": [
           "error",
           {
-            "selector": "TryStatement[handler=null]",
+            "selector": ":matches(FunctionDeclaration[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/], VariableDeclarator[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/] > :function, CallExpression[callee.name=/^(?:memo|forwardRef)$/] > :function, CallExpression[callee.property.name=/^(?:memo|forwardRef)$/] > :function) TryStatement[handler=null]",
             "message": "Never write try/finally without catch inside a React component or hook. The compiler cannot lower it (\"Handle TryStatement without a catch clause\") and skips the whole function. Use promise.finally() for async cleanup, or a real catch that handles or reports the error. try/catch/finally is not this bailout."
           }
         ],
@@ -2226,7 +2226,7 @@
             "message": "Avoid `ReturnType<typeof useGet...>` with selector-capable query hooks. Use domain types or shared query-result helpers."
           },
           {
-            "selector": "TryStatement[handler=null]",
+            "selector": ":matches(FunctionDeclaration[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/], VariableDeclarator[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/] > :function, CallExpression[callee.name=/^(?:memo|forwardRef)$/] > :function, CallExpression[callee.property.name=/^(?:memo|forwardRef)$/] > :function) TryStatement[handler=null]",
             "message": "Never write try/finally without catch inside a React component or hook. The compiler cannot lower it (\"Handle TryStatement without a catch clause\") and skips the whole function. Use promise.finally() for async cleanup, or a real catch that handles or reports the error. try/catch/finally is not this bailout."
           },
           {
@@ -3286,7 +3286,7 @@
                 "message": "Do not add generated or AI attribution strings to source output."
               },
               {
-                "selector": "TryStatement[handler=null]",
+                "selector": ":matches(FunctionDeclaration[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/], VariableDeclarator[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/] > :function, CallExpression[callee.name=/^(?:memo|forwardRef)$/] > :function, CallExpression[callee.property.name=/^(?:memo|forwardRef)$/] > :function) TryStatement[handler=null]",
                 "message": "Never write try/finally without catch inside a React component or hook. The compiler cannot lower it (\"Handle TryStatement without a catch clause\") and skips the whole function. Use promise.finally() for async cleanup, or a real catch that handles or reports the error. try/catch/finally is not this bailout."
               },
               {
@@ -6346,7 +6346,7 @@
                 "message": "Avoid `ReturnType<typeof useGet...>` with selector-capable query hooks. Use domain types or shared query-result helpers."
               },
               {
-                "selector": "TryStatement[handler=null]",
+                "selector": ":matches(FunctionDeclaration[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/], VariableDeclarator[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/] > :function, CallExpression[callee.name=/^(?:memo|forwardRef)$/] > :function, CallExpression[callee.property.name=/^(?:memo|forwardRef)$/] > :function) TryStatement[handler=null]",
                 "message": "Never write try/finally without catch inside a React component or hook. The compiler cannot lower it (\"Handle TryStatement without a catch clause\") and skips the whole function. Use promise.finally() for async cleanup, or a real catch that handles or reports the error. try/catch/finally is not this bailout."
               },
               {
@@ -7289,7 +7289,7 @@
                 "message": "Do not add generated or AI attribution strings to source output."
               },
               {
-                "selector": "TryStatement[handler=null]",
+                "selector": ":matches(FunctionDeclaration[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/], VariableDeclarator[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/] > :function, CallExpression[callee.name=/^(?:memo|forwardRef)$/] > :function, CallExpression[callee.property.name=/^(?:memo|forwardRef)$/] > :function) TryStatement[handler=null]",
                 "message": "Never write try/finally without catch inside a React component or hook. The compiler cannot lower it (\"Handle TryStatement without a catch clause\") and skips the whole function. Use promise.finally() for async cleanup, or a real catch that handles or reports the error. try/catch/finally is not this bailout."
               },
               {
@@ -10343,7 +10343,7 @@
                 "message": "Avoid `ReturnType<typeof useGet...>` with selector-capable query hooks. Use domain types or shared query-result helpers."
               },
               {
-                "selector": "TryStatement[handler=null]",
+                "selector": ":matches(FunctionDeclaration[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/], VariableDeclarator[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/] > :function, CallExpression[callee.name=/^(?:memo|forwardRef)$/] > :function, CallExpression[callee.property.name=/^(?:memo|forwardRef)$/] > :function) TryStatement[handler=null]",
                 "message": "Never write try/finally without catch inside a React component or hook. The compiler cannot lower it (\"Handle TryStatement without a catch clause\") and skips the whole function. Use promise.finally() for async cleanup, or a real catch that handles or reports the error. try/catch/finally is not this bailout."
               },
               {
@@ -11298,7 +11298,7 @@
                 "message": "Do not commit skipped tests."
               },
               {
-                "selector": "TryStatement[handler=null]",
+                "selector": ":matches(FunctionDeclaration[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/], VariableDeclarator[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/] > :function, CallExpression[callee.name=/^(?:memo|forwardRef)$/] > :function, CallExpression[callee.property.name=/^(?:memo|forwardRef)$/] > :function) TryStatement[handler=null]",
                 "message": "Never write try/finally without catch inside a React component or hook. The compiler cannot lower it (\"Handle TryStatement without a catch clause\") and skips the whole function. Use promise.finally() for async cleanup, or a real catch that handles or reports the error. try/catch/finally is not this bailout."
               },
               {
@@ -14362,7 +14362,7 @@
                 "message": "Prefer focused assertions over snapshots for production app regressions."
               },
               {
-                "selector": "TryStatement[handler=null]",
+                "selector": ":matches(FunctionDeclaration[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/], VariableDeclarator[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/] > :function, CallExpression[callee.name=/^(?:memo|forwardRef)$/] > :function, CallExpression[callee.property.name=/^(?:memo|forwardRef)$/] > :function) TryStatement[handler=null]",
                 "message": "Never write try/finally without catch inside a React component or hook. The compiler cannot lower it (\"Handle TryStatement without a catch clause\") and skips the whole function. Use promise.finally() for async cleanup, or a real catch that handles or reports the error. try/catch/finally is not this bailout."
               },
               {
@@ -15305,7 +15305,7 @@
                 "message": "Do not add generated or AI attribution strings to source output."
               },
               {
-                "selector": "TryStatement[handler=null]",
+                "selector": ":matches(FunctionDeclaration[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/], VariableDeclarator[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/] > :function, CallExpression[callee.name=/^(?:memo|forwardRef)$/] > :function, CallExpression[callee.property.name=/^(?:memo|forwardRef)$/] > :function) TryStatement[handler=null]",
                 "message": "Never write try/finally without catch inside a React component or hook. The compiler cannot lower it (\"Handle TryStatement without a catch clause\") and skips the whole function. Use promise.finally() for async cleanup, or a real catch that handles or reports the error. try/catch/finally is not this bailout."
               },
               {
@@ -18365,7 +18365,7 @@
                 "message": "Avoid `ReturnType<typeof useGet...>` with selector-capable query hooks. Use domain types or shared query-result helpers."
               },
               {
-                "selector": "TryStatement[handler=null]",
+                "selector": ":matches(FunctionDeclaration[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/], VariableDeclarator[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/] > :function, CallExpression[callee.name=/^(?:memo|forwardRef)$/] > :function, CallExpression[callee.property.name=/^(?:memo|forwardRef)$/] > :function) TryStatement[handler=null]",
                 "message": "Never write try/finally without catch inside a React component or hook. The compiler cannot lower it (\"Handle TryStatement without a catch clause\") and skips the whole function. Use promise.finally() for async cleanup, or a real catch that handles or reports the error. try/catch/finally is not this bailout."
               },
               {
@@ -22172,7 +22172,7 @@
                 "message": "Do not add generated or AI attribution strings to source output."
               },
               {
-                "selector": "TryStatement[handler=null]",
+                "selector": ":matches(FunctionDeclaration[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/], VariableDeclarator[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/] > :function, CallExpression[callee.name=/^(?:memo|forwardRef)$/] > :function, CallExpression[callee.property.name=/^(?:memo|forwardRef)$/] > :function) TryStatement[handler=null]",
                 "message": "Never write try/finally without catch inside a React component or hook. The compiler cannot lower it (\"Handle TryStatement without a catch clause\") and skips the whole function. Use promise.finally() for async cleanup, or a real catch that handles or reports the error. try/catch/finally is not this bailout."
               },
               {
@@ -25232,7 +25232,7 @@
                 "message": "Avoid `ReturnType<typeof useGet...>` with selector-capable query hooks. Use domain types or shared query-result helpers."
               },
               {
-                "selector": "TryStatement[handler=null]",
+                "selector": ":matches(FunctionDeclaration[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/], VariableDeclarator[id.name=/^(?:[A-Z](?![A-Z0-9_]*$)|use[A-Z0-9])/] > :function, CallExpression[callee.name=/^(?:memo|forwardRef)$/] > :function, CallExpression[callee.property.name=/^(?:memo|forwardRef)$/] > :function) TryStatement[handler=null]",
                 "message": "Never write try/finally without catch inside a React component or hook. The compiler cannot lower it (\"Handle TryStatement without a catch clause\") and skips the whole function. Use promise.finally() for async cleanup, or a real catch that handles or reports the error. try/catch/finally is not this bailout."
               },
               {

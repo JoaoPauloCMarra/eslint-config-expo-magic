@@ -2374,8 +2374,9 @@ describe('eslint-config-expo-magic', () => {
 				(group: { selectors: { selector: string }[] }) =>
 					group.selectors.map((selector) => selector.selector),
 			);
-			expect(selectors).toEqual(['TryStatement[handler=null]']);
-			expect(selectors).not.toContain('TryStatement[finalizer!=null]');
+			expect(selectors).toHaveLength(1);
+			expect(selectors[0]).toEndWith(' TryStatement[handler=null]');
+			expect(selectors[0]).not.toContain('finalizer');
 			const composed = config.createConfig({ reactCompiler: true });
 			const syntax = composed.flatMap((entry: FlatConfig) => {
 				const rule = entry.rules?.['no-restricted-syntax'];
@@ -2384,7 +2385,7 @@ describe('eslint-config-expo-magic', () => {
 			expect(
 				syntax.some(
 					(selector: { selector?: string }) =>
-						selector.selector === 'TryStatement[handler=null]',
+						selector.selector?.endsWith(' TryStatement[handler=null]'),
 				),
 			).toBe(true);
 			const without = config.createConfig({ reactCompiler: false, preset: 'fast' });
@@ -2395,7 +2396,7 @@ describe('eslint-config-expo-magic', () => {
 			expect(
 				withoutSyntax.some(
 					(selector: { selector?: string }) =>
-						selector.selector === 'TryStatement[handler=null]',
+						selector.selector?.endsWith(' TryStatement[handler=null]'),
 				),
 			).toBe(false);
 		});

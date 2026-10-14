@@ -101,7 +101,7 @@ The root and typed/strict presets keep core Expo, TypeScript, React Native, impo
 - **`react-hooks/immutability`**: Ensures proper immutable updates in React components.
 - **`react-hooks/refs`**: Prevents accessing refs during render and other ref-related issues.
 - **`react-hooks/purity`**: Ensures component functions remain pure (no side effects during render).
-- **`no-restricted-syntax` `TryStatement[handler=null]`**: When `reactCompiler` is on, forbids try/finally without catch. The compiler cannot lower it ("Handle TryStatement without a catch clause") and skips the whole function. Use `promise.finally()` or a real catch. try/catch/finally is not this bailout. Do not select `TryStatement[finalizer!=null]`.
+- **`no-restricted-syntax` `TryStatement[handler=null]`**: When `reactCompiler` is on, forbids try/finally without catch inside code the compiler compiles: components (capitalized names that are not ALL_CAPS constants), hooks (`use` followed by a capital letter or digit), `memo`/`forwardRef` callbacks, and any function nested in them. Services, scripts, tests, and module-level code keep try/finally. The compiler cannot lower it ("Handle TryStatement without a catch clause") and skips the whole function. Use `promise.finally()` or a real catch. try/catch/finally is not this bailout. Do not select `TryStatement[finalizer!=null]`.
 - **`react-hooks/unsupported-syntax`**: Blocks syntax that cannot be optimized by React Compiler.
 - **`react-hooks/set-state-in-render`**: Prevents calling setState during render (causes infinite loops).
 - **`react-hooks/preserve-manual-memoization`**: Ensures manual memoization doesn't conflict with compiler optimizations.
