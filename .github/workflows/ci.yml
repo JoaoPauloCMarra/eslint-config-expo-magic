@@ -94,3 +94,22 @@ jobs:
 
       - name: Run clean SDK 57 consumer smoke
         run: bun run smoke:clean-sdk57
+
+  # bun lint / bun fmt ship only in Bun canary for now. This job tracks parity
+  # with ESLint and Prettier and does not block the release workflow.
+  bun-canary-parity:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: canary
+
+      - name: Install dependencies
+        run: bun run ci
+
+      - name: Compare bun lint and bun fmt with ESLint and Prettier
+        run: bun run parity:bun
