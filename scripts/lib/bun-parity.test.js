@@ -85,6 +85,16 @@ describe('bun parity', () => {
 		expect(parseCheckOutput(output)).toEqual(['src/a.ts', 'src/b.ts']);
 	});
 
+	test('reads file names from colored check output', () => {
+		const output = [
+			'Checking formatting...',
+			'[\u001b[33mwarn\u001b[39m] src/a.ts',
+			'[\u001b[33mwarn\u001b[39m] Code style issues found in the above file.',
+		].join('\n');
+
+		expect(parseCheckOutput(output)).toEqual(['src/a.ts']);
+	});
+
 	test('reports files only one formatter flagged', () => {
 		expect(
 			compareFormat({

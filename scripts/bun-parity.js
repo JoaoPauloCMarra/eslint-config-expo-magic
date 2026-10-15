@@ -106,9 +106,16 @@ function checkLint() {
 
 // Both formatters print the `[warn]` lines to stderr.
 function checkedFiles(command, args) {
-	const { stdout, stderr } = run(command, args, rootDir, [0, 1]);
+	const { status, stdout, stderr } = run(command, args, rootDir, [0, 1]);
+	const files = parseCheckOutput(`${stdout}\n${stderr}`);
 
-	return parseCheckOutput(`${stdout}\n${stderr}`);
+	if (status === 1 && files.length === 0) {
+		throw new Error(
+			`${command} ${args.join(' ')} reported unformatted files, but none could be parsed:\n${stderr}`,
+		);
+	}
+
+	return files;
 }
 
 function checkFormat() {

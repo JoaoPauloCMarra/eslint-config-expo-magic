@@ -1,4 +1,5 @@
 const path = require('node:path');
+const { stripVTControlCharacters } = require('node:util');
 
 const reactHooksDivergence =
 	'Bun native react-hooks reports compiler findings that eslint-plugin-react-hooks 7.1.1 does not';
@@ -65,8 +66,9 @@ function compareLint({ eslint, bun, rootDir, knownDivergences = [] }) {
 
 // Prettier and `bun fmt --check` (with a Prettier config) print one
 // `[warn] <file>` line per unformatted file, then a `[warn]` summary line.
+// Prettier colors `warn` on GitHub Actions even when piped.
 function parseCheckOutput(output) {
-	return output
+	return stripVTControlCharacters(output)
 		.split('\n')
 		.filter((line) => line.startsWith('[warn] '))
 		.map((line) => line.slice('[warn] '.length).trim())
