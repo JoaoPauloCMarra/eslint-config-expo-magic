@@ -2,6 +2,8 @@
 // for `bun lint`. Each entry becomes an override in the same order, so later
 // entries win exactly as in ESLint flat config.
 
+const { intersectGlobs } = require('./intersect-globs.js');
+
 const renamedPrefixes = {
 	'@typescript-eslint': 'typescript',
 	'import-x': 'import',
@@ -76,6 +78,13 @@ function isOff(value) {
 	return level === 'off' || level === 0;
 }
 
+// A nested array in `files` is an AND-group; oxlint only takes an OR-list.
+function lowerGlobGroups(patterns) {
+	return patterns.flatMap((pattern) =>
+		Array.isArray(pattern) ? (intersectGlobs(pattern) ?? []) : [pattern],
+	);
+}
+
 function toOxlintConfig(entries, { jsPlugins = {}, jsPluginRules = {} } = {}) {
 	const plugins = new Set();
 	const usedJsPlugins = new Set();
@@ -136,9 +145,13 @@ function toOxlintConfig(entries, { jsPlugins = {}, jsPluginRules = {} } = {}) {
 		const globals = entry.languageOptions?.globals;
 		if (Object.keys(rules).length === 0 && !globals) continue;
 
+		const files = entry.files ? lowerGlobGroups(entry.files) : ['**/*'];
+		if (files.length === 0) continue;
+		const excludeFiles = entry.ignores ? lowerGlobGroups(entry.ignores) : [];
+
 		overrides.push({
-			files: entry.files ?? ['**/*'],
-			...(entry.ignores ? { excludeFiles: entry.ignores } : {}),
+			files,
+			...(excludeFiles.length > 0 ? { excludeFiles } : {}),
 			...(globals ? { globals: normalizeGlobals(globals) } : {}),
 			...(Object.keys(rules).length > 0 ? { rules } : {}),
 		});

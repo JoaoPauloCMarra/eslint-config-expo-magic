@@ -117,3 +117,7 @@ jobs:
       - name: Compare the Bun-only configs with the 5.x golden data
         if: ${{ !cancelled() }}
         run: bun run golden:bun
+
+      - name: Install the packed Bun-only package in a clean consumer
+        if: ${{ !cancelled() }}
+        run: bun run smoke:bun-consumer

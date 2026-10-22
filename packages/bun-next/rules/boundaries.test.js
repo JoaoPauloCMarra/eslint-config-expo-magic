@@ -1186,6 +1186,9 @@ export type Combined = Orders | X | typeof legacy;
 	});
 
 	describe('glob matching', () => {
+		// Each fuzz suite lints 600+ generated patterns with both plugins.
+		const fuzzTimeout = 120_000;
+
 		const tree = [
 			'a.ts',
 			'ab.ts',
@@ -1336,45 +1339,61 @@ export type Combined = Orders | X | typeof legacy;
 			return { compared, unsupported, reported };
 		}
 
-		it('matches and captures file descriptor globs like micromatch', () => {
-			const outcome = differential((pattern) => ({
-				'boundaries/files': [
-					{ category: 'any', pattern: '**' },
-					{ category: 'c', pattern, capture: ['one', 'two', 'three', 'four'] },
-				],
-			}));
+		it(
+			'matches and captures file descriptor globs like micromatch',
+			() => {
+				const outcome = differential((pattern) => ({
+					'boundaries/files': [
+						{ category: 'any', pattern: '**' },
+						{
+							category: 'c',
+							pattern,
+							capture: ['one', 'two', 'three', 'four'],
+						},
+					],
+				}));
 
-			expect(outcome.compared).toBeGreaterThan(600);
-			expect(outcome.unsupported).toBe(0);
-			expect(outcome.reported).toBeGreaterThan(30);
-		});
+				expect(outcome.compared).toBeGreaterThan(600);
+				expect(outcome.unsupported).toBe(0);
+				expect(outcome.reported).toBeGreaterThan(30);
+			},
+			fuzzTimeout,
+		);
 
-		it('matches element descriptor globs and element paths like micromatch', () => {
-			const outcome = differential((pattern) => ({
-				'boundaries/elements': [
-					{
-						type: 't',
-						pattern,
-						partialMatch: false,
-						capture: ['one', 'two', 'three', 'four'],
-					},
-				],
-				'boundaries/files': [{ category: 'any', pattern: '**' }],
-			}));
+		it(
+			'matches element descriptor globs and element paths like micromatch',
+			() => {
+				const outcome = differential((pattern) => ({
+					'boundaries/elements': [
+						{
+							type: 't',
+							pattern,
+							partialMatch: false,
+							capture: ['one', 'two', 'three', 'four'],
+						},
+					],
+					'boundaries/files': [{ category: 'any', pattern: '**' }],
+				}));
 
-			expect(outcome.compared).toBeGreaterThan(600);
-			expect(outcome.unsupported).toBe(0);
-			expect(outcome.reported).toBeGreaterThan(30);
-		});
+				expect(outcome.compared).toBeGreaterThan(600);
+				expect(outcome.unsupported).toBe(0);
+				expect(outcome.reported).toBeGreaterThan(30);
+			},
+			fuzzTimeout,
+		);
 
-		it('matches ignore patterns like micromatch', () => {
-			const outcome = differential((pattern) => ({
-				'boundaries/ignore': [pattern],
-				'boundaries/files': [{ category: 'any', pattern: '**' }],
-			}));
+		it(
+			'matches ignore patterns like micromatch',
+			() => {
+				const outcome = differential((pattern) => ({
+					'boundaries/ignore': [pattern],
+					'boundaries/files': [{ category: 'any', pattern: '**' }],
+				}));
 
-			expect(outcome.compared).toBeGreaterThan(600);
-			expect(outcome.unsupported).toBe(0);
-		});
+				expect(outcome.compared).toBeGreaterThan(600);
+				expect(outcome.unsupported).toBe(0);
+			},
+			fuzzTimeout,
+		);
 	});
 });

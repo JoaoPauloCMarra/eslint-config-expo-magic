@@ -63,17 +63,27 @@ It covers `test-project`, with and without type-aware rules. The results go in `
 
 ## Phases
 
-1. Golden data and RED test harness (`test-project/bun-golden/`, `scripts/lib/bun-golden.test.js`).
-2. Snapshot of the external rules, plus the `toOxlintConfig` converter with unit tests.
-3. `packages/bun-next` `createConfig` for the default profile; the findings golden passes.
-4. Port the 23 JavaScript-only rules; the findings and autofix goldens pass for every profile.
-5. Format golden and consumer contract.
-6. Benchmarks.
-7. Release day (gated): swap the packages, bump to 6.0.0, update the CHANGELOG, README, MIGRATING and generated reports, then `release:check`.
+1. Golden data and RED test harness (`test-project/bun-golden/`, `scripts/lib/bun-golden.test.js`). Done.
+2. Snapshot of the external rules, plus the `toOxlintConfig` converter with unit tests. Done.
+3. `packages/bun-next` `createConfig` for every profile; the findings golden passes. Done.
+4. Port the JavaScript-only rules; the findings and autofix goldens pass for every profile. Done.
+5. Package surface and consumer contract: `package.json`, exports, types (`type-tests.ts`), `createArchitectureConfig`, `expo-magic-init`, `pr-guardrails`, README and MIGRATING in `packages/bun-next/`, and `bun run smoke:bun-consumer`. Done.
+6. Benchmarks (`docs/BENCHMARKS.md`). Done.
+7. Release day (gated, see below).
+
+### Release-day checklist
+
+Start only when a stable Bun release ships `bun lint` and `bun run golden:bun`, `bun run parity:bun` and `bun run smoke:bun-consumer` pass on it (`BUN_PARITY_BIN=<stable bun>`).
+
+1. Replace `packages/eslint-config-expo-magic` with `packages/bun-next`: name `eslint-config-expo-magic`, version `6.0.0`, drop `private`, and set `engines.bun` to that stable release.
+2. Copy `packages/bun-next/README.md` to the root `README.md` (they must stay byte-identical) and move `packages/bun-next/MIGRATING.md` to the top of `docs/MIGRATING.md`.
+3. Point the golden, parity, bench and smoke scripts at the new path; keep the golden data and drop the 5.x-only scripts (`generate-bun-golden.js`, `snapshot-external-config.js`, the ESLint-based smoke lanes) and the ESLint devDependencies.
+4. Switch CI from `bun-version: latest` + canary job to the stable release, and make the Bun jobs blocking.
+5. Add the `## 6.0.0` CHANGELOG section, run `bun run report:config` and `bun run report:release-notes`, commit, then `bun run release:check`.
 
 ## Status (2026-10-22, Bun canary 1.4.4-canary.1+963452075)
 
-Phases 1–4 are done. `packages/bun-next` builds every profile with no npm package at runtime: the external preset tables are snapshotted in `utils/external-config.json` (`bun run snapshot:external`), and the 25 rules that needed ESLint plugin packages are dependency-free ports in `packages/bun-next/rules/` (expo, react-native, react-19-upgrade, testing-library, unused-imports, boundaries). Each port has differential tests that run the original plugin and the port side by side through ESLint and require identical messages, positions and fixes. `packages/bun-next/create-config.test.js` proves that `createConfig` and `createMobileAppConfig` deep-equal the 5.x config converted by `toOxlintConfig` for every profile.
+Phases 1–6 are done; the release is held for a stable Bun with `bun lint`. `packages/bun-next` builds every profile with no npm package at runtime: the external preset tables are snapshotted in `utils/external-config.json` (`bun run snapshot:external`), and the 25 rules that needed ESLint plugin packages are dependency-free ports in `packages/bun-next/rules/` (expo, react-native, react-19-upgrade, testing-library, unused-imports, boundaries). Each port has differential tests that run the original plugin and the port side by side through ESLint and require identical messages, positions and fixes. `packages/bun-next/create-config.test.js` proves that `createConfig` and `createMobileAppConfig` deep-equal the 5.x config converted by `toOxlintConfig` for every profile.
 
 `bun run golden:bun` lints `test-project` with the `bun-next` config for every profile on the latest Bun canary:
 

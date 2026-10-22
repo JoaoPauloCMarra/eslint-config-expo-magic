@@ -195,3 +195,52 @@ describe('toOxlintConfig', () => {
 		});
 	});
 });
+
+describe('toOxlintConfig files AND-groups', () => {
+	const rules = { 'no-console': 'error' };
+
+	test('lowers a nested AND-group to its intersection', () => {
+		const { overrides } = toOxlintConfig([
+			{
+				files: [['src/uikit/**/*.{ts,tsx}', 'src/**/*.tsx']],
+				rules,
+			},
+		]);
+
+		expect(overrides).toEqual([{ files: ['src/uikit/**/*.tsx'], rules }]);
+	});
+
+	test('keeps plain strings next to lowered groups', () => {
+		const { overrides } = toOxlintConfig([
+			{
+				files: ['a/**/*.ts', ['b/**/*.ts', '**/*.test.ts']],
+				rules,
+			},
+		]);
+
+		expect(overrides[0].files).toEqual(['a/**/*.ts', 'b/**/*.test.ts']);
+	});
+
+	test('drops the override when every group is empty', () => {
+		const { overrides } = toOxlintConfig([
+			{ files: [['a/**/*.ts', 'b/**/*.ts']], rules },
+			{ files: ['kept/**/*.ts'], rules },
+		]);
+
+		expect(overrides.map((override) => override.files)).toEqual([
+			['kept/**/*.ts'],
+		]);
+	});
+
+	test('lowers nested groups in ignores too', () => {
+		const { overrides } = toOxlintConfig([
+			{
+				files: ['src/**/*.ts'],
+				ignores: [['src/**/*.ts', 'src/x/**']],
+				rules,
+			},
+		]);
+
+		expect(overrides[0].excludeFiles).toEqual(['src/x/**/*.ts']);
+	});
+});

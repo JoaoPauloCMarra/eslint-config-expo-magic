@@ -14,6 +14,7 @@ const { spawnSync } = require('node:child_process');
 const profiles = require('../test-project/bun-golden/profiles.js');
 const { buildProfileConfig } = require('./lib/bun-golden-config.js');
 const { parsePeakRss, summarize } = require('./lib/bench.js');
+const { resolveBunBinary } = require('./lib/bun-binary.js');
 
 const rootDir = path.resolve(__dirname, '..');
 const fixtureDir = path.join(rootDir, 'test-project');
@@ -23,21 +24,6 @@ function options(name) {
 	return process.argv.flatMap((value, index) =>
 		process.argv[index - 1] === name ? [value] : [],
 	);
-}
-
-function resolveBun() {
-	if (process.env.BUN_PARITY_BIN) return process.env.BUN_PARITY_BIN;
-
-	const result = spawnSync(
-		'bunx',
-		['bun@canary', '-e', 'console.log(process.execPath)'],
-		{
-			encoding: 'utf8',
-		},
-	);
-	if (result.status !== 0) throw new Error(result.stderr);
-
-	return result.stdout.trim();
 }
 
 function measure(command, args, cwd) {
@@ -127,7 +113,7 @@ function main() {
 				? ['testing', 'fast'].includes(profile.name)
 				: profileNames.includes(profile.name)),
 	);
-	const bun = resolveBun();
+	const bun = resolveBunBinary();
 	const bunVersion = spawnSync(bun, ['--revision'], {
 		encoding: 'utf8',
 	}).stdout.trim();

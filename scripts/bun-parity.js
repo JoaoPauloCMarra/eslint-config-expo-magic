@@ -1,8 +1,10 @@
 #!/usr/bin/env bun
 
 // Compares Bun's built-in `bun lint` / `bun fmt --check` with ESLint and
-// Prettier on this repo. Runs the latest Bun canary through `bunx` (only canary
-// ships both commands as of 1.4.4). Set BUN_PARITY_BIN to test another binary.
+// Prettier on this repo with the latest Bun canary (only canary ships both
+// commands as of 1.4.4). Set BUN_PARITY_BIN to test another binary.
+
+const { resolveBunBinary } = require('./lib/bun-binary.js');
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -16,9 +18,7 @@ const {
 
 const rootDir = path.resolve(__dirname, '..');
 const fixtureDir = path.join(rootDir, 'test-project');
-const [bunBin, ...bunArgs] = process.env.BUN_PARITY_BIN
-	? [process.env.BUN_PARITY_BIN]
-	: ['bunx', 'bun@canary'];
+const bunBin = resolveBunBinary();
 const binDir = path.join(rootDir, 'node_modules/.bin');
 
 function run(command, args, cwd, allowedStatuses) {
@@ -57,7 +57,7 @@ function assertNoHijackingScripts() {
 // package.json script.
 function assertBuiltInCommands() {
 	for (const name of ['lint', 'fmt']) {
-		run(bunBin, [...bunArgs, name, '--help'], rootDir, [0]);
+		run(bunBin, [name, '--help'], rootDir, [0]);
 	}
 }
 
@@ -76,7 +76,7 @@ function checkLint() {
 	const bun = JSON.parse(
 		run(
 			bunBin,
-			[...bunArgs, 'lint', '--cwd', 'test-project', '-f', 'json'],
+			['lint', '--cwd', 'test-project', '-f', 'json'],
 			rootDir,
 			[0, 1],
 		).stdout,
@@ -125,7 +125,7 @@ function checkFormat() {
 		'--check',
 		'.',
 	]);
-	const bunFiles = checkedFiles(bunBin, [...bunArgs, 'fmt', '--check', '.']);
+	const bunFiles = checkedFiles(bunBin, ['fmt', '--check', '.']);
 	const { onlyPrettier, onlyBun } = compareFormat({ prettierFiles, bunFiles });
 
 	console.log(`fmt: ${prettierFiles.length} files need formatting in Prettier`);
@@ -137,9 +137,7 @@ function checkFormat() {
 
 function main() {
 	assertNoHijackingScripts();
-	console.log(
-		`bun ${run(bunBin, [...bunArgs, '--revision'], rootDir, [0]).stdout.trim()}`,
-	);
+	console.log(`bun ${run(bunBin, ['--revision'], rootDir, [0]).stdout.trim()}`);
 	assertBuiltInCommands();
 
 	const lintMatches = checkLint();

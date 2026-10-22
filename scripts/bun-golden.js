@@ -8,6 +8,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const profiles = require('../test-project/bun-golden/profiles.js');
+const { resolveBunBinary } = require('./lib/bun-binary.js');
 const { buildProfileConfig } = require('./lib/bun-golden-config.js');
 const {
 	compareFixes,
@@ -17,9 +18,7 @@ const {
 
 const rootDir = path.resolve(__dirname, '..');
 const fixtureDir = path.join(rootDir, 'test-project');
-const [bunBin, ...bunArgs] = process.env.BUN_PARITY_BIN
-	? [process.env.BUN_PARITY_BIN]
-	: ['bunx', 'bun@canary'];
+const bunBin = resolveBunBinary();
 
 function option(name) {
 	const index = process.argv.indexOf(name);
@@ -59,7 +58,6 @@ function fixProfile(profile, golden) {
 			const result = spawnSync(
 				bunBin,
 				[
-					...bunArgs,
 					'lint',
 					'--cwd',
 					workDir,
@@ -104,7 +102,6 @@ function lintProfile(profile, golden) {
 		const result = spawnSync(
 			bunBin,
 			[
-				...bunArgs,
 				'lint',
 				'--cwd',
 				fixtureDir,
