@@ -1,0 +1,1295 @@
+{
+	"meta": {
+		"no-unused-imports": {
+			"type": "problem",
+			"docs": {
+				"description": "Disallow unused variables",
+				"extendsBaseRule": true,
+				"recommended": "recommended",
+				"url": "https://github.com/sweepline/eslint-plugin-unused-imports/blob/master/docs/rules/no-unused-imports.md"
+			},
+			"fixable": "code",
+			"hasSuggestions": true,
+			"messages": {
+				"removeUnusedImportDeclaration": "Remove unused import declaration.",
+				"removeUnusedVar": "Remove unused variable \"{{varName}}\".",
+				"unusedVar": "'{{varName}}' is {{action}} but never used{{additional}}.",
+				"usedIgnoredVar": "'{{varName}}' is marked as ignored but is used{{additional}}.",
+				"usedOnlyAsType": "'{{varName}}' is {{action}} but only used as a type{{additional}}."
+			},
+			"schema": [
+				{
+					"oneOf": [
+						{
+							"type": "string",
+							"description": "Broad setting for unused variables to target.",
+							"enum": [
+								"all",
+								"local"
+							]
+						},
+						{
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"args": {
+									"type": "string",
+									"description": "Whether to check all, some, or no arguments.",
+									"enum": [
+										"all",
+										"after-used",
+										"none"
+									]
+								},
+								"argsIgnorePattern": {
+									"type": "string",
+									"description": "Regular expressions of argument names to not check for usage."
+								},
+								"caughtErrors": {
+									"type": "string",
+									"description": "Whether to check catch block arguments.",
+									"enum": [
+										"all",
+										"none"
+									]
+								},
+								"caughtErrorsIgnorePattern": {
+									"type": "string",
+									"description": "Regular expressions of catch block argument names to not check for usage."
+								},
+								"destructuredArrayIgnorePattern": {
+									"type": "string",
+									"description": "Regular expressions of destructured array variable names to not check for usage."
+								},
+								"enableAutofixRemoval": {
+									"type": "object",
+									"additionalProperties": false,
+									"description": "Configurable automatic fixes for different types of unused variables.",
+									"properties": {
+										"imports": {
+											"type": "boolean",
+											"description": "Whether to enable automatic removal of unused imports."
+										}
+									}
+								},
+								"ignoreClassWithStaticInitBlock": {
+									"type": "boolean",
+									"description": "Whether to ignore classes with at least one static initialization block."
+								},
+								"ignoreRestSiblings": {
+									"type": "boolean",
+									"description": "Whether to ignore sibling properties in `...` destructuring."
+								},
+								"ignoreUsingDeclarations": {
+									"type": "boolean",
+									"description": "Whether to ignore using or await using declarations."
+								},
+								"reportUsedIgnorePattern": {
+									"type": "boolean",
+									"description": "Whether to report variables that match any of the valid ignore pattern options if they have been used."
+								},
+								"vars": {
+									"type": "string",
+									"description": "Whether to check all variables or only locally-declared variables.",
+									"enum": [
+										"all",
+										"local"
+									]
+								},
+								"varsIgnorePattern": {
+									"type": "string",
+									"description": "Regular expressions of variable names to not check for usage."
+								}
+							}
+						}
+					]
+				}
+			]
+		}
+	},
+	"cases": [
+		{
+			"name": "no-unused-imports: test-project/App.tsx",
+			"rule": "no-unused-imports",
+			"files": {
+				"App.tsx": "/// <reference path=\"foo\" />\nimport React, { useState, useEffect, useRef } from 'react';\nimport ReactDOM from 'react-dom';\n\n// prettier-ignore\n// ❌ This should trigger no-unsafe-negation\nconst _unsafe = !'b' in { b: 1 };\nconsole.log(_unsafe);\n\n// ❌ This should trigger react/no-render-return-value\nconst container = {} as any;\n// @ts-expect-error - testing render return\nconst _val = ReactDOM.render(<div />, container);\n\n// ❌ This should trigger react/no-find-dom-node\n// @ts-expect-error - testing findDOMNode\nReactDOM.findDOMNode(this);\n\n// ❌ This should trigger import-x/default\nimport Def from 'react-native';\nconsole.log(Def);\n\n// ❌ This should trigger import-x/named\nimport { NonExistent } from 'react';\nconsole.log(NonExistent);\n\n// ❌ This should trigger import-x/no-named-as-default\nimport namedExport from './types';\nconsole.log(namedExport);\n\n// ❌ This should trigger import-x/no-named-as-default-member\nimport DefaultObj from './types';\nconsole.log(DefaultObj.namedExport);\n\n// ❌ This should trigger import-x/named\nimport { nonExistentMember } from './types';\nconsole.log(nonExistentMember);\n\n// ❌ This should trigger import-x/named\nimport { AlsoNonExistent } from './types';\nconsole.log(AlsoNonExistent);\n\nconst TriggerHooks = () => {\n\tconst [count, setCount] = useState(0);\n\n\t// ❌ This should trigger react-hooks/rules-of-hooks\n\tif (Math.random() > 0.5) {\n\t\tuseState(0);\n\t}\n\n\t// ❌ This should trigger react-hooks/use-memo\n\tconst _memoized = React.useMemo(() => {\n\t\treturn count * 2;\n\t}, []);\n\tconsole.log(_memoized);\n\n\t// ❌ This should trigger react-hooks/set-state-in-effect\n\t// ❌ This should trigger react-hooks/set-state-in-effect\n\tconst [loop, setLoop] = useState({});\n\tuseEffect(() => {\n\t\tsetLoop({});\n\t}, [loop]);\n\t// No dependencies!\n\n\t// ❌ This should trigger react-hooks/static-components\n\t// A component that could be static but uses a prop in a way that prevents it?\n\t// Actually, the rule might want us to NOT use hooks in some cases.\n\tconst StaticComp = () => {\n\t\treturn (\n\t\t\t<View>\n\t\t\t\t<Text>Static</Text>\n\t\t\t</View>\n\t\t);\n\t};\n\tconsole.log(StaticComp);\n\n\t// ❌ This should trigger react-hooks/globals\n\t_globalVar++;\n\n\treturn (\n\t\t<View>\n\t\t\t<Text>{count}</Text>\n\t\t\t{/* ❌ This should trigger react-hooks/static-components */}\n\t\t\t{(() => {\n\t\t\t\tconst Inner = () => <Text>Inner</Text>;\n\t\t\t\treturn <Inner />;\n\t\t\t})()}\n\t\t</View>\n\t);\n};\nconsole.log(TriggerHooks);\n\n// ❌ This should trigger react-hooks/static-components\nconst _Static = () => {\n\tconst Nested = () => <div />;\n\treturn <Nested />;\n};\n\n// ❌ This should trigger react-hooks/globals\nlet _globalVar = 0;\nconst _GlobalMutation = () => {\n\t_globalVar++;\n\treturn <div />;\n};\n\n// ❌ This should trigger react/no-is-mounted\nclass IsMountedComponent extends React.Component {\n\tcomponentDidMount() {\n\t\t// @ts-expect-error - testing isMounted\n\t\tif (this.isMounted()) {\n\t\t\tconsole.log('mounted');\n\t\t}\n\t}\n\trender() {\n\t\treturn null;\n\t}\n}\nconsole.log(IsMountedComponent);\n\n// ❌ This should trigger react-hooks/error-boundaries\nclass MyErrorBoundary extends React.Component {\n\tcomponentDidCatch() {}\n\trender() {\n\t\treturn <View>{this.props.children}</View>;\n\t}\n}\n\nconst HookInErrorBoundary = () => {\n\treturn (\n\t\t<MyErrorBoundary>\n\t\t\t{/* @ts-expect-error - trigger hook in error boundary? no, that's not it */}\n\t\t\t{/* maybe this rule is about something else */}\n\t\t\t<Text>Test</Text>\n\t\t</MyErrorBoundary>\n\t);\n};\nconsole.log(HookInErrorBoundary);\n\n// ❌ This should trigger react-hooks/immutability\nconst MutateInComp = (props: any) => {\n\tprops.foo = 1;\n\treturn null;\n};\nconsole.log(MutateInComp);\n\n// ❌ This should trigger react-hooks/component-hook-factories\nconst hookFactory = () => {\n\treturn () => {\n\t\tuseState(0);\n\t\treturn null;\n\t};\n};\nconsole.log(hookFactory);\n\n// ❌ This should trigger react-hooks/globals\nconst _GlobalWindowComp = () => {\n\t// @ts-expect-error - testing global mutation\n\twindow.someGlobal = 1;\n\treturn null;\n};\nconsole.log(_GlobalWindowComp);\n\n// ❌ This should trigger react-hooks/component-hook-factories\nfunction _createComponentFactory() {\n\treturn function NestedComp() {\n\t\t// ❌ This should trigger react-hooks/rules-of-hooks AND potentially component-hook-factories\n\t\tuseState(0);\n\t\treturn null;\n\t};\n}\nconsole.log(_createComponentFactory);\n\n// ❌ This should trigger react-hooks/error-boundaries\nclass _ErrorBoundaryWithHooks extends React.Component {\n\tcomponentDidCatch() {}\n\trender() {\n\t\treturn null;\n\t}\n}\n// ❌ Potential violation if it sees this as a component with hooks?\n// Documentation says it warns when hooks are used in a way that interferes with error boundaries.\nconst _CompWithHook = () => {\n\tuseState(0);\n\treturn <_ErrorBoundaryWithHooks />;\n};\nconsole.log(_CompWithHook);\n// ❌ This should trigger react-hooks/error-boundaries\nclass BadErrorBoundary extends React.Component<any> {\n\tcomponentDidCatch() {}\n\trender() {\n\t\tuseMemo(() => 1, []);\n\t\treturn this.props.children;\n\t}\n}\nconsole.log(BadErrorBoundary);\n\n// ❌ This should trigger react-hooks/component-hook-factories\nconst hookFactoryWithJsx = () => {\n\tuseState(0);\n\treturn () => <View />;\n};\nconsole.log(hookFactoryWithJsx);\n\n// ❌ This should trigger react-hooks/immutability\nconst MutationInEffect = ({ item }: any) => {\n\tuseEffect(() => {\n\t\titem.mutated = true;\n\t}, [item]);\n\treturn null;\n};\nconsole.log(MutationInEffect);\n// ❌ This should trigger react-hooks/error-boundaries\nconst _BadTryCatch = () => {\n\ttry {\n\t\treturn <View />;\n\t} catch (e) {\n\t\tconsole.log(e);\n\t\treturn null;\n\t}\n};\n// ❌ This should trigger react-native/split-platform-components\nimport { DatePickerIOS } from 'react-native';\nconsole.log(DatePickerIOS);\n\nimport { FC, ReactElement } from 'react';\nconst TestFC: FC = () => null;\nconsole.log(TestFC);\n\n// ❌ This should trigger @typescript-eslint/no-import-type-side-effects\nimport { type SomeType } from './types';\nconst t: SomeType = {} as any;\nconsole.log(t);\n\nimport { View, Text, StyleSheet, SafeAreaView } from 'react-native';\nconsole.log(SafeAreaView);\n\n// ✅ This should resolve with TS alias support\nimport AliasTarget from '@/types';\nconsole.log(AliasTarget);\n\n// ❌ This should trigger @typescript-eslint/triple-slash-reference\n/// <reference path=\"foo\" />\n\n// ❌ This should trigger no-unused-vars\nconst unusedVariable = 'I am not used';\n\n// ❌ This should trigger @typescript-eslint/no-explicit-any\nconst badFunction = (param: any) => {\n\tconsole.log(param);\n};\n\n// ❌ This should trigger react/no-unstable-nested-components\nfunction App() {\n\tconst NestedComponent = () => <Text>Hi</Text>; // Created on every render\n\n\treturn (\n\t\t<View>\n\t\t\t<NestedComponent />\n\t\t\t<Text style={{ margin: 10, padding: 20 }}>Inline styled text</Text>\n\t\t</View>\n\t);\n}\n\nexport default App;\n\n// ❌ This should trigger @typescript-eslint/no-floating-promises\nconst asyncFunction = async () => {\n\treturn 'data';\n};\nasyncFunction();\n\n// ❌ This should trigger @typescript-eslint/consistent-type-definitions\ninterface BadInterface {\n\tname: string;\n}\n\n// ❌ This should trigger react-hooks/exhaustive-deps\nexport function ComponentWithHook() {\n\tconst [count] = useState(0);\n\tuseEffect(() => {\n\t\tconsole.log(count);\n\t}, []);\n\n\treturn <Text>{count}</Text>;\n}\n\n// ❌ This should trigger @typescript-eslint/no-confusing-void-expression\nconst voidExpr = (cond: boolean) => (cond ? console.log(1) : console.log(2));\n\n// ❌ This should trigger react-native/no-inline-styles\nconst BadStyledComponent = () => (\n\t<View style={{ margin: 10 }}>\n\t\t<Text>Bad styling</Text>\n\t</View>\n);\n\n// ❌ This should trigger no-console\nconsole.log('This is a console log');\n\n// ❌ This should trigger eqeqeq\nconst eqtest = 1 == '1';\n\n// ❌ This should trigger no-dupe-args\nfunction duplicateArgs(a: any, b: any) {\n\t// To trigger no-dupe-args, we need actual duplicate names in JS,\n\t// but TS usually catches this first.\n}\n\n// ❌ This should trigger no-dupe-keys\nconst duplicateKeys = {\n\ta: 1,\n\ta: 2,\n};\n\n// ❌ This should trigger no-duplicate-case\nfunction switchWithDuplicates(value: number) {\n\tswitch (value) {\n\t\tcase 1:\n\t\t\treturn 'one';\n\t\tcase 1:\n\t\t\treturn 'duplicate';\n\t\tdefault:\n\t\t\treturn 'other';\n\t}\n}\n\n// ❌ This should trigger no-empty-pattern\nconst {} = {};\n\n// ❌ This should trigger no-extend-native\n(Object.prototype as any).badExtension = () => {};\n\n// ❌ This should trigger no-extra-bind\nconst boundFunction = function () {\n\treturn 1;\n}.bind({});\n\n// ❌ This should trigger no-unreachable\nfunction unreachableCode() {\n\treturn true;\n\tconsole.log('unreachable');\n}\n\n// ✅ Parenthesized negation is explicit, so no-unsafe-negation allows it\nconst unsafeneg = (!'key') in {};\n\n// ❌ This should trigger no-unused-expressions\n1 + 1;\n\n// ❌ This should trigger no-unused-labels\nunusedLabel: for (let i = 0; i < 1; i++) {\n\tbreak;\n}\n\n// ❌ This should trigger no-with\n// with ({ a: 1 }) { console.log(a); } // Not allowed in strict mode (TS default)\n\n// ❌ This should trigger @typescript-eslint/no-unnecessary-type-assertion\nconst unnecasrt = 'hello' as string;\n\n// ❌ This should trigger @typescript-eslint/prefer-optional-chain\nconst optchainobj: any = {};\nconst optchainresult = optchainobj && optchainobj.prop;\n\n// ❌ This should trigger @typescript-eslint/no-meaningless-void-operator\nconst meaninglessvoid = void 1;\n\n// ❌ This should trigger @typescript-eslint/array-type\nconst arrtype: Array<string> = ['hello'];\n\n// ❌ This should trigger @typescript-eslint/no-empty-object-type\ntype EmptyObjType = {};\n\n// ❌ This should trigger @typescript-eslint/no-unnecessary-type-constraint\nfunction unnecessaryConstraint<T extends any>(param: T) {\n\treturn param;\n}\n\n// ❌ This should trigger @typescript-eslint/no-wrapper-object-types\nconst wrappedObj: String = 'hi';\n\n// ❌ This should trigger @typescript-eslint/triple-slash-reference\n/// <reference path=\"./App.tsx\" />\n\n// ❌ This should trigger @typescript-eslint/no-extra-non-null-assertion\nconst extranonnull: any = {};\nconst extranonnullres = extranonnull!!.prop;\n\n// ❌ This should trigger @typescript-eslint/no-redeclare\nvar redeclareVar = 'first';\nvar redeclareVar = 'second';\n\n// ❌ This should trigger @typescript-eslint/no-useless-constructor\nclass UselessConstructor {\n\tconstructor() {}\n}\n\n// ❌ This should trigger @typescript-eslint/naming-convention\nconst bad_variable_name = 1;\n\n// ❌ This should trigger react/jsx-key\nfunction ComponentWithList() {\n\treturn (\n\t\t<View>\n\t\t\t{[1, 2].map((item) => (\n\t\t\t\t<Text>{item}</Text>\n\t\t\t))}\n\t\t</View>\n\t);\n}\n\n// ❌ This should trigger react/jsx-no-comment-textnodes\nfunction ComponentWithComment() {\n\treturn <View>// This is not a comment node but text</View>;\n}\n\n// ❌ This should trigger react/jsx-no-duplicate-props\nconst DupeProp = () => (\n\t<Text key=\"1\" key=\"2\">\n\t\tHi\n\t</Text>\n);\n\n// ❌ This should trigger react/jsx-no-undef\n// const UndefComp = () => <UndefinedComponent />;\n\n// ❌ This should trigger react/no-children-prop\nconst ChildrenProp = () => <View children={<Text>Hi</Text>} />;\n\n// ❌ This should trigger react/no-danger-with-children\nconst DangerChildren = () => (\n\t<View dangerouslySetInnerHTML={{ __html: '' }}>Hi</View>\n);\n\n// ❌ This should trigger react/self-closing-comp\nconst SelfClose = () => <View></View>;\n\n// ❌ This should trigger react/jsx-no-useless-fragment\nconst UselessFrag = () => (\n\t<>\n\t\t<Text>Hi</Text>\n\t</>\n);\n\n// ❌ This should trigger react/jsx-no-leaked-render\nconst LeakedRender = () => <View>{0 && <Text>Zero</Text>}</View>;\n\n// ❌ This should trigger react-native/no-unused-styles\nconst unusedStyles = StyleSheet.create({\n\tunused: { color: 'red' },\n});\n\n// ❌ This should trigger react-native/no-single-element-style-arrays\nconst singleStyleArray = () => <View style={[unusedStyles.unused]} />;\n\n// ❌ This should trigger react-19-upgrade/no-default-props\nfunction DefProps({ name }: any) {\n\treturn <Text>{name}</Text>;\n}\nDefProps.defaultProps = { name: 'Hi' };\n\n// ❌ This should trigger react-19-upgrade/no-legacy-context\nfunction LegacyContext(props: any, context: any) {\n\treturn <Text>Hi</Text>;\n}\n(LegacyContext as any).contextTypes = {};\n\n// ❌ This should trigger react-19-upgrade/no-string-refs\nclass StringRef extends React.Component {\n\trender() {\n\t\treturn <View ref=\"myRef\" />;\n\t}\n}\n\n// ❌ This should trigger react-19-upgrade/no-factories\nconst factory = React.createFactory('div');\n\n// ❌ This should trigger @typescript-eslint/await-thenable\nasync function awaitThenable() {\n\tawait 'not a promise';\n}\n\n// ❌ This should trigger @typescript-eslint/prefer-readonly\nclass PreferReadonly {\n\tprivate neverAssigned = 1;\n\tgetValue() {\n\t\treturn this.neverAssigned;\n\t}\n}\n\n// ❌ This should trigger export-specific best practices\nconst envVar = process.env.DATABASE_URL;\nconst envVarOk = process.env.NODE_ENV;\nconst dynamicEnv = process.env[bad_variable_name as any]; // Should trigger expo/no-dynamic-env-var\n\n// ❌ This should trigger expo/no-env-var-destructuring\nconst { EXPO_PUBLIC_TEST } = process.env;\n\n// ❌ This should trigger @typescript-eslint/naming-convention\nclass bad_class_name {}\nconsole.log(bad_class_name);\nenum BadEnum {\n\tbad_member,\n}\nconsole.log(BadEnum.bad_member);\n\n// ❌ This should trigger use-isnan\nif (NaN == NaN) {\n\tconsole.log('NaN');\n}\n\n// ❌ This should trigger valid-typeof\nconst typeofcheck = typeof {} === 'strin';\nconsole.log(typeofcheck);\n\n// ❌ This should trigger react/no-deprecated\nclass DeprecatedTest extends React.Component {\n\tcomponentWillMount() {\n\t\tconsole.log('deprecated');\n\t}\n\trender() {\n\t\treturn null;\n\t}\n}\nconsole.log(DeprecatedTest);\n\n// ❌ This should trigger no-redeclare (in a plain JS file maybe? or if enabled)\n// For TS we use @typescript-eslint/no-redeclare\nvar x = 1;\nvar x = 2;\nconsole.log(x);\n\n// ❌ This should trigger no-empty-character-class\nconst emptyregex = /[]/;\nconsole.log(emptyregex);\n\n// ❌ This should trigger react/no-direct-mutation-state\nclass MutateState extends React.Component {\n\tmutate() {\n\t\t// @ts-expect-error - testing direct mutation\n\t\tthis.state = { a: 2 };\n\t}\n\trender() {\n\t\treturn <ProgressBarAndroid />;\n\t}\n}\nconsole.log(MutateState);\n\n// ❌ This should trigger react/no-is-mounted\nclass IsMountedCheck extends React.Component {\n\tcheck() {\n\t\t(this as any).isMounted();\n\t}\n\trender() {\n\t\treturn null;\n\t}\n}\nconsole.log(IsMountedCheck);\n\n// ❌ This should trigger react/no-this-in-sfc\nfunction ThisInSFC(props: any) {\n\treturn <div>{this.props.name}</div>;\n}\nconsole.log(ThisInSFC);\n\n// ❌ This should trigger react/no-unescaped-entities\nfunction Unescaped() {\n\treturn <div> ' </div>;\n}\nconsole.log(Unescaped);\n\n// ❌ This should trigger react/require-render-return\nclass NoReturn extends React.Component {\n\trender() {\n\t\tconsole.log('no return');\n\t}\n}\nconsole.log(NoReturn);\n\n// ❌ This should trigger react/jsx-uses-react and react/jsx-uses-vars (if they trigger violations)\nfunction UsesReact(_props: any) {\n\tconst Var = 'div';\n\treturn <Var />;\n}\nconsole.log(UsesReact);\n\n// ❌ This should trigger react-19-upgrade/no-prop-types\nconst PropTypeComp = () => null;\n// @ts-expect-error - testing propTypes\nPropTypeComp.propTypes = {};\nconsole.log(PropTypeComp);\n\n// ❌ This should trigger react-19-upgrade/no-legacy-context\nclass LegacyContextClass extends React.Component {\n\t// @ts-expect-error - testing legacy context\n\tstatic childContextTypes = {\n\t\tcolor: () => null,\n\t};\n\tgetChildContext() {\n\t\treturn { color: 'red' };\n\t}\n\trender() {\n\t\treturn null;\n\t}\n}\nconsole.log(LegacyContextClass);\n\n// ❌ This should trigger @typescript-eslint/no-meaningless-void-operator\nvoid console.log('meaningless');\n\n// ❌ This should trigger @typescript-eslint/no-unnecessary-type-assertion\nconst assertionVal: string = 'hi';\nconst _assertionVal2 = assertionVal as string;\n\n// ✅ Parenthesized negation is explicit, so no-unsafe-negation allows it\nconst _negation = (!'a') in { a: 1 };\n\nexport const exportedA = 1;\nexport const exportedB = 2;\n\n// ✅ Parenthesized negation is explicit, so no-unsafe-negation allows it\nif ((!'x') in {}) {\n\tconsole.log('unsafe');\n}\n\n// ❌ Trigger interfaces linting (type-only rule)\ninterface ITest {\n\tname: string;\n}\nconst itest: ITest = { name: 'test' };\nconsole.log(itest);\n"
+			},
+			"lint": [
+				"App.tsx"
+			],
+			"messages": [
+				{
+					"file": "App.tsx",
+					"rule": "no-unused-imports",
+					"line": 2,
+					"column": 38,
+					"endLine": 2,
+					"endColumn": 44,
+					"message": "'useRef' is defined but never used."
+				},
+				{
+					"file": "App.tsx",
+					"rule": "no-unused-imports",
+					"line": 225,
+					"column": 14,
+					"endLine": 225,
+					"endColumn": 26,
+					"message": "'ReactElement' is defined but never used."
+				}
+			],
+			"output": {
+				"App.tsx": "/// <reference path=\"foo\" />\nimport React, { useState, useEffect } from 'react';\nimport ReactDOM from 'react-dom';\n\n// prettier-ignore\n// ❌ This should trigger no-unsafe-negation\nconst _unsafe = !'b' in { b: 1 };\nconsole.log(_unsafe);\n\n// ❌ This should trigger react/no-render-return-value\nconst container = {} as any;\n// @ts-expect-error - testing render return\nconst _val = ReactDOM.render(<div />, container);\n\n// ❌ This should trigger react/no-find-dom-node\n// @ts-expect-error - testing findDOMNode\nReactDOM.findDOMNode(this);\n\n// ❌ This should trigger import-x/default\nimport Def from 'react-native';\nconsole.log(Def);\n\n// ❌ This should trigger import-x/named\nimport { NonExistent } from 'react';\nconsole.log(NonExistent);\n\n// ❌ This should trigger import-x/no-named-as-default\nimport namedExport from './types';\nconsole.log(namedExport);\n\n// ❌ This should trigger import-x/no-named-as-default-member\nimport DefaultObj from './types';\nconsole.log(DefaultObj.namedExport);\n\n// ❌ This should trigger import-x/named\nimport { nonExistentMember } from './types';\nconsole.log(nonExistentMember);\n\n// ❌ This should trigger import-x/named\nimport { AlsoNonExistent } from './types';\nconsole.log(AlsoNonExistent);\n\nconst TriggerHooks = () => {\n\tconst [count, setCount] = useState(0);\n\n\t// ❌ This should trigger react-hooks/rules-of-hooks\n\tif (Math.random() > 0.5) {\n\t\tuseState(0);\n\t}\n\n\t// ❌ This should trigger react-hooks/use-memo\n\tconst _memoized = React.useMemo(() => {\n\t\treturn count * 2;\n\t}, []);\n\tconsole.log(_memoized);\n\n\t// ❌ This should trigger react-hooks/set-state-in-effect\n\t// ❌ This should trigger react-hooks/set-state-in-effect\n\tconst [loop, setLoop] = useState({});\n\tuseEffect(() => {\n\t\tsetLoop({});\n\t}, [loop]);\n\t// No dependencies!\n\n\t// ❌ This should trigger react-hooks/static-components\n\t// A component that could be static but uses a prop in a way that prevents it?\n\t// Actually, the rule might want us to NOT use hooks in some cases.\n\tconst StaticComp = () => {\n\t\treturn (\n\t\t\t<View>\n\t\t\t\t<Text>Static</Text>\n\t\t\t</View>\n\t\t);\n\t};\n\tconsole.log(StaticComp);\n\n\t// ❌ This should trigger react-hooks/globals\n\t_globalVar++;\n\n\treturn (\n\t\t<View>\n\t\t\t<Text>{count}</Text>\n\t\t\t{/* ❌ This should trigger react-hooks/static-components */}\n\t\t\t{(() => {\n\t\t\t\tconst Inner = () => <Text>Inner</Text>;\n\t\t\t\treturn <Inner />;\n\t\t\t})()}\n\t\t</View>\n\t);\n};\nconsole.log(TriggerHooks);\n\n// ❌ This should trigger react-hooks/static-components\nconst _Static = () => {\n\tconst Nested = () => <div />;\n\treturn <Nested />;\n};\n\n// ❌ This should trigger react-hooks/globals\nlet _globalVar = 0;\nconst _GlobalMutation = () => {\n\t_globalVar++;\n\treturn <div />;\n};\n\n// ❌ This should trigger react/no-is-mounted\nclass IsMountedComponent extends React.Component {\n\tcomponentDidMount() {\n\t\t// @ts-expect-error - testing isMounted\n\t\tif (this.isMounted()) {\n\t\t\tconsole.log('mounted');\n\t\t}\n\t}\n\trender() {\n\t\treturn null;\n\t}\n}\nconsole.log(IsMountedComponent);\n\n// ❌ This should trigger react-hooks/error-boundaries\nclass MyErrorBoundary extends React.Component {\n\tcomponentDidCatch() {}\n\trender() {\n\t\treturn <View>{this.props.children}</View>;\n\t}\n}\n\nconst HookInErrorBoundary = () => {\n\treturn (\n\t\t<MyErrorBoundary>\n\t\t\t{/* @ts-expect-error - trigger hook in error boundary? no, that's not it */}\n\t\t\t{/* maybe this rule is about something else */}\n\t\t\t<Text>Test</Text>\n\t\t</MyErrorBoundary>\n\t);\n};\nconsole.log(HookInErrorBoundary);\n\n// ❌ This should trigger react-hooks/immutability\nconst MutateInComp = (props: any) => {\n\tprops.foo = 1;\n\treturn null;\n};\nconsole.log(MutateInComp);\n\n// ❌ This should trigger react-hooks/component-hook-factories\nconst hookFactory = () => {\n\treturn () => {\n\t\tuseState(0);\n\t\treturn null;\n\t};\n};\nconsole.log(hookFactory);\n\n// ❌ This should trigger react-hooks/globals\nconst _GlobalWindowComp = () => {\n\t// @ts-expect-error - testing global mutation\n\twindow.someGlobal = 1;\n\treturn null;\n};\nconsole.log(_GlobalWindowComp);\n\n// ❌ This should trigger react-hooks/component-hook-factories\nfunction _createComponentFactory() {\n\treturn function NestedComp() {\n\t\t// ❌ This should trigger react-hooks/rules-of-hooks AND potentially component-hook-factories\n\t\tuseState(0);\n\t\treturn null;\n\t};\n}\nconsole.log(_createComponentFactory);\n\n// ❌ This should trigger react-hooks/error-boundaries\nclass _ErrorBoundaryWithHooks extends React.Component {\n\tcomponentDidCatch() {}\n\trender() {\n\t\treturn null;\n\t}\n}\n// ❌ Potential violation if it sees this as a component with hooks?\n// Documentation says it warns when hooks are used in a way that interferes with error boundaries.\nconst _CompWithHook = () => {\n\tuseState(0);\n\treturn <_ErrorBoundaryWithHooks />;\n};\nconsole.log(_CompWithHook);\n// ❌ This should trigger react-hooks/error-boundaries\nclass BadErrorBoundary extends React.Component<any> {\n\tcomponentDidCatch() {}\n\trender() {\n\t\tuseMemo(() => 1, []);\n\t\treturn this.props.children;\n\t}\n}\nconsole.log(BadErrorBoundary);\n\n// ❌ This should trigger react-hooks/component-hook-factories\nconst hookFactoryWithJsx = () => {\n\tuseState(0);\n\treturn () => <View />;\n};\nconsole.log(hookFactoryWithJsx);\n\n// ❌ This should trigger react-hooks/immutability\nconst MutationInEffect = ({ item }: any) => {\n\tuseEffect(() => {\n\t\titem.mutated = true;\n\t}, [item]);\n\treturn null;\n};\nconsole.log(MutationInEffect);\n// ❌ This should trigger react-hooks/error-boundaries\nconst _BadTryCatch = () => {\n\ttry {\n\t\treturn <View />;\n\t} catch (e) {\n\t\tconsole.log(e);\n\t\treturn null;\n\t}\n};\n// ❌ This should trigger react-native/split-platform-components\nimport { DatePickerIOS } from 'react-native';\nconsole.log(DatePickerIOS);\n\nimport { FC } from 'react';\nconst TestFC: FC = () => null;\nconsole.log(TestFC);\n\n// ❌ This should trigger @typescript-eslint/no-import-type-side-effects\nimport { type SomeType } from './types';\nconst t: SomeType = {} as any;\nconsole.log(t);\n\nimport { View, Text, StyleSheet, SafeAreaView } from 'react-native';\nconsole.log(SafeAreaView);\n\n// ✅ This should resolve with TS alias support\nimport AliasTarget from '@/types';\nconsole.log(AliasTarget);\n\n// ❌ This should trigger @typescript-eslint/triple-slash-reference\n/// <reference path=\"foo\" />\n\n// ❌ This should trigger no-unused-vars\nconst unusedVariable = 'I am not used';\n\n// ❌ This should trigger @typescript-eslint/no-explicit-any\nconst badFunction = (param: any) => {\n\tconsole.log(param);\n};\n\n// ❌ This should trigger react/no-unstable-nested-components\nfunction App() {\n\tconst NestedComponent = () => <Text>Hi</Text>; // Created on every render\n\n\treturn (\n\t\t<View>\n\t\t\t<NestedComponent />\n\t\t\t<Text style={{ margin: 10, padding: 20 }}>Inline styled text</Text>\n\t\t</View>\n\t);\n}\n\nexport default App;\n\n// ❌ This should trigger @typescript-eslint/no-floating-promises\nconst asyncFunction = async () => {\n\treturn 'data';\n};\nasyncFunction();\n\n// ❌ This should trigger @typescript-eslint/consistent-type-definitions\ninterface BadInterface {\n\tname: string;\n}\n\n// ❌ This should trigger react-hooks/exhaustive-deps\nexport function ComponentWithHook() {\n\tconst [count] = useState(0);\n\tuseEffect(() => {\n\t\tconsole.log(count);\n\t}, []);\n\n\treturn <Text>{count}</Text>;\n}\n\n// ❌ This should trigger @typescript-eslint/no-confusing-void-expression\nconst voidExpr = (cond: boolean) => (cond ? console.log(1) : console.log(2));\n\n// ❌ This should trigger react-native/no-inline-styles\nconst BadStyledComponent = () => (\n\t<View style={{ margin: 10 }}>\n\t\t<Text>Bad styling</Text>\n\t</View>\n);\n\n// ❌ This should trigger no-console\nconsole.log('This is a console log');\n\n// ❌ This should trigger eqeqeq\nconst eqtest = 1 == '1';\n\n// ❌ This should trigger no-dupe-args\nfunction duplicateArgs(a: any, b: any) {\n\t// To trigger no-dupe-args, we need actual duplicate names in JS,\n\t// but TS usually catches this first.\n}\n\n// ❌ This should trigger no-dupe-keys\nconst duplicateKeys = {\n\ta: 1,\n\ta: 2,\n};\n\n// ❌ This should trigger no-duplicate-case\nfunction switchWithDuplicates(value: number) {\n\tswitch (value) {\n\t\tcase 1:\n\t\t\treturn 'one';\n\t\tcase 1:\n\t\t\treturn 'duplicate';\n\t\tdefault:\n\t\t\treturn 'other';\n\t}\n}\n\n// ❌ This should trigger no-empty-pattern\nconst {} = {};\n\n// ❌ This should trigger no-extend-native\n(Object.prototype as any).badExtension = () => {};\n\n// ❌ This should trigger no-extra-bind\nconst boundFunction = function () {\n\treturn 1;\n}.bind({});\n\n// ❌ This should trigger no-unreachable\nfunction unreachableCode() {\n\treturn true;\n\tconsole.log('unreachable');\n}\n\n// ✅ Parenthesized negation is explicit, so no-unsafe-negation allows it\nconst unsafeneg = (!'key') in {};\n\n// ❌ This should trigger no-unused-expressions\n1 + 1;\n\n// ❌ This should trigger no-unused-labels\nunusedLabel: for (let i = 0; i < 1; i++) {\n\tbreak;\n}\n\n// ❌ This should trigger no-with\n// with ({ a: 1 }) { console.log(a); } // Not allowed in strict mode (TS default)\n\n// ❌ This should trigger @typescript-eslint/no-unnecessary-type-assertion\nconst unnecasrt = 'hello' as string;\n\n// ❌ This should trigger @typescript-eslint/prefer-optional-chain\nconst optchainobj: any = {};\nconst optchainresult = optchainobj && optchainobj.prop;\n\n// ❌ This should trigger @typescript-eslint/no-meaningless-void-operator\nconst meaninglessvoid = void 1;\n\n// ❌ This should trigger @typescript-eslint/array-type\nconst arrtype: Array<string> = ['hello'];\n\n// ❌ This should trigger @typescript-eslint/no-empty-object-type\ntype EmptyObjType = {};\n\n// ❌ This should trigger @typescript-eslint/no-unnecessary-type-constraint\nfunction unnecessaryConstraint<T extends any>(param: T) {\n\treturn param;\n}\n\n// ❌ This should trigger @typescript-eslint/no-wrapper-object-types\nconst wrappedObj: String = 'hi';\n\n// ❌ This should trigger @typescript-eslint/triple-slash-reference\n/// <reference path=\"./App.tsx\" />\n\n// ❌ This should trigger @typescript-eslint/no-extra-non-null-assertion\nconst extranonnull: any = {};\nconst extranonnullres = extranonnull!!.prop;\n\n// ❌ This should trigger @typescript-eslint/no-redeclare\nvar redeclareVar = 'first';\nvar redeclareVar = 'second';\n\n// ❌ This should trigger @typescript-eslint/no-useless-constructor\nclass UselessConstructor {\n\tconstructor() {}\n}\n\n// ❌ This should trigger @typescript-eslint/naming-convention\nconst bad_variable_name = 1;\n\n// ❌ This should trigger react/jsx-key\nfunction ComponentWithList() {\n\treturn (\n\t\t<View>\n\t\t\t{[1, 2].map((item) => (\n\t\t\t\t<Text>{item}</Text>\n\t\t\t))}\n\t\t</View>\n\t);\n}\n\n// ❌ This should trigger react/jsx-no-comment-textnodes\nfunction ComponentWithComment() {\n\treturn <View>// This is not a comment node but text</View>;\n}\n\n// ❌ This should trigger react/jsx-no-duplicate-props\nconst DupeProp = () => (\n\t<Text key=\"1\" key=\"2\">\n\t\tHi\n\t</Text>\n);\n\n// ❌ This should trigger react/jsx-no-undef\n// const UndefComp = () => <UndefinedComponent />;\n\n// ❌ This should trigger react/no-children-prop\nconst ChildrenProp = () => <View children={<Text>Hi</Text>} />;\n\n// ❌ This should trigger react/no-danger-with-children\nconst DangerChildren = () => (\n\t<View dangerouslySetInnerHTML={{ __html: '' }}>Hi</View>\n);\n\n// ❌ This should trigger react/self-closing-comp\nconst SelfClose = () => <View></View>;\n\n// ❌ This should trigger react/jsx-no-useless-fragment\nconst UselessFrag = () => (\n\t<>\n\t\t<Text>Hi</Text>\n\t</>\n);\n\n// ❌ This should trigger react/jsx-no-leaked-render\nconst LeakedRender = () => <View>{0 && <Text>Zero</Text>}</View>;\n\n// ❌ This should trigger react-native/no-unused-styles\nconst unusedStyles = StyleSheet.create({\n\tunused: { color: 'red' },\n});\n\n// ❌ This should trigger react-native/no-single-element-style-arrays\nconst singleStyleArray = () => <View style={[unusedStyles.unused]} />;\n\n// ❌ This should trigger react-19-upgrade/no-default-props\nfunction DefProps({ name }: any) {\n\treturn <Text>{name}</Text>;\n}\nDefProps.defaultProps = { name: 'Hi' };\n\n// ❌ This should trigger react-19-upgrade/no-legacy-context\nfunction LegacyContext(props: any, context: any) {\n\treturn <Text>Hi</Text>;\n}\n(LegacyContext as any).contextTypes = {};\n\n// ❌ This should trigger react-19-upgrade/no-string-refs\nclass StringRef extends React.Component {\n\trender() {\n\t\treturn <View ref=\"myRef\" />;\n\t}\n}\n\n// ❌ This should trigger react-19-upgrade/no-factories\nconst factory = React.createFactory('div');\n\n// ❌ This should trigger @typescript-eslint/await-thenable\nasync function awaitThenable() {\n\tawait 'not a promise';\n}\n\n// ❌ This should trigger @typescript-eslint/prefer-readonly\nclass PreferReadonly {\n\tprivate neverAssigned = 1;\n\tgetValue() {\n\t\treturn this.neverAssigned;\n\t}\n}\n\n// ❌ This should trigger export-specific best practices\nconst envVar = process.env.DATABASE_URL;\nconst envVarOk = process.env.NODE_ENV;\nconst dynamicEnv = process.env[bad_variable_name as any]; // Should trigger expo/no-dynamic-env-var\n\n// ❌ This should trigger expo/no-env-var-destructuring\nconst { EXPO_PUBLIC_TEST } = process.env;\n\n// ❌ This should trigger @typescript-eslint/naming-convention\nclass bad_class_name {}\nconsole.log(bad_class_name);\nenum BadEnum {\n\tbad_member,\n}\nconsole.log(BadEnum.bad_member);\n\n// ❌ This should trigger use-isnan\nif (NaN == NaN) {\n\tconsole.log('NaN');\n}\n\n// ❌ This should trigger valid-typeof\nconst typeofcheck = typeof {} === 'strin';\nconsole.log(typeofcheck);\n\n// ❌ This should trigger react/no-deprecated\nclass DeprecatedTest extends React.Component {\n\tcomponentWillMount() {\n\t\tconsole.log('deprecated');\n\t}\n\trender() {\n\t\treturn null;\n\t}\n}\nconsole.log(DeprecatedTest);\n\n// ❌ This should trigger no-redeclare (in a plain JS file maybe? or if enabled)\n// For TS we use @typescript-eslint/no-redeclare\nvar x = 1;\nvar x = 2;\nconsole.log(x);\n\n// ❌ This should trigger no-empty-character-class\nconst emptyregex = /[]/;\nconsole.log(emptyregex);\n\n// ❌ This should trigger react/no-direct-mutation-state\nclass MutateState extends React.Component {\n\tmutate() {\n\t\t// @ts-expect-error - testing direct mutation\n\t\tthis.state = { a: 2 };\n\t}\n\trender() {\n\t\treturn <ProgressBarAndroid />;\n\t}\n}\nconsole.log(MutateState);\n\n// ❌ This should trigger react/no-is-mounted\nclass IsMountedCheck extends React.Component {\n\tcheck() {\n\t\t(this as any).isMounted();\n\t}\n\trender() {\n\t\treturn null;\n\t}\n}\nconsole.log(IsMountedCheck);\n\n// ❌ This should trigger react/no-this-in-sfc\nfunction ThisInSFC(props: any) {\n\treturn <div>{this.props.name}</div>;\n}\nconsole.log(ThisInSFC);\n\n// ❌ This should trigger react/no-unescaped-entities\nfunction Unescaped() {\n\treturn <div> ' </div>;\n}\nconsole.log(Unescaped);\n\n// ❌ This should trigger react/require-render-return\nclass NoReturn extends React.Component {\n\trender() {\n\t\tconsole.log('no return');\n\t}\n}\nconsole.log(NoReturn);\n\n// ❌ This should trigger react/jsx-uses-react and react/jsx-uses-vars (if they trigger violations)\nfunction UsesReact(_props: any) {\n\tconst Var = 'div';\n\treturn <Var />;\n}\nconsole.log(UsesReact);\n\n// ❌ This should trigger react-19-upgrade/no-prop-types\nconst PropTypeComp = () => null;\n// @ts-expect-error - testing propTypes\nPropTypeComp.propTypes = {};\nconsole.log(PropTypeComp);\n\n// ❌ This should trigger react-19-upgrade/no-legacy-context\nclass LegacyContextClass extends React.Component {\n\t// @ts-expect-error - testing legacy context\n\tstatic childContextTypes = {\n\t\tcolor: () => null,\n\t};\n\tgetChildContext() {\n\t\treturn { color: 'red' };\n\t}\n\trender() {\n\t\treturn null;\n\t}\n}\nconsole.log(LegacyContextClass);\n\n// ❌ This should trigger @typescript-eslint/no-meaningless-void-operator\nvoid console.log('meaningless');\n\n// ❌ This should trigger @typescript-eslint/no-unnecessary-type-assertion\nconst assertionVal: string = 'hi';\nconst _assertionVal2 = assertionVal as string;\n\n// ✅ Parenthesized negation is explicit, so no-unsafe-negation allows it\nconst _negation = (!'a') in { a: 1 };\n\nexport const exportedA = 1;\nexport const exportedB = 2;\n\n// ✅ Parenthesized negation is explicit, so no-unsafe-negation allows it\nif ((!'x') in {}) {\n\tconsole.log('unsafe');\n}\n\n// ❌ Trigger interfaces linting (type-only rule)\ninterface ITest {\n\tname: string;\n}\nconst itest: ITest = { name: 'test' };\nconsole.log(itest);\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: test-project/__tests__/App.test.tsx",
+			"rule": "no-unused-imports",
+			"files": {
+				"__tests__/App.test.tsx": "import React from 'react';\nimport { View, Text } from 'react-native';\nimport { render, screen } from '@testing-library/react-native';\n// ❌ This should trigger testing-library/no-dom-import\nimport { fireEvent } from '@testing-library/dom';\nconsole.log(fireEvent);\n\n// ❌ Test importing mocks (should trigger jest/no-mocks-import)\nimport '../__mocks__/App.tsx';\n\ndescribe('Test Suite', () => {\n\tconst mockFn = jest.fn();\n\tconsole.log(mockFn);\n\n\tit('should be before hook', () => {\n\t\texpect(1).toBe(1);\n\t});\n\n\t// ❌ Hook not at top (should trigger jest/prefer-hooks-on-top)\n\tbeforeEach(() => {\n\t\t// Setup\n\t});\n\n\t// ❌ Disabled test (should trigger jest/no-disabled-tests and jest/no-test-prefixes)\n\tit.skip('should be disabled', () => {\n\t\texpect(true).toBe(true);\n\t});\n\n\t// ❌ Focused test (should trigger jest/no-focused-tests)\n\tit.only('should be focused', () => {\n\t\texpect(true).toBe(true);\n\t});\n\n\t// ❌ Test with conditional expect (should trigger jest/no-conditional-expect)\n\tit('should have conditional expect', () => {\n\t\tif (Math.random() > 0.5) {\n\t\t\texpect(true).toBe(true);\n\t\t}\n\t});\n\n\t// ❌ Test with done callback (should trigger jest/no-done-callback)\n\tit('should use done callback', (done) => {\n\t\tsetTimeout(() => {\n\t\t\texpect(true).toBe(true);\n\t\t\tdone();\n\t\t}, 100);\n\t});\n\n\t// ❌ Test with identical title (should trigger jest/no-identical-title)\n\tit('should work', () => {\n\t\texpect(true).toBe(true);\n\t});\n\tit('should work', () => {\n\t\t// ❌ Identical title\n\t\texpect(false).toBe(false);\n\t});\n\n\tit('snapshot interpolation', () => {\n\t\tconst name = 'test';\n\t\tconst title = `snapshot ${name}`;\n\t\t// ❌ This should trigger jest/no-interpolation-in-snapshots\n\t\texpect({ name }).toMatchSnapshot(title);\n\t});\n\n\t// ❌ Test with interpolation in snapshot (should trigger jest/no-interpolation-in-snapshots)\n\tit('should have interpolation in snapshot', () => {\n\t\tconst value = 'test';\n\t\texpect(`interp ${value}`).toMatchSnapshot();\n\t});\n\n\t// ❌ Test using jasmine globals (should trigger jest/no-jasmine-globals)\n\tit('should use jasmine globals', () => {\n\t\t(global as any).spyOn(console, 'log');\n\t\texpect(true).toBe(true);\n\t});\n\n\t// ❌ Test with alias methods (should trigger jest/no-alias-methods)\n\tit('should use alias methods', () => {\n\t\texpect(1).toHaveBeenCalled(); // Should prefer toBeCalledWith or similar if configured, or just use an alias\n\t});\n\n\t// ❌ Test with commented out tests (should trigger jest/no-commented-out-tests)\n\t// it(\"should be commented out\", () => { expect(true).toBe(true); });\n\n\t// ❌ Test with invalid describe callback (should trigger jest/valid-describe-callback)\n\tdescribe('invalid describe', () => {\n\t\treturn 1; // ❌ Describe should not return anything\n\t});\n\n\t// ❌ Test with invalid expect (should trigger jest/valid-expect)\n\tit('should have invalid expect', () => {\n\t\texpect(true); // ❌ Missing matcher\n\t});\n\n\t// ❌ Test with invalid expect in promise (should trigger jest/valid-expect-in-promise)\n\tit('should have invalid expect in promise', () => {\n\t\treturn Promise.resolve().then(() => {\n\t\t\texpect(true);\n\t\t});\n\t});\n\n\t// ❌ Test with invalid title (should trigger jest/valid-title)\n\tit('', () => {\n\t\texpect(true).toBe(true);\n\t});\n\n\t// ❌ Async test without await (should trigger testing-library/await-async-queries)\n\tit('should handle async operations', async () => {\n\t\tconst _element = screen.findByText('Test');\n\t});\n\n\t// ❌ Test using toEqual for primitive (should trigger jest/prefer-to-be)\n\tit('should use toBe for primitives', () => {\n\t\texpect(1).toEqual(1);\n\t});\n\n\t// ❌ Async test without await (should trigger testing-library/no-await-sync-queries)\n\tit('should not await sync queries', async () => {\n\t\tawait screen.getByText('Sync Test');\n\t});\n\n\t// ❌ Test using debug (should trigger testing-library/no-debugging-utils)\n\tit('should not use debug', () => {\n\t\tscreen.debug();\n\t});\n\n\t// This would require actually importing from @testing-library/dom\n});\n\n// ❌ Test using fit/fdescribe (should trigger jest/no-test-prefixes)\nfit('should be focused using fit', () => {\n\texpect(true).toBe(true);\n});\n\nfdescribe('focused describe', () => {\n\tit('should work', () => {});\n});\n\nxit('skipped with xit', () => {});\nxdescribe('skipped with xdescribe', () => {});\n\n// ❌ Test using deprecated functions (should trigger jest/no-deprecated-functions)\n// @ts-expect-error - testing deprecated function\nconst _mocked = jest.genMockFromModule('fs');\nconsole.log(_mocked);\n\n// ❌ Async test without await (should trigger jest/valid-expect-in-promise)\nit('should not use expect in promise', () => {\n\tPromise.resolve().then(() => {\n\t\texpect(1).toBe(1);\n\t});\n});\n\n// ❌ Test using standalone expect (should trigger jest/no-standalone-expect)\n// It must be outside describe/it\nexpect(1).toBe(1);\n\nfunction helper() {\n\t// Also here\n\texpect(1).toBe(1);\n}\nconsole.log(helper);\n\n// ❌ Test exporting from test file (should trigger jest/no-export)\nexport const exportedValue = 'test';\n\ndescribe('more jest rules', () => {\n\t// ❌ Test using alias methods (should trigger jest/no-alias-methods)\n\tit('should not use alias methods', () => {\n\t\tconst mock = jest.fn();\n\t\tmock();\n\t\texpect(mock).toBeCalled();\n\t});\n\n\t// ❌ Test using interpolation in snaps\t// ❌ This should trigger jest/no-interpolation-in-snapshots\n\tit('triggers no-interpolation-in-snapshots', () => {\n\t\tconst val = 1;\n\t\texpect(val).toMatchInlineSnapshot(`interpolated ${val}`);\n\t});\n\n\t// ❌ Test using expect in promise (should trigger jest/valid-expect-in-promise)\n\tit('should not use expect in promise again', () => {\n\t\tPromise.resolve().then(() => {\n\t\t\texpect(1).toBe(1);\n\t\t});\n\t});\n});\n"
+			},
+			"lint": [
+				"__tests__/App.test.tsx"
+			],
+			"messages": [
+				{
+					"file": "__tests__/App.test.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 8,
+					"endLine": 1,
+					"endColumn": 13,
+					"message": "'React' is defined but never used."
+				},
+				{
+					"file": "__tests__/App.test.tsx",
+					"rule": "no-unused-imports",
+					"line": 2,
+					"column": 10,
+					"endLine": 2,
+					"endColumn": 14,
+					"message": "'View' is defined but never used."
+				},
+				{
+					"file": "__tests__/App.test.tsx",
+					"rule": "no-unused-imports",
+					"line": 2,
+					"column": 16,
+					"endLine": 2,
+					"endColumn": 20,
+					"message": "'Text' is defined but never used."
+				},
+				{
+					"file": "__tests__/App.test.tsx",
+					"rule": "no-unused-imports",
+					"line": 3,
+					"column": 10,
+					"endLine": 3,
+					"endColumn": 16,
+					"message": "'render' is defined but never used."
+				}
+			],
+			"output": {
+				"__tests__/App.test.tsx": "import { screen } from '@testing-library/react-native';\n// ❌ This should trigger testing-library/no-dom-import\nimport { fireEvent } from '@testing-library/dom';\nconsole.log(fireEvent);\n\n// ❌ Test importing mocks (should trigger jest/no-mocks-import)\nimport '../__mocks__/App.tsx';\n\ndescribe('Test Suite', () => {\n\tconst mockFn = jest.fn();\n\tconsole.log(mockFn);\n\n\tit('should be before hook', () => {\n\t\texpect(1).toBe(1);\n\t});\n\n\t// ❌ Hook not at top (should trigger jest/prefer-hooks-on-top)\n\tbeforeEach(() => {\n\t\t// Setup\n\t});\n\n\t// ❌ Disabled test (should trigger jest/no-disabled-tests and jest/no-test-prefixes)\n\tit.skip('should be disabled', () => {\n\t\texpect(true).toBe(true);\n\t});\n\n\t// ❌ Focused test (should trigger jest/no-focused-tests)\n\tit.only('should be focused', () => {\n\t\texpect(true).toBe(true);\n\t});\n\n\t// ❌ Test with conditional expect (should trigger jest/no-conditional-expect)\n\tit('should have conditional expect', () => {\n\t\tif (Math.random() > 0.5) {\n\t\t\texpect(true).toBe(true);\n\t\t}\n\t});\n\n\t// ❌ Test with done callback (should trigger jest/no-done-callback)\n\tit('should use done callback', (done) => {\n\t\tsetTimeout(() => {\n\t\t\texpect(true).toBe(true);\n\t\t\tdone();\n\t\t}, 100);\n\t});\n\n\t// ❌ Test with identical title (should trigger jest/no-identical-title)\n\tit('should work', () => {\n\t\texpect(true).toBe(true);\n\t});\n\tit('should work', () => {\n\t\t// ❌ Identical title\n\t\texpect(false).toBe(false);\n\t});\n\n\tit('snapshot interpolation', () => {\n\t\tconst name = 'test';\n\t\tconst title = `snapshot ${name}`;\n\t\t// ❌ This should trigger jest/no-interpolation-in-snapshots\n\t\texpect({ name }).toMatchSnapshot(title);\n\t});\n\n\t// ❌ Test with interpolation in snapshot (should trigger jest/no-interpolation-in-snapshots)\n\tit('should have interpolation in snapshot', () => {\n\t\tconst value = 'test';\n\t\texpect(`interp ${value}`).toMatchSnapshot();\n\t});\n\n\t// ❌ Test using jasmine globals (should trigger jest/no-jasmine-globals)\n\tit('should use jasmine globals', () => {\n\t\t(global as any).spyOn(console, 'log');\n\t\texpect(true).toBe(true);\n\t});\n\n\t// ❌ Test with alias methods (should trigger jest/no-alias-methods)\n\tit('should use alias methods', () => {\n\t\texpect(1).toHaveBeenCalled(); // Should prefer toBeCalledWith or similar if configured, or just use an alias\n\t});\n\n\t// ❌ Test with commented out tests (should trigger jest/no-commented-out-tests)\n\t// it(\"should be commented out\", () => { expect(true).toBe(true); });\n\n\t// ❌ Test with invalid describe callback (should trigger jest/valid-describe-callback)\n\tdescribe('invalid describe', () => {\n\t\treturn 1; // ❌ Describe should not return anything\n\t});\n\n\t// ❌ Test with invalid expect (should trigger jest/valid-expect)\n\tit('should have invalid expect', () => {\n\t\texpect(true); // ❌ Missing matcher\n\t});\n\n\t// ❌ Test with invalid expect in promise (should trigger jest/valid-expect-in-promise)\n\tit('should have invalid expect in promise', () => {\n\t\treturn Promise.resolve().then(() => {\n\t\t\texpect(true);\n\t\t});\n\t});\n\n\t// ❌ Test with invalid title (should trigger jest/valid-title)\n\tit('', () => {\n\t\texpect(true).toBe(true);\n\t});\n\n\t// ❌ Async test without await (should trigger testing-library/await-async-queries)\n\tit('should handle async operations', async () => {\n\t\tconst _element = screen.findByText('Test');\n\t});\n\n\t// ❌ Test using toEqual for primitive (should trigger jest/prefer-to-be)\n\tit('should use toBe for primitives', () => {\n\t\texpect(1).toEqual(1);\n\t});\n\n\t// ❌ Async test without await (should trigger testing-library/no-await-sync-queries)\n\tit('should not await sync queries', async () => {\n\t\tawait screen.getByText('Sync Test');\n\t});\n\n\t// ❌ Test using debug (should trigger testing-library/no-debugging-utils)\n\tit('should not use debug', () => {\n\t\tscreen.debug();\n\t});\n\n\t// This would require actually importing from @testing-library/dom\n});\n\n// ❌ Test using fit/fdescribe (should trigger jest/no-test-prefixes)\nfit('should be focused using fit', () => {\n\texpect(true).toBe(true);\n});\n\nfdescribe('focused describe', () => {\n\tit('should work', () => {});\n});\n\nxit('skipped with xit', () => {});\nxdescribe('skipped with xdescribe', () => {});\n\n// ❌ Test using deprecated functions (should trigger jest/no-deprecated-functions)\n// @ts-expect-error - testing deprecated function\nconst _mocked = jest.genMockFromModule('fs');\nconsole.log(_mocked);\n\n// ❌ Async test without await (should trigger jest/valid-expect-in-promise)\nit('should not use expect in promise', () => {\n\tPromise.resolve().then(() => {\n\t\texpect(1).toBe(1);\n\t});\n});\n\n// ❌ Test using standalone expect (should trigger jest/no-standalone-expect)\n// It must be outside describe/it\nexpect(1).toBe(1);\n\nfunction helper() {\n\t// Also here\n\texpect(1).toBe(1);\n}\nconsole.log(helper);\n\n// ❌ Test exporting from test file (should trigger jest/no-export)\nexport const exportedValue = 'test';\n\ndescribe('more jest rules', () => {\n\t// ❌ Test using alias methods (should trigger jest/no-alias-methods)\n\tit('should not use alias methods', () => {\n\t\tconst mock = jest.fn();\n\t\tmock();\n\t\texpect(mock).toBeCalled();\n\t});\n\n\t// ❌ Test using interpolation in snaps\t// ❌ This should trigger jest/no-interpolation-in-snapshots\n\tit('triggers no-interpolation-in-snapshots', () => {\n\t\tconst val = 1;\n\t\texpect(val).toMatchInlineSnapshot(`interpolated ${val}`);\n\t});\n\n\t// ❌ Test using expect in promise (should trigger jest/valid-expect-in-promise)\n\tit('should not use expect in promise again', () => {\n\t\tPromise.resolve().then(() => {\n\t\t\texpect(1).toBe(1);\n\t\t});\n\t});\n});\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: test-project/components/ImportsAdvanced.tsx",
+			"rule": "no-unused-imports",
+			"files": {
+				"components/ImportsAdvanced.tsx": "import React from 'react';\nimport { View } from 'react-native';\nimport { Text } from 'react-native';\nimport fs from 'fs';\nimport path from 'path';\n\n// Import advanced violations\n// import-x/first\nimport { useState } from 'react';\n\n// import-x/no-amd\ndefine(['module'], function(module) {});\n\n// import-x/no-anonymous-default-export\nexport default function() {};\n\n// import-x/no-duplicates\nimport { View as V1 } from 'react-native';\nimport { View as V2 } from 'react-native';\n\n// import-x/no-unresolved\nimport { NonExistent } from 'non-existent-module';\n\n// import-x/no-webpack-loader-syntax\nimport 'style-loader!css-loader!styles.css';\n\n// import-x/order\nimport z from 'z';\nimport a from 'a';\n\n// import-x/first\nimport b from 'b';\n\n// import-x/no-duplicates\nimport { Text as T1 } from 'react-native';\nimport { Text as T2 } from 'react-native';\n\n// import-x/no-unresolved\nimport nonexistent from 'nonexistent';\n\nexport const ImportsAdvanced = () => {\n  return (\n    <View>\n      <Text>Imports</Text>\n    </View>\n  );\n};\n"
+			},
+			"lint": [
+				"components/ImportsAdvanced.tsx"
+			],
+			"messages": [
+				{
+					"file": "components/ImportsAdvanced.tsx",
+					"rule": "no-unused-imports",
+					"line": 4,
+					"column": 8,
+					"endLine": 4,
+					"endColumn": 10,
+					"message": "'fs' is defined but never used."
+				},
+				{
+					"file": "components/ImportsAdvanced.tsx",
+					"rule": "no-unused-imports",
+					"line": 5,
+					"column": 8,
+					"endLine": 5,
+					"endColumn": 12,
+					"message": "'path' is defined but never used."
+				},
+				{
+					"file": "components/ImportsAdvanced.tsx",
+					"rule": "no-unused-imports",
+					"line": 9,
+					"column": 10,
+					"endLine": 9,
+					"endColumn": 18,
+					"message": "'useState' is defined but never used."
+				},
+				{
+					"file": "components/ImportsAdvanced.tsx",
+					"rule": "no-unused-imports",
+					"line": 18,
+					"column": 18,
+					"endLine": 18,
+					"endColumn": 20,
+					"message": "'V1' is defined but never used."
+				},
+				{
+					"file": "components/ImportsAdvanced.tsx",
+					"rule": "no-unused-imports",
+					"line": 19,
+					"column": 18,
+					"endLine": 19,
+					"endColumn": 20,
+					"message": "'V2' is defined but never used."
+				},
+				{
+					"file": "components/ImportsAdvanced.tsx",
+					"rule": "no-unused-imports",
+					"line": 22,
+					"column": 10,
+					"endLine": 22,
+					"endColumn": 21,
+					"message": "'NonExistent' is defined but never used."
+				},
+				{
+					"file": "components/ImportsAdvanced.tsx",
+					"rule": "no-unused-imports",
+					"line": 28,
+					"column": 8,
+					"endLine": 28,
+					"endColumn": 9,
+					"message": "'z' is defined but never used."
+				},
+				{
+					"file": "components/ImportsAdvanced.tsx",
+					"rule": "no-unused-imports",
+					"line": 29,
+					"column": 8,
+					"endLine": 29,
+					"endColumn": 9,
+					"message": "'a' is defined but never used."
+				},
+				{
+					"file": "components/ImportsAdvanced.tsx",
+					"rule": "no-unused-imports",
+					"line": 32,
+					"column": 8,
+					"endLine": 32,
+					"endColumn": 9,
+					"message": "'b' is defined but never used."
+				},
+				{
+					"file": "components/ImportsAdvanced.tsx",
+					"rule": "no-unused-imports",
+					"line": 35,
+					"column": 18,
+					"endLine": 35,
+					"endColumn": 20,
+					"message": "'T1' is defined but never used."
+				},
+				{
+					"file": "components/ImportsAdvanced.tsx",
+					"rule": "no-unused-imports",
+					"line": 36,
+					"column": 18,
+					"endLine": 36,
+					"endColumn": 20,
+					"message": "'T2' is defined but never used."
+				},
+				{
+					"file": "components/ImportsAdvanced.tsx",
+					"rule": "no-unused-imports",
+					"line": 39,
+					"column": 8,
+					"endLine": 39,
+					"endColumn": 19,
+					"message": "'nonexistent' is defined but never used."
+				}
+			],
+			"output": {
+				"components/ImportsAdvanced.tsx": "import React from 'react';\nimport { View } from 'react-native';\nimport { Text } from 'react-native';\n\n// Import advanced violations\n// import-x/first\n\n// import-x/no-amd\ndefine(['module'], function(module) {});\n\n// import-x/no-anonymous-default-export\nexport default function() {};\n\n// import-x/no-duplicates\n\n// import-x/no-unresolved\n\n// import-x/no-webpack-loader-syntax\nimport 'style-loader!css-loader!styles.css';\n\n// import-x/order\n\n// import-x/first\n\n// import-x/no-duplicates\n\n// import-x/no-unresolved\n\nexport const ImportsAdvanced = () => {\n  return (\n    <View>\n      <Text>Imports</Text>\n    </View>\n  );\n};\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: test-project/components/SimpleList.tsx",
+			"rule": "no-unused-imports",
+			"files": {
+				"components/SimpleList.tsx": "import React, { useState } from 'react';\nimport { View, Text, FlatList } from 'react-native';\n\nconst SimpleList = () => {\n  const [data] = useState([{ id: '1', name: 'Item 1' }, { id: '2', name: 'Item 2' }]);\n\n  return (\n    <FlatList\n      data={data}\n      keyExtractor={(item) => item.id}\n      renderItem={({ item }) => <Text>{item.name}</Text>}\n    />\n  );\n};\n\nexport default SimpleList;"
+			},
+			"lint": [
+				"components/SimpleList.tsx"
+			],
+			"messages": [
+				{
+					"file": "components/SimpleList.tsx",
+					"rule": "no-unused-imports",
+					"line": 2,
+					"column": 10,
+					"endLine": 2,
+					"endColumn": 14,
+					"message": "'View' is defined but never used."
+				}
+			],
+			"output": {
+				"components/SimpleList.tsx": "import React, { useState } from 'react';\nimport { Text, FlatList } from 'react-native';\n\nconst SimpleList = () => {\n  const [data] = useState([{ id: '1', name: 'Item 1' }, { id: '2', name: 'Item 2' }]);\n\n  return (\n    <FlatList\n      data={data}\n      keyExtractor={(item) => item.id}\n      renderItem={({ item }) => <Text>{item.name}</Text>}\n    />\n  );\n};\n\nexport default SimpleList;"
+			}
+		},
+		{
+			"name": "no-unused-imports: test-project/preset-fixtures/native-ui.tsx",
+			"rule": "no-unused-imports",
+			"files": {
+				"preset-fixtures/native-ui.tsx": "import { Button, FlatList, Image, Modal, ScrollView } from 'react-native';\nimport { Pressable, TouchableOpacity } from 'react-native-gesture-handler';\nimport { useRouter } from 'expo-router';\n\nexport function NativeUiFixture() {\n\treturn null;\n}\n"
+			},
+			"lint": [
+				"preset-fixtures/native-ui.tsx"
+			],
+			"messages": [
+				{
+					"file": "preset-fixtures/native-ui.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 10,
+					"endLine": 1,
+					"endColumn": 16,
+					"message": "'Button' is defined but never used."
+				},
+				{
+					"file": "preset-fixtures/native-ui.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 18,
+					"endLine": 1,
+					"endColumn": 26,
+					"message": "'FlatList' is defined but never used."
+				},
+				{
+					"file": "preset-fixtures/native-ui.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 28,
+					"endLine": 1,
+					"endColumn": 33,
+					"message": "'Image' is defined but never used."
+				},
+				{
+					"file": "preset-fixtures/native-ui.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 35,
+					"endLine": 1,
+					"endColumn": 40,
+					"message": "'Modal' is defined but never used."
+				},
+				{
+					"file": "preset-fixtures/native-ui.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 42,
+					"endLine": 1,
+					"endColumn": 52,
+					"message": "'ScrollView' is defined but never used."
+				},
+				{
+					"file": "preset-fixtures/native-ui.tsx",
+					"rule": "no-unused-imports",
+					"line": 2,
+					"column": 10,
+					"endLine": 2,
+					"endColumn": 19,
+					"message": "'Pressable' is defined but never used."
+				},
+				{
+					"file": "preset-fixtures/native-ui.tsx",
+					"rule": "no-unused-imports",
+					"line": 2,
+					"column": 21,
+					"endLine": 2,
+					"endColumn": 37,
+					"message": "'TouchableOpacity' is defined but never used."
+				},
+				{
+					"file": "preset-fixtures/native-ui.tsx",
+					"rule": "no-unused-imports",
+					"line": 3,
+					"column": 10,
+					"endLine": 3,
+					"endColumn": 19,
+					"message": "'useRouter' is defined but never used."
+				}
+			],
+			"output": {
+				"preset-fixtures/native-ui.tsx": "\nexport function NativeUiFixture() {\n\treturn null;\n}\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: lone default import",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import a from 'a';\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 8,
+					"endLine": 1,
+					"endColumn": 9,
+					"message": "'a' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: lone namespace import",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import * as ns from 'ns';\nconst x = 1;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 13,
+					"endLine": 1,
+					"endColumn": 15,
+					"message": "'ns' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "const x = 1;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: one of several named specifiers (first)",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { a, b, c } from 'x';\nexport const v = [b, c];\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 10,
+					"endLine": 1,
+					"endColumn": 11,
+					"message": "'a' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "import { b, c } from 'x';\nexport const v = [b, c];\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: one of several named specifiers (middle)",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { a, b, c } from 'x';\nexport const v = [a, c];\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 13,
+					"endLine": 1,
+					"endColumn": 14,
+					"message": "'b' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "import { a, c } from 'x';\nexport const v = [a, c];\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: one of several named specifiers (last)",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { a, b, c } from 'x';\nexport const v = [a, b];\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 16,
+					"endLine": 1,
+					"endColumn": 17,
+					"message": "'c' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "import { a, b } from 'x';\nexport const v = [a, b];\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: lone named specifier",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { a } from 'x';\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 10,
+					"endLine": 1,
+					"endColumn": 11,
+					"message": "'a' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: default plus unused named",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import d, { a } from 'x';\nexport const v = d;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 13,
+					"endLine": 1,
+					"endColumn": 14,
+					"message": "'a' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "import d from 'x';\nexport const v = d;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: default unused plus used named",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import d, { a } from 'x';\nexport const v = a;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 8,
+					"endLine": 1,
+					"endColumn": 9,
+					"message": "'d' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "import { a } from 'x';\nexport const v = a;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: default plus namespace",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import d, * as ns from 'x';\nexport const v = d;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 16,
+					"endLine": 1,
+					"endColumn": 18,
+					"message": "'ns' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "import d from 'x';\nexport const v = d;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: side effect import kept",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import 'side-effect';\nimport { a } from 'x';\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 2,
+					"column": 10,
+					"endLine": 2,
+					"endColumn": 11,
+					"message": "'a' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "import 'side-effect';\n\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: import type declaration",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import type { T } from 'x';\nexport const v = 1;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 15,
+					"endLine": 1,
+					"endColumn": 16,
+					"message": "'T' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "export const v = 1;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: inline type specifier",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { type T, a } from 'x';\nexport const v = a;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 15,
+					"endLine": 1,
+					"endColumn": 16,
+					"message": "'T' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "import { a } from 'x';\nexport const v = a;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: inline type specifier used",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { type T, a } from 'x';\nexport const v: T = a;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import { type T, a } from 'x';\nexport const v: T = a;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: aliased specifier",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { a as b } from 'x';\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 15,
+					"endLine": 1,
+					"endColumn": 16,
+					"message": "'b' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: whole declaration with blank lines",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { a } from 'x';\n\n\nimport { b } from 'y';\nexport const v = b;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 10,
+					"endLine": 1,
+					"endColumn": 11,
+					"message": "'a' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "\n\nimport { b } from 'y';\nexport const v = b;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: jsx element use",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { View } from 'rn';\nexport const A = () => <View />;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import { View } from 'rn';\nexport const A = () => <View />;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: jsx member use",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import * as UI from 'ui';\nexport const A = () => <UI.Card.Body />;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import * as UI from 'ui';\nexport const A = () => <UI.Card.Body />;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: jsx lowercase tag is not a use",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { div } from 'rn';\nexport const A = () => <div />;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 10,
+					"endLine": 1,
+					"endColumn": 13,
+					"message": "'div' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "export const A = () => <div />;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: react pragma with jsx",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import React from 'react';\nexport const A = () => <p />;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import React from 'react';\nexport const A = () => <p />;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: react unused without jsx",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import React from 'react';\nexport const A = 1;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 8,
+					"endLine": 1,
+					"endColumn": 13,
+					"message": "'React' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "export const A = 1;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: fragment pragma",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { Fragment } from 'react';\nexport const A = () => <></>;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import { Fragment } from 'react';\nexport const A = () => <></>;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: jsx pragma comment",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "/** @jsx h */\nimport { h } from 'preact';\nexport const A = () => <p />;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "/** @jsx h */\nimport { h } from 'preact';\nexport const A = () => <p />;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: type annotation use",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { T } from 'x';\nexport const v: T = null as never;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import { T } from 'x';\nexport const v: T = null as never;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: generic type argument use",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { T } from 'x';\nexport const v = [] as Array<T>;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import { T } from 'x';\nexport const v = [] as Array<T>;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: qualified type use",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import * as NS from 'x';\nexport const v: NS.Thing = null as never;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import * as NS from 'x';\nexport const v: NS.Thing = null as never;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: implements use",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { I } from 'x';\nexport class C implements I {}\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import { I } from 'x';\nexport class C implements I {}\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: interface extends use",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { I } from 'x';\nexport interface J extends I {}\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import { I } from 'x';\nexport interface J extends I {}\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: typeof only use is not reported",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { v } from 'x';\nexport type T = typeof v;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import { v } from 'x';\nexport type T = typeof v;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: typeof use of type import counts",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import type { v } from 'x';\nexport type T = typeof v;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import type { v } from 'x';\nexport type T = typeof v;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: typeof plus value use",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { v } from 'x';\nexport type T = typeof v;\nexport const w = v;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import { v } from 'x';\nexport type T = typeof v;\nexport const w = v;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: re-export specifier use",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { a } from 'x';\nexport { a };\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import { a } from 'x';\nexport { a };\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: re-export aliased use",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { a } from 'x';\nexport { a as b };\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import { a } from 'x';\nexport { a as b };\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: export default use",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import a from 'x';\nexport default a;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import a from 'x';\nexport default a;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: export from is not a use",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { a } from 'x';\nexport { a as b } from 'y';\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 10,
+					"endLine": 1,
+					"endColumn": 11,
+					"message": "'a' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "export { a as b } from 'y';\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: shadowed by parameter",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { a } from 'x';\nexport const f = (a: number) => a;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 10,
+					"endLine": 1,
+					"endColumn": 11,
+					"message": "'a' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "export const f = (a: number) => a;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: shadowed by local const",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { a } from 'x';\nexport function f() {\n  const a = 1;\n  return a;\n}\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 10,
+					"endLine": 1,
+					"endColumn": 11,
+					"message": "'a' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "export function f() {\n  const a = 1;\n  return a;\n}\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: shadowed jsx name",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { View } from 'rn';\nexport const A = (View: any) => <View />;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 10,
+					"endLine": 1,
+					"endColumn": 14,
+					"message": "'View' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "export const A = (View: any) => <View />;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: shadowed type parameter",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { T } from 'x';\nexport function f<T>(v: T) { return v; }\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 10,
+					"endLine": 1,
+					"endColumn": 11,
+					"message": "'T' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "export function f<T>(v: T) { return v; }\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: jsdoc link use",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { a } from 'x';\n/** {@link a} */\nexport const v = 1;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import { a } from 'x';\n/** {@link a} */\nexport const v = 1;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: jsdoc param type use",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { a } from 'x';\n/** @param {a} v */\nexport const f = (v) => v;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import { a } from 'x';\n/** @param {a} v */\nexport const f = (v) => v;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: used in value position",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { a, b } from 'x';\nexport const v = a();\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 13,
+					"endLine": 1,
+					"endColumn": 14,
+					"message": "'b' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "import { a } from 'x';\nexport const v = a();\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: multiline named specifiers",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import {\n  a,\n  b,\n  c,\n} from 'x';\nexport const v = b;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 2,
+					"column": 3,
+					"endLine": 2,
+					"endColumn": 4,
+					"message": "'a' is defined but never used."
+				},
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 4,
+					"column": 3,
+					"endLine": 4,
+					"endColumn": 4,
+					"message": "'c' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "import {\n  b,\n} from 'x';\nexport const v = b;\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: unused import in typescript namespace",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import { a } from 'x';\nnamespace N {\n  export const a = 1;\n}\nexport { N };\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [
+				{
+					"file": "focused.tsx",
+					"rule": "no-unused-imports",
+					"line": 1,
+					"column": 10,
+					"endLine": 1,
+					"endColumn": 11,
+					"message": "'a' is defined but never used."
+				}
+			],
+			"output": {
+				"focused.tsx": "namespace N {\n  export const a = 1;\n}\nexport { N };\n"
+			}
+		},
+		{
+			"name": "no-unused-imports: focused: import equals is ignored",
+			"rule": "no-unused-imports",
+			"files": {
+				"focused.tsx": "import fs = require('fs');\nexport const v = 1;\n"
+			},
+			"lint": [
+				"focused.tsx"
+			],
+			"messages": [],
+			"output": {
+				"focused.tsx": "import fs = require('fs');\nexport const v = 1;\n"
+			}
+		}
+	]
+}

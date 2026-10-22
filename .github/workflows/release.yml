@@ -66,6 +66,17 @@ jobs:
             publish_reason="npm already has eslint-config-expo-magic@${version}."
           fi
 
+          # Prerelease versions (6.0.0-next.0) are work in progress on main:
+          # never publish or tag them.
+          case "${version}" in
+            *-*)
+              should_create=false
+              create_reason="${version} is a prerelease version."
+              should_publish=false
+              publish_reason="${version} is a prerelease version."
+              ;;
+          esac
+
           {
             echo "version=${version}"
             echo "tag=${tag}"

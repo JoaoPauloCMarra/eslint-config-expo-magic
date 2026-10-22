@@ -1,4 +1,3 @@
-const fs = require('node:fs');
 const path = require('node:path');
 
 const rulesDirectory = path.join(__dirname, '..', 'rules');
@@ -22,27 +21,19 @@ function isOff(value) {
 }
 
 function createJsPluginOptions(entries) {
-	const jsPlugins = {};
-	const missing = new Set();
-
-	for (const [name, file] of Object.entries(pluginFiles)) {
-		const absolutePath = path.join(rulesDirectory, file);
-		if (fs.existsSync(absolutePath)) jsPlugins[name] = absolutePath;
-		else missing.add(name);
-	}
+	const jsPlugins = Object.fromEntries(
+		Object.entries(pluginFiles).map(([name, file]) => [
+			name,
+			path.join(rulesDirectory, file),
+		]),
+	);
 
 	const usedPlugins = new Set();
 	for (const entry of entries) {
 		for (const [ruleName, value] of Object.entries(entry.rules ?? {})) {
 			const slash = ruleName.lastIndexOf('/');
 			const prefix = slash === -1 ? null : ruleName.slice(0, slash);
-			if (!prefix || !(prefix in pluginFiles) || isOff(value)) continue;
-			if (missing.has(prefix)) {
-				throw new Error(
-					`Port missing: the "${prefix}" plugin needs packages/bun-next/rules/${pluginFiles[prefix]}, which does not exist yet (rule ${ruleName}).`,
-				);
-			}
-			usedPlugins.add(prefix);
+			if (prefix in pluginFiles && !isOff(value)) usedPlugins.add(prefix);
 		}
 	}
 

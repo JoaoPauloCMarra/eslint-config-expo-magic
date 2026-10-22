@@ -1,0 +1,4220 @@
+{
+	"meta": {
+		"default-export-placement": {
+			"type": "suggestion",
+			"fixable": "code",
+			"docs": {
+				"description": "Require `export default Component;` to be placed immediately after the exported component declaration."
+			},
+			"schema": [],
+			"messages": {
+				"placement": "`export default {{name}};` should be placed immediately after the `{{name}}` declaration, before helpers, styles, or child components."
+			}
+		},
+		"kebab-case-filenames": {
+			"type": "suggestion",
+			"docs": {
+				"description": "Require lowercase kebab-case file names so authored modules stay predictable across platforms."
+			},
+			"schema": [
+				{
+					"type": "object",
+					"properties": {
+						"ignore": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						},
+						"allowLeadingCharacters": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false
+				}
+			],
+			"messages": {
+				"notKebab": "File \"{{name}}\" is not lowercase kebab-case. Rename it to \"{{suggestion}}\"."
+			}
+		},
+		"no-cross-feature-imports": {
+			"type": "problem",
+			"docs": {
+				"description": "Disallow importing another feature internals. Cross-feature access is contracts-only."
+			},
+			"schema": [
+				{
+					"type": "object",
+					"properties": {
+						"aliasPrefix": {
+							"type": "string"
+						},
+						"contractsSegment": {
+							"type": "string"
+						},
+						"featuresSegment": {
+							"type": "string"
+						},
+						"srcRoot": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false
+				}
+			],
+			"messages": {
+				"crossFeature": "Feature \"{{from}}\" must not import internals of feature \"{{to}}\". Use `{{alias}}/{{features}}/{{to}}/{{contracts}}/*`."
+			}
+		},
+		"no-inline-props": {
+			"type": "suggestion",
+			"fixable": "code",
+			"docs": {
+				"description": "Disallow inline object types for component props; declare a named `Props` type alias instead."
+			},
+			"schema": [],
+			"messages": {
+				"inline": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+			}
+		},
+		"props-type-order": {
+			"type": "suggestion",
+			"fixable": "code",
+			"docs": {
+				"description": "Enforce required, optional, then function prop ordering in component prop type aliases, alphabetized within each group."
+			},
+			"schema": [
+				{
+					"type": "object",
+					"properties": {
+						"pattern": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false
+				}
+			],
+			"messages": {
+				"order": "`{{name}}` members should be ordered required, optional, then function props, alphabetized within each group. Expected: {{expected}}."
+			}
+		},
+		"require-children-usage": {
+			"type": "suggestion",
+			"docs": {
+				"description": "Disallow declaring a `children` prop that the component never renders."
+			},
+			"schema": [],
+			"messages": {
+				"unused": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+			}
+		}
+	},
+	"cases": [
+		{
+			"name": "default-export-placement: valid displayName",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "function Foo() { return null; }\nFoo.displayName = \"Foo\";\nexport default Foo;"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "function Foo() { return null; }\nFoo.displayName = \"Foo\";\nexport default Foo;"
+			}
+		},
+		{
+			"name": "default-export-placement: valid displayName and defaultProps",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "const Foo = () => null;\nFoo.displayName = \"Foo\";\nFoo.defaultProps = {};\nexport default Foo;"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "const Foo = () => null;\nFoo.displayName = \"Foo\";\nFoo.defaultProps = {};\nexport default Foo;"
+			}
+		},
+		{
+			"name": "default-export-placement: valid plain",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "const Foo = () => null;\nexport default Foo;"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "const Foo = () => null;\nexport default Foo;"
+			}
+		},
+		{
+			"name": "default-export-placement: valid default function after helpers",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "const Foo = () => null;\nconst styles = {};\nexport default function Bar() { return Foo; }"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "const Foo = () => null;\nconst styles = {};\nexport default function Bar() { return Foo; }"
+			}
+		},
+		{
+			"name": "default-export-placement: invalid foreign displayName",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "const Foo = () => null;\nBar.displayName = \"Bar\";\nexport default Foo;"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "default-export-placement",
+					"line": 3,
+					"column": 1,
+					"endLine": 3,
+					"endColumn": 20,
+					"message": "`export default Foo;` should be placed immediately after the `Foo` declaration, before helpers, styles, or child components."
+				}
+			],
+			"output": {
+				"a.ts": "const Foo = () => null;\nexport default Foo;\nBar.displayName = \"Bar\";"
+			}
+		},
+		{
+			"name": "default-export-placement: invalid helper after displayName",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "const Foo = () => null;\nFoo.displayName = \"Foo\";\nconst helper = 1;\nexport default Foo;"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "default-export-placement",
+					"line": 4,
+					"column": 1,
+					"endLine": 4,
+					"endColumn": 20,
+					"message": "`export default Foo;` should be placed immediately after the `Foo` declaration, before helpers, styles, or child components."
+				}
+			],
+			"output": {
+				"a.ts": "const Foo = () => null;\nFoo.displayName = \"Foo\";\nexport default Foo;\nconst helper = 1;"
+			}
+		},
+		{
+			"name": "default-export-placement: invalid call statement",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "const Foo = () => null;\nregister(Foo);\nexport default Foo;"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "default-export-placement",
+					"line": 3,
+					"column": 1,
+					"endLine": 3,
+					"endColumn": 20,
+					"message": "`export default Foo;` should be placed immediately after the `Foo` declaration, before helpers, styles, or child components."
+				}
+			],
+			"output": {
+				"a.ts": "const Foo = () => null;\nexport default Foo;\nregister(Foo);"
+			}
+		},
+		{
+			"name": "default-export-placement: invalid export before declaration",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "export default Foo;\nconst Foo = () => null;\nFoo.displayName = \"Foo\";\nconst x = 1;"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "default-export-placement",
+					"line": 1,
+					"column": 1,
+					"endLine": 1,
+					"endColumn": 20,
+					"message": "`export default Foo;` should be placed immediately after the `Foo` declaration, before helpers, styles, or child components."
+				}
+			],
+			"output": {
+				"a.ts": "const Foo = () => null;\nFoo.displayName = \"Foo\";\nexport default Foo;\nconst x = 1;"
+			}
+		},
+		{
+			"name": "default-export-placement: invalid trailing comment on declaration",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "const Foo = () => null; // component\nconst styles = {};\nexport default Foo;"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "default-export-placement",
+					"line": 3,
+					"column": 1,
+					"endLine": 3,
+					"endColumn": 20,
+					"message": "`export default Foo;` should be placed immediately after the `Foo` declaration, before helpers, styles, or child components."
+				}
+			],
+			"output": {
+				"a.ts": "const Foo = () => null; // component\nexport default Foo;\nconst styles = {};"
+			}
+		},
+		{
+			"name": "default-export-placement: invalid comment before export",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "const Foo = () => null;\nconst styles = {};\n// the entry\nexport default Foo;"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "default-export-placement",
+					"line": 4,
+					"column": 1,
+					"endLine": 4,
+					"endColumn": 20,
+					"message": "`export default Foo;` should be placed immediately after the `Foo` declaration, before helpers, styles, or child components."
+				}
+			],
+			"output": {
+				"a.ts": "const Foo = () => null;\nconst styles = {};\n// the entry\nexport default Foo;"
+			}
+		},
+		{
+			"name": "default-export-placement: invalid comment after export",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "const Foo = () => null;\nconst styles = {};\nexport default Foo; // entry"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "default-export-placement",
+					"line": 3,
+					"column": 1,
+					"endLine": 3,
+					"endColumn": 20,
+					"message": "`export default Foo;` should be placed immediately after the `Foo` declaration, before helpers, styles, or child components."
+				}
+			],
+			"output": {
+				"a.ts": "const Foo = () => null;\nconst styles = {};\nexport default Foo; // entry"
+			}
+		},
+		{
+			"name": "default-export-placement: index valid arrow",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "const Foo = () => null;\nexport default Foo;"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "const Foo = () => null;\nexport default Foo;"
+			}
+		},
+		{
+			"name": "default-export-placement: index valid function",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "function Foo() { return null; }\nexport default Foo;"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "function Foo() { return null; }\nexport default Foo;"
+			}
+		},
+		{
+			"name": "default-export-placement: index valid import",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "import Foo from './foo';\nexport default Foo;"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import Foo from './foo';\nexport default Foo;"
+			}
+		},
+		{
+			"name": "default-export-placement: index valid non component",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "const foo = 1;\nconst bar = 2;\nexport default foo;"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "const foo = 1;\nconst bar = 2;\nexport default foo;"
+			}
+		},
+		{
+			"name": "default-export-placement: index invalid helper arrow",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "const Foo = () => null;\nconst helper = () => null;\nexport default Foo;"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "default-export-placement",
+					"line": 3,
+					"column": 1,
+					"endLine": 3,
+					"endColumn": 20,
+					"message": "`export default Foo;` should be placed immediately after the `Foo` declaration, before helpers, styles, or child components."
+				}
+			],
+			"output": {
+				"a.ts": "const Foo = () => null;\nexport default Foo;\nconst helper = () => null;"
+			}
+		},
+		{
+			"name": "default-export-placement: index invalid styles",
+			"rule": "default-export-placement",
+			"files": {
+				"a.ts": "function Foo() { return null; }\nconst styles = {};\nexport default Foo;"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "default-export-placement",
+					"line": 3,
+					"column": 1,
+					"endLine": 3,
+					"endColumn": 20,
+					"message": "`export default Foo;` should be placed immediately after the `Foo` declaration, before helpers, styles, or child components."
+				}
+			],
+			"output": {
+				"a.ts": "function Foo() { return null; }\nexport default Foo;\nconst styles = {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: valid home-screen r/src/home-screen.tsx",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/src/home-screen.tsx": "export {};"
+			},
+			"lint": [
+				"r/src/home-screen.tsx"
+			],
+			"messages": [],
+			"output": {
+				"r/src/home-screen.tsx": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: valid test file r/src/use-home-screen.test.ts",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/src/use-home-screen.test.ts": "export {};"
+			},
+			"lint": [
+				"r/src/use-home-screen.test.ts"
+			],
+			"messages": [],
+			"output": {
+				"r/src/use-home-screen.test.ts": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: valid index r/app/index.tsx",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/app/index.tsx": "export {};"
+			},
+			"lint": [
+				"r/app/index.tsx"
+			],
+			"messages": [],
+			"output": {
+				"r/app/index.tsx": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: valid layout r/app/_layout.tsx",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/app/_layout.tsx": "export {};"
+			},
+			"lint": [
+				"r/app/_layout.tsx"
+			],
+			"messages": [],
+			"output": {
+				"r/app/_layout.tsx": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: valid not-found r/app/+not-found.tsx",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/app/+not-found.tsx": "export {};"
+			},
+			"lint": [
+				"r/app/+not-found.tsx"
+			],
+			"messages": [],
+			"output": {
+				"r/app/+not-found.tsx": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: valid html r/app/+html.tsx",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/app/+html.tsx": "export {};"
+			},
+			"lint": [
+				"r/app/+html.tsx"
+			],
+			"messages": [],
+			"output": {
+				"r/app/+html.tsx": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: valid dynamic id r/app/[id].tsx",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/app/[id].tsx": "export {};"
+			},
+			"lint": [
+				"r/app/[id].tsx"
+			],
+			"messages": [],
+			"output": {
+				"r/app/[id].tsx": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: valid dynamic userId r/app/[userId].tsx",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/app/[userId].tsx": "export {};"
+			},
+			"lint": [
+				"r/app/[userId].tsx"
+			],
+			"messages": [],
+			"output": {
+				"r/app/[userId].tsx": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: valid catch all r/app/[...slug].tsx",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/app/[...slug].tsx": "export {};"
+			},
+			"lint": [
+				"r/app/[...slug].tsx"
+			],
+			"messages": [],
+			"output": {
+				"r/app/[...slug].tsx": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: valid catch all uppercase r/app/[...Slug].tsx",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/app/[...Slug].tsx": "export {};"
+			},
+			"lint": [
+				"r/app/[...Slug].tsx"
+			],
+			"messages": [],
+			"output": {
+				"r/app/[...Slug].tsx": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: valid group r/app/(tabs).tsx",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/app/(tabs).tsx": "export {};"
+			},
+			"lint": [
+				"r/app/(tabs).tsx"
+			],
+			"messages": [],
+			"output": {
+				"r/app/(tabs).tsx": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: valid group uppercase r/app/(Tabs).tsx",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/app/(Tabs).tsx": "export {};"
+			},
+			"lint": [
+				"r/app/(Tabs).tsx"
+			],
+			"messages": [],
+			"output": {
+				"r/app/(Tabs).tsx": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: valid dotfile r/.eslintrc.js",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/.eslintrc.js": "export {};"
+			},
+			"lint": [
+				"r/.eslintrc.js"
+			],
+			"messages": [],
+			"output": {
+				"r/.eslintrc.js": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: valid ignore option bracket r/src/[userId].tsx",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/src/[userId].tsx": "export {};"
+			},
+			"lint": [
+				"r/src/[userId].tsx"
+			],
+			"options": [
+				{
+					"ignore": [
+						"^\\+.*",
+						"^\\[.*\\]"
+					]
+				}
+			],
+			"messages": [],
+			"output": {
+				"r/src/[userId].tsx": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: valid ignore option legacy r/src/LegacyModule.tsx",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/src/LegacyModule.tsx": "export {};"
+			},
+			"lint": [
+				"r/src/LegacyModule.tsx"
+			],
+			"options": [
+				{
+					"ignore": [
+						"^Legacy"
+					]
+				}
+			],
+			"messages": [],
+			"output": {
+				"r/src/LegacyModule.tsx": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: invalid HomeScreen r/src/HomeScreen.tsx",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/src/HomeScreen.tsx": "export {};"
+			},
+			"lint": [
+				"r/src/HomeScreen.tsx"
+			],
+			"messages": [
+				{
+					"file": "r/src/HomeScreen.tsx",
+					"rule": "kebab-case-filenames",
+					"line": 1,
+					"column": 1,
+					"endLine": 1,
+					"endColumn": 11,
+					"message": "File \"HomeScreen.tsx\" is not lowercase kebab-case. Rename it to \"home-screen\"."
+				}
+			],
+			"output": {
+				"r/src/HomeScreen.tsx": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: invalid snake_case r/src/snake_case.ts",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/src/snake_case.ts": "export {};"
+			},
+			"lint": [
+				"r/src/snake_case.ts"
+			],
+			"messages": [
+				{
+					"file": "r/src/snake_case.ts",
+					"rule": "kebab-case-filenames",
+					"line": 1,
+					"column": 1,
+					"endLine": 1,
+					"endColumn": 11,
+					"message": "File \"snake_case.ts\" is not lowercase kebab-case. Rename it to \"snake-case\"."
+				}
+			],
+			"output": {
+				"r/src/snake_case.ts": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: invalid directory is not checked r/src/+NotFound-screen/HomeScreen.tsx",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/src/+NotFound-screen/HomeScreen.tsx": "export {};"
+			},
+			"lint": [
+				"r/src/+NotFound-screen/HomeScreen.tsx"
+			],
+			"messages": [
+				{
+					"file": "r/src/+NotFound-screen/HomeScreen.tsx",
+					"rule": "kebab-case-filenames",
+					"line": 1,
+					"column": 1,
+					"endLine": 1,
+					"endColumn": 11,
+					"message": "File \"HomeScreen.tsx\" is not lowercase kebab-case. Rename it to \"home-screen\"."
+				}
+			],
+			"output": {
+				"r/src/+NotFound-screen/HomeScreen.tsx": "export {};"
+			}
+		},
+		{
+			"name": "kebab-case-filenames: invalid ignore option mismatch r/src/LegacyModule.tsx",
+			"rule": "kebab-case-filenames",
+			"files": {
+				"r/src/LegacyModule.tsx": "export {};"
+			},
+			"lint": [
+				"r/src/LegacyModule.tsx"
+			],
+			"options": [
+				{
+					"ignore": [
+						"^Other"
+					]
+				}
+			],
+			"messages": [
+				{
+					"file": "r/src/LegacyModule.tsx",
+					"rule": "kebab-case-filenames",
+					"line": 1,
+					"column": 1,
+					"endLine": 1,
+					"endColumn": 11,
+					"message": "File \"LegacyModule.tsx\" is not lowercase kebab-case. Rename it to \"legacy-module\"."
+				}
+			],
+			"output": {
+				"r/src/LegacyModule.tsx": "export {};"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: valid parent segments kept in alias (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/../features/auth/private';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/../features/auth/private';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: valid alias dotdot back to billing (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/features/auth/../billing/private';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/features/auth/../billing/private';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: valid alias dotdot into contracts (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/features/auth/internal/../contracts/session';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/features/auth/internal/../contracts/session';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: valid same folder (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from './total';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from './total';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: valid sibling folder (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from '../hooks/use-total';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from '../hooks/use-total';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: valid own feature alias (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/features/billing/hooks';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/features/billing/hooks';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: valid contracts alias (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/features/auth/contracts/session';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/features/auth/contracts/session';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: valid contracts relative (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from '../../auth/contracts/session';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from '../../auth/contracts/session';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: valid lib features relative (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from '../../../lib/features/flags';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from '../../../lib/features/flags';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: valid lib features alias (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/lib/features/flags';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/lib/features/flags';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: valid file outside features (r/src/lib/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/lib/a.ts": "import x from '../features/auth/total';"
+			},
+			"lint": [
+				"r/src/lib/a.ts"
+			],
+			"messages": [],
+			"output": {
+				"r/src/lib/a.ts": "import x from '../features/auth/total';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: valid other root features (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from '../../../../other/features/auth/total';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from '../../../../other/features/auth/total';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: valid dynamic import contracts (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "const x = import('../../auth/contracts/session');"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "const x = import('../../auth/contracts/session');"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: valid custom srcRoot outside (r/src/features/billing/screens/a.test.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.test.ts": "import x from '../../auth/total';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.test.ts"
+			],
+			"options": [
+				{
+					"srcRoot": "app"
+				}
+			],
+			"messages": [],
+			"output": {
+				"r/src/features/billing/screens/a.test.ts": "import x from '../../auth/total';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: invalid alias @/features/auth/contracts/../private (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/features/auth/contracts/../private';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [
+				{
+					"file": "r/src/features/billing/screens/a.ts",
+					"rule": "no-cross-feature-imports",
+					"line": 1,
+					"column": 1,
+					"endLine": 1,
+					"endColumn": 54,
+					"message": "Feature \"billing\" must not import internals of feature \"auth\". Use `@/features/auth/contracts/*`."
+				}
+			],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/features/auth/contracts/../private';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: invalid alias @/features/billing/../auth/private (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/features/billing/../auth/private';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [
+				{
+					"file": "r/src/features/billing/screens/a.ts",
+					"rule": "no-cross-feature-imports",
+					"line": 1,
+					"column": 1,
+					"endLine": 1,
+					"endColumn": 52,
+					"message": "Feature \"billing\" must not import internals of feature \"auth\". Use `@/features/auth/contracts/*`."
+				}
+			],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/features/billing/../auth/private';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: invalid alias @/lib/../features/auth/private (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/lib/../features/auth/private';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [
+				{
+					"file": "r/src/features/billing/screens/a.ts",
+					"rule": "no-cross-feature-imports",
+					"line": 1,
+					"column": 1,
+					"endLine": 1,
+					"endColumn": 48,
+					"message": "Feature \"billing\" must not import internals of feature \"auth\". Use `@/features/auth/contracts/*`."
+				}
+			],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/lib/../features/auth/private';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: invalid custom srcRoot (repo/apps/mobile/src/features/cart/cart.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"repo/apps/mobile/src/features/cart/cart.ts": "import x from '../billing/total';"
+			},
+			"lint": [
+				"repo/apps/mobile/src/features/cart/cart.ts"
+			],
+			"options": [
+				{
+					"srcRoot": "apps/mobile/src"
+				}
+			],
+			"messages": [
+				{
+					"file": "repo/apps/mobile/src/features/cart/cart.ts",
+					"rule": "no-cross-feature-imports",
+					"line": 1,
+					"column": 1,
+					"endLine": 1,
+					"endColumn": 34,
+					"message": "Feature \"cart\" must not import internals of feature \"billing\". Use `@/features/billing/contracts/*`."
+				}
+			],
+			"output": {
+				"repo/apps/mobile/src/features/cart/cart.ts": "import x from '../billing/total';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: invalid alias hooks (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/features/auth/hooks/use-session';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [
+				{
+					"file": "r/src/features/billing/screens/a.ts",
+					"rule": "no-cross-feature-imports",
+					"line": 1,
+					"column": 1,
+					"endLine": 1,
+					"endColumn": 51,
+					"message": "Feature \"billing\" must not import internals of feature \"auth\". Use `@/features/auth/contracts/*`."
+				}
+			],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from '@/features/auth/hooks/use-session';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: invalid relative hooks (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from '../../auth/hooks/use-session';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [
+				{
+					"file": "r/src/features/billing/screens/a.ts",
+					"rule": "no-cross-feature-imports",
+					"line": 1,
+					"column": 1,
+					"endLine": 1,
+					"endColumn": 46,
+					"message": "Feature \"billing\" must not import internals of feature \"auth\". Use `@/features/auth/contracts/*`."
+				}
+			],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from '../../auth/hooks/use-session';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: invalid export all (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "export * from '../../auth/total';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [
+				{
+					"file": "r/src/features/billing/screens/a.ts",
+					"rule": "no-cross-feature-imports",
+					"line": 1,
+					"column": 1,
+					"endLine": 1,
+					"endColumn": 34,
+					"message": "Feature \"billing\" must not import internals of feature \"auth\". Use `@/features/auth/contracts/*`."
+				}
+			],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "export * from '../../auth/total';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: invalid export named (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "export { total } from '@/features/auth/total';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [
+				{
+					"file": "r/src/features/billing/screens/a.ts",
+					"rule": "no-cross-feature-imports",
+					"line": 1,
+					"column": 1,
+					"endLine": 1,
+					"endColumn": 47,
+					"message": "Feature \"billing\" must not import internals of feature \"auth\". Use `@/features/auth/contracts/*`."
+				}
+			],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "export { total } from '@/features/auth/total';"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: invalid dynamic import (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "const x = import('@/features/auth/total');"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"messages": [
+				{
+					"file": "r/src/features/billing/screens/a.ts",
+					"rule": "no-cross-feature-imports",
+					"line": 1,
+					"column": 11,
+					"endLine": 1,
+					"endColumn": 42,
+					"message": "Feature \"billing\" must not import internals of feature \"auth\". Use `@/features/auth/contracts/*`."
+				}
+			],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "const x = import('@/features/auth/total');"
+			}
+		},
+		{
+			"name": "no-cross-feature-imports: invalid custom alias prefix (r/src/features/billing/screens/a.ts)",
+			"rule": "no-cross-feature-imports",
+			"files": {
+				"r/src/features/billing/screens/a.ts": "import x from '~/features/auth/total';"
+			},
+			"lint": [
+				"r/src/features/billing/screens/a.ts"
+			],
+			"options": [
+				{
+					"aliasPrefix": "~"
+				}
+			],
+			"messages": [
+				{
+					"file": "r/src/features/billing/screens/a.ts",
+					"rule": "no-cross-feature-imports",
+					"line": 1,
+					"column": 1,
+					"endLine": 1,
+					"endColumn": 39,
+					"message": "Feature \"billing\" must not import internals of feature \"auth\". Use `~/features/auth/contracts/*`."
+				}
+			],
+			"output": {
+				"r/src/features/billing/screens/a.ts": "import x from '~/features/auth/total';"
+			}
+		},
+		{
+			"name": "no-inline-props: valid declared type",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "type FooProps = { a: string };\nconst Foo = ({ a }: FooProps) => a;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type FooProps = { a: string };\nconst Foo = ({ a }: FooProps) => a;"
+			}
+		},
+		{
+			"name": "no-inline-props: valid lowercase param",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "function Foo(value: { a: string }) { return value; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "function Foo(value: { a: string }) { return value; }"
+			}
+		},
+		{
+			"name": "no-inline-props: valid lowercase function",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "function parse({ a }: { a: string }) { return a; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "function parse({ a }: { a: string }) { return a; }"
+			}
+		},
+		{
+			"name": "no-inline-props: valid lowercase arrow",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "const toLabel = ({ a }: { a: string }) => a;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "const toLabel = ({ a }: { a: string }) => a;"
+			}
+		},
+		{
+			"name": "no-inline-props: valid default value",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "type FooProps = { a: string };\nconst Foo = (props: FooProps = { a: \"\" }) => props;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type FooProps = { a: string };\nconst Foo = (props: FooProps = { a: \"\" }) => props;"
+			}
+		},
+		{
+			"name": "no-inline-props: valid untyped",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "const Foo = ({ a }) => a;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "const Foo = ({ a }) => a;"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid arrow",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "const Foo = ({ a }: { a: string }) => a;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 14,
+					"endLine": 1,
+					"endColumn": 34,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "type FooProps = { a: string };\n\nconst Foo = ({ a }: FooProps) => a;"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid function",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "function Foo({ a }: { a: string }) { return a; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 14,
+					"endLine": 1,
+					"endColumn": 34,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "type FooProps = { a: string };\n\nfunction Foo({ a }: FooProps) { return a; }"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid memo",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "const Foo = memo(({ a }: { a: string }) => a);"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 19,
+					"endLine": 1,
+					"endColumn": 39,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "type FooProps = { a: string };\n\nconst Foo = memo(({ a }: FooProps) => a);"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid anonymous default function",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "export default function ({ a }: { a: string }) { return a; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 26,
+					"endLine": 1,
+					"endColumn": 46,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "export default function ({ a }: { a: string }) { return a; }"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid anonymous default arrow",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "export default ({ a }: { a: string }) => a;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 17,
+					"endLine": 1,
+					"endColumn": 37,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "export default ({ a }: { a: string }) => a;"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid arrow with default value",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "const Foo = ({ a }: { a: string } = { a: \"\" }) => a;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 14,
+					"endLine": 1,
+					"endColumn": 34,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "type FooProps = { a: string };\n\nconst Foo = ({ a }: FooProps = { a: \"\" }) => a;"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid lowercase with default value",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "const helper = (props: { a: string } = { a: \"\" }) => props;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 17,
+					"endLine": 1,
+					"endColumn": 37,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "type HelperProps = { a: string };\n\nconst helper = (props: HelperProps = { a: \"\" }) => props;"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid function props param",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "function Foo(props: { a: string }) { return props; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 14,
+					"endLine": 1,
+					"endColumn": 34,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "type FooProps = { a: string };\n\nfunction Foo(props: FooProps) { return props; }"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid exported arrow",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "export const Foo = ({ a }: { a: string }) => a;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 21,
+					"endLine": 1,
+					"endColumn": 41,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "type FooProps = { a: string };\n\nexport const Foo = ({ a }: FooProps) => a;"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid exported default function",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "export default function Foo({ a }: { a: string }) { return a; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 29,
+					"endLine": 1,
+					"endColumn": 49,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "type FooProps = { a: string };\n\nexport default function Foo({ a }: FooProps) { return a; }"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid function expression",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "const Foo = function ({ a }: { a: string }) { return a; };"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 23,
+					"endLine": 1,
+					"endColumn": 43,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "type FooProps = { a: string };\n\nconst Foo = function ({ a }: FooProps) { return a; };"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid comments and multiline type",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "import x from \"x\";\n\n// Renders foo.\n/** Docs */\nexport function Foo({ a }: {\n\ta: string;\n\tb?: number;\n}) { return a; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 5,
+					"column": 21,
+					"endLine": 8,
+					"endColumn": 2,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "import x from \"x\";\n\ntype FooProps = {\n\ta: string;\n\tb?: number;\n};\n\n// Renders foo.\n/** Docs */\nexport function Foo({ a }: FooProps) { return a; }"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid existing local type name",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "type FooProps = { b: number };\nconst Foo = ({ a }: { a: string }) => a;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 2,
+					"column": 14,
+					"endLine": 2,
+					"endColumn": 34,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "type FooProps = { b: number };\nconst Foo = ({ a }: { a: string }) => a;"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid imported type name",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "import type { FooProps } from \"./types\";\nconst Foo = ({ a }: { a: string }) => a;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 2,
+					"column": 14,
+					"endLine": 2,
+					"endColumn": 34,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "import type { FooProps } from \"./types\";\nconst Foo = ({ a }: { a: string }) => a;"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid generic function",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "function Foo<T>({ a }: { a: T }) { return a; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 17,
+					"endLine": 1,
+					"endColumn": 32,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "function Foo<T>({ a }: { a: T }) { return a; }"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid generic arrow",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "const Foo = <T,>({ a }: { a: T[] }) => a;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 18,
+					"endLine": 1,
+					"endColumn": 35,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "const Foo = <T,>({ a }: { a: T[] }) => a;"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid unused generic",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "function Foo<T>({ a }: { a: string }) { return a; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 17,
+					"endLine": 1,
+					"endColumn": 37,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "type FooProps = { a: string };\n\nfunction Foo<T>({ a }: FooProps) { return a; }"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid nested component",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "function outer() {\n\tconst Foo = ({ a }: { a: string }) => a;\n\treturn Foo;\n}"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 2,
+					"column": 15,
+					"endLine": 2,
+					"endColumn": 35,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "function outer() {\n\tconst Foo = ({ a }: { a: string }) => a;\n\treturn Foo;\n}"
+			}
+		},
+		{
+			"name": "no-inline-props: invalid self referencing typeof",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "function Foo(props: { a: typeof props }) { return props; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 14,
+					"endLine": 1,
+					"endColumn": 40,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "function Foo(props: { a: typeof props }) { return props; }"
+			}
+		},
+		{
+			"name": "no-inline-props: index valid declared type",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "type P = { a: string };\nfunction Foo(props: P) { return props; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type P = { a: string };\nfunction Foo(props: P) { return props; }"
+			}
+		},
+		{
+			"name": "no-inline-props: index valid lowercase value",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "function Foo(value: { a: string }) { return value; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "function Foo(value: { a: string }) { return value; }"
+			}
+		},
+		{
+			"name": "no-inline-props: index invalid function",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "function Foo(props: { a: string }) { return props; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 14,
+					"endLine": 1,
+					"endColumn": 34,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "type FooProps = { a: string };\n\nfunction Foo(props: FooProps) { return props; }"
+			}
+		},
+		{
+			"name": "no-inline-props: index invalid arrow",
+			"rule": "no-inline-props",
+			"files": {
+				"a.tsx": "const Foo = (props: { a: string }) => props;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-inline-props",
+					"line": 1,
+					"column": 14,
+					"endLine": 1,
+					"endColumn": 34,
+					"message": "Declare a named `type ...Props` alias for component props instead of an inline object type."
+				}
+			],
+			"output": {
+				"a.tsx": "type FooProps = { a: string };\n\nconst Foo = (props: FooProps) => props;"
+			}
+		},
+		{
+			"name": "props-type-order: valid type literal",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type FooProps = { a: string; b: string; onPress(): void };"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "type FooProps = { a: string; b: string; onPress(): void };"
+			}
+		},
+		{
+			"name": "props-type-order: valid optional before callbacks",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type FooProps = { a: string; label?: string; onPress?(): void };"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "type FooProps = { a: string; label?: string; onPress?(): void };"
+			}
+		},
+		{
+			"name": "props-type-order: valid interface",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "interface FooProps { a: string; b?: string; onPress: () => void }"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "interface FooProps { a: string; b?: string; onPress: () => void }"
+			}
+		},
+		{
+			"name": "props-type-order: valid other name",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "interface Other { b: string; a: string }"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "interface Other { b: string; a: string }"
+			}
+		},
+		{
+			"name": "props-type-order: valid single member",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "interface FooProps { a: string }"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "interface FooProps { a: string }"
+			}
+		},
+		{
+			"name": "props-type-order: valid index signature",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "interface FooProps { [key: string]: string; b: string; a: string }"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "interface FooProps { [key: string]: string; b: string; a: string }"
+			}
+		},
+		{
+			"name": "props-type-order: valid word starting with on",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type FooProps = { a: string; overlayColor?: string; onVideoEvent?: VideoEventCallback };"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "type FooProps = { a: string; overlayColor?: string; onVideoEvent?: VideoEventCallback };"
+			}
+		},
+		{
+			"name": "props-type-order: valid once is not a callback",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type FooProps = { a: string; once?: boolean; onPress: () => void };"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "type FooProps = { a: string; once?: boolean; onPress: () => void };"
+			}
+		},
+		{
+			"name": "props-type-order: invalid method first",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type FooProps = { onPress(): void; b: string; a: string };"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "props-type-order",
+					"line": 1,
+					"column": 6,
+					"endLine": 1,
+					"endColumn": 14,
+					"message": "`FooProps` members should be ordered required, optional, then function props, alphabetized within each group. Expected: a, b, onPress."
+				}
+			],
+			"output": {
+				"a.ts": "type FooProps = { a: string; b: string; onPress(): void };"
+			}
+		},
+		{
+			"name": "props-type-order: invalid optional method",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type FooProps = { onPress?(): void; label?: string };"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "props-type-order",
+					"line": 1,
+					"column": 6,
+					"endLine": 1,
+					"endColumn": 14,
+					"message": "`FooProps` members should be ordered required, optional, then function props, alphabetized within each group. Expected: label, onPress."
+				}
+			],
+			"output": {
+				"a.ts": "type FooProps = { label?: string; onPress?(): void };"
+			}
+		},
+		{
+			"name": "props-type-order: invalid optional callback ordering",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type FooProps = { a: string; onVideoEvent?: VideoEventCallback; overlayColor?: string };"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "props-type-order",
+					"line": 1,
+					"column": 6,
+					"endLine": 1,
+					"endColumn": 14,
+					"message": "`FooProps` members should be ordered required, optional, then function props, alphabetized within each group. Expected: a, overlayColor, onVideoEvent."
+				}
+			],
+			"output": {
+				"a.ts": "type FooProps = { a: string; overlayColor?: string; onVideoEvent?: VideoEventCallback };"
+			}
+		},
+		{
+			"name": "props-type-order: invalid interface alphabetical",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "interface FooProps { b: string; a: string }"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "props-type-order",
+					"line": 1,
+					"column": 11,
+					"endLine": 1,
+					"endColumn": 19,
+					"message": "`FooProps` members should be ordered required, optional, then function props, alphabetized within each group. Expected: a, b."
+				}
+			],
+			"output": {
+				"a.ts": "interface FooProps { a: string; b: string }"
+			}
+		},
+		{
+			"name": "props-type-order: invalid interface method first",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "interface FooProps { onPress(): void; a: string }"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "props-type-order",
+					"line": 1,
+					"column": 11,
+					"endLine": 1,
+					"endColumn": 19,
+					"message": "`FooProps` members should be ordered required, optional, then function props, alphabetized within each group. Expected: a, onPress."
+				}
+			],
+			"output": {
+				"a.ts": "interface FooProps { a: string; onPress(): void }"
+			}
+		},
+		{
+			"name": "props-type-order: invalid custom pattern",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "interface BarModel { b: string; a: string }"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"options": [
+				{
+					"pattern": "Model$"
+				}
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "props-type-order",
+					"line": 1,
+					"column": 11,
+					"endLine": 1,
+					"endColumn": 19,
+					"message": "`BarModel` members should be ordered required, optional, then function props, alphabetized within each group. Expected: a, b."
+				}
+			],
+			"output": {
+				"a.ts": "interface BarModel { a: string; b: string }"
+			}
+		},
+		{
+			"name": "props-type-order: invalid multiline",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type FooProps = {\n\tonPress: () => void;\n\tlabel?: string;\n\tb: string;\n\ta: string;\n};"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "props-type-order",
+					"line": 1,
+					"column": 6,
+					"endLine": 1,
+					"endColumn": 14,
+					"message": "`FooProps` members should be ordered required, optional, then function props, alphabetized within each group. Expected: a, b, label, onPress."
+				}
+			],
+			"output": {
+				"a.ts": "type FooProps = {\n\ta: string;\n\tb: string;\n\tlabel?: string;\n\tonPress: () => void;\n};"
+			}
+		},
+		{
+			"name": "props-type-order: invalid comma separated",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type FooProps = {\n\tb: string,\n\ta: string\n};"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "props-type-order",
+					"line": 1,
+					"column": 6,
+					"endLine": 1,
+					"endColumn": 14,
+					"message": "`FooProps` members should be ordered required, optional, then function props, alphabetized within each group. Expected: a, b."
+				}
+			],
+			"output": {
+				"a.ts": "type FooProps = {\n\ta: string,\n\tb: string\n};"
+			}
+		},
+		{
+			"name": "props-type-order: invalid nested object member",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type FooProps = {\n\tb: {\n\t\tx: number;\n\t};\n\ta: string;\n};"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "props-type-order",
+					"line": 1,
+					"column": 6,
+					"endLine": 1,
+					"endColumn": 14,
+					"message": "`FooProps` members should be ordered required, optional, then function props, alphabetized within each group. Expected: a, b."
+				}
+			],
+			"output": {
+				"a.ts": "type FooProps = {\n\ta: string;\n\tb: {\n\t\tx: number;\n\t};\n};"
+			}
+		},
+		{
+			"name": "props-type-order: invalid line comment",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type FooProps = {\n\t// note\n\tb: string;\n\ta: string;\n};"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "props-type-order",
+					"line": 1,
+					"column": 6,
+					"endLine": 1,
+					"endColumn": 14,
+					"message": "`FooProps` members should be ordered required, optional, then function props, alphabetized within each group. Expected: a, b."
+				}
+			],
+			"output": {
+				"a.ts": "type FooProps = {\n\t// note\n\tb: string;\n\ta: string;\n};"
+			}
+		},
+		{
+			"name": "props-type-order: invalid block comment",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "interface FooProps { b: string; /* x */ a: string }"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "props-type-order",
+					"line": 1,
+					"column": 11,
+					"endLine": 1,
+					"endColumn": 19,
+					"message": "`FooProps` members should be ordered required, optional, then function props, alphabetized within each group. Expected: a, b."
+				}
+			],
+			"output": {
+				"a.ts": "interface FooProps { b: string; /* x */ a: string }"
+			}
+		},
+		{
+			"name": "props-type-order: index valid ordered",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type FooProps = { id: string; title: string; onPress: () => void; };"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "type FooProps = { id: string; title: string; onPress: () => void; };"
+			}
+		},
+		{
+			"name": "props-type-order: index valid optional before callback",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type FooProps = { id: string; label?: string; onChange: () => void; };"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "type FooProps = { id: string; label?: string; onChange: () => void; };"
+			}
+		},
+		{
+			"name": "props-type-order: index valid other name",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type Other = { b: string; a: string; };"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "type Other = { b: string; a: string; };"
+			}
+		},
+		{
+			"name": "props-type-order: index valid single",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type FooProps = { value: string; };"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "type FooProps = { value: string; };"
+			}
+		},
+		{
+			"name": "props-type-order: index invalid callback first",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type FooProps = { onPress: () => void; title: string; };"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "props-type-order",
+					"line": 1,
+					"column": 6,
+					"endLine": 1,
+					"endColumn": 14,
+					"message": "`FooProps` members should be ordered required, optional, then function props, alphabetized within each group. Expected: title, onPress."
+				}
+			],
+			"output": {
+				"a.ts": "type FooProps = { title: string; onPress: () => void; };"
+			}
+		},
+		{
+			"name": "props-type-order: index invalid alphabetical",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type BarProps = { b: string; a: string; };"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "props-type-order",
+					"line": 1,
+					"column": 6,
+					"endLine": 1,
+					"endColumn": 14,
+					"message": "`BarProps` members should be ordered required, optional, then function props, alphabetized within each group. Expected: a, b."
+				}
+			],
+			"output": {
+				"a.ts": "type BarProps = { a: string; b: string; };"
+			}
+		},
+		{
+			"name": "props-type-order: index invalid optional before required",
+			"rule": "props-type-order",
+			"files": {
+				"a.ts": "type FooProps = { label?: string; id: string; };"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "props-type-order",
+					"line": 1,
+					"column": 6,
+					"endLine": 1,
+					"endColumn": 14,
+					"message": "`FooProps` members should be ordered required, optional, then function props, alphabetized within each group. Expected: id, label."
+				}
+			],
+			"output": {
+				"a.ts": "type FooProps = { id: string; label?: string; };"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership valid nested block destructure",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown }; function Box(props: Props) { if (true) { const { children } = props; return <View>{children}</View>; } return null; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown }; function Box(props: Props) { if (true) { const { children } = props; return <View>{children}</View>; } return null; }"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership valid shadowed type in helper",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { title: string }; const Box = (props: Props) => null; function helper() { type Props = { children: unknown }; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { title: string }; const Box = (props: Props) => null; function helper() { type Props = { children: unknown }; }"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership valid spread forwarding",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nconst Forwarding = (props: Props) => <View {...props} />;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nconst Forwarding = (props: Props) => <View {...props} />;"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership valid alias usage",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nconst AliasUsage = (props: Props) => {\n  const alias = props;\n  return alias.children;\n};"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nconst AliasUsage = (props: Props) => {\n  const alias = props;\n  return alias.children;\n};"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership valid unrelated spread",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nconst Rendering = ({ children }: Props) => <View>{children}</View>;\nconst attrs = { accessibilityLabel: \"content\" };\nconst Other = () => <View {...attrs} />;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nconst Rendering = ({ children }: Props) => <View>{children}</View>;\nconst attrs = { accessibilityLabel: \"content\" };\nconst Other = () => <View {...attrs} />;"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership valid rest spread to view",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown; title: string };\nconst Box = ({ title, ...rest }: Props) => <View {...rest}>{title}</View>;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown; title: string };\nconst Box = ({ title, ...rest }: Props) => <View {...rest}>{title}</View>;"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership valid rest spread to inner",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown; title: string };\nconst Box = ({ title, ...rest }: Props) => <Inner title={title} {...rest} />;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown; title: string };\nconst Box = ({ title, ...rest }: Props) => <Inner title={title} {...rest} />;"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership valid cloneElement",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nconst Clone = (props: Props) => cloneElement(<View />, props);"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nconst Clone = (props: Props) => cloneElement(<View />, props);"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership valid React.cloneElement",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nconst Clone = (props: Props) => React.cloneElement(<View />, props);"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nconst Clone = (props: Props) => React.cloneElement(<View />, props);"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership valid PropsWithChildren extends",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "interface Props extends PropsWithChildren<{ a: string }> {}\nconst Box = (props: Props) => props.children;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "interface Props extends PropsWithChildren<{ a: string }> {}\nconst Box = (props: Props) => props.children;"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid shadowed const type name",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown }; function Box(props: Props) { const Props = 0; return null; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 50,
+					"endLine": 1,
+					"endColumn": 62,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown }; function Box(props: Props) { const Props = 0; return null; }"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid shadowed props block",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown }; function Box(props: Props) { { const props = { children: null }; return <View>{props.children}</View>; } }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 50,
+					"endLine": 1,
+					"endColumn": 62,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown }; function Box(props: Props) { { const props = { children: null }; return <View>{props.children}</View>; } }"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid shadowed type in helper",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown }; const Box = (props: Props) => null; function helper() { type Props = { title: string }; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 50,
+					"endLine": 1,
+					"endColumn": 62,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown }; const Box = (props: Props) => null; function helper() { type Props = { title: string }; }"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid PropsWithChildren extends",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "interface Props extends PropsWithChildren<{ a: string }> {}\nconst Box = (props: Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 14,
+					"endLine": 2,
+					"endColumn": 26,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "interface Props extends PropsWithChildren<{ a: string }> {}\nconst Box = (props: Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid React.PropsWithChildren extends",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "interface Props extends React.PropsWithChildren<{ a: string }> {}\nconst Box = (props: Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 14,
+					"endLine": 2,
+					"endColumn": 26,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "interface Props extends React.PropsWithChildren<{ a: string }> {}\nconst Box = (props: Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid extends type alias base",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Base = { children: unknown };\ninterface Props extends Base { a: string }\nconst Box = (props: Props) => props.a;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 3,
+					"column": 14,
+					"endLine": 3,
+					"endColumn": 26,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Base = { children: unknown };\ninterface Props extends Base { a: string }\nconst Box = (props: Props) => props.a;"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid extends interface base",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "interface Base { children: unknown }\ninterface Props extends Base {}\nfunction Box({ a }: Props) { return a; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 3,
+					"column": 14,
+					"endLine": 3,
+					"endColumn": 26,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "interface Base { children: unknown }\ninterface Props extends Base {}\nfunction Box({ a }: Props) { return a; }"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid destructured children with rest",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown; title: string };\nconst Box = ({ children, title, ...rest }: Props) => <View {...rest}>{title}</View>;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 14,
+					"endLine": 2,
+					"endColumn": 49,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown; title: string };\nconst Box = ({ children, title, ...rest }: Props) => <View {...rest}>{title}</View>;"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid rest not forwarded",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown; title: string };\nconst Box = ({ title, ...rest }: Props) => <View>{title}</View>;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 14,
+					"endLine": 2,
+					"endColumn": 39,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown; title: string };\nconst Box = ({ title, ...rest }: Props) => <View>{title}</View>;"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid anonymous default function",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nexport default function ({ children }: Props) { return null; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 26,
+					"endLine": 2,
+					"endColumn": 45,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nexport default function ({ children }: Props) { return null; }"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid anonymous default arrow",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nexport default (props: Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 17,
+					"endLine": 2,
+					"endColumn": 29,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nexport default (props: Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid props logged",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nconst Log = (props: Props) => { console.log(props); return null; };"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 14,
+					"endLine": 2,
+					"endColumn": 26,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nconst Log = (props: Props) => { console.log(props); return null; };"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid two components",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type IgnoringProps = { children: unknown };\nconst Ignoring = (props: IgnoringProps) => null;\ntype RenderingProps = { children: unknown };\nconst Rendering = (props: RenderingProps) => props.children;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 19,
+					"endLine": 2,
+					"endColumn": 39,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type IgnoringProps = { children: unknown };\nconst Ignoring = (props: IgnoringProps) => null;\ntype RenderingProps = { children: unknown };\nconst Rendering = (props: RenderingProps) => props.children;"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid unrelated children member",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nconst Ignoring = (props: Props) => null;\nconst unrelated = { children: \"text\" };\nconst Other = () => <View>{unrelated.children}</View>;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 19,
+					"endLine": 2,
+					"endColumn": 31,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nconst Ignoring = (props: Props) => null;\nconst unrelated = { children: \"text\" };\nconst Other = () => <View>{unrelated.children}</View>;"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid unrelated spread",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nconst Ignoring = (props: Props) => null;\nconst attrs = { accessibilityLabel: \"content\" };\nconst Other = () => <View {...attrs} />;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 19,
+					"endLine": 2,
+					"endColumn": 31,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nconst Ignoring = (props: Props) => null;\nconst attrs = { accessibilityLabel: \"content\" };\nconst Other = () => <View {...attrs} />;"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid shared props type",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nconst First = ({ children }: Props) => <View>{children}</View>;\nconst Second = (props: Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 3,
+					"column": 17,
+					"endLine": 3,
+					"endColumn": 29,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nconst First = ({ children }: Props) => <View>{children}</View>;\nconst Second = (props: Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: ownership invalid nested child alias",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nconst First = (props: Props) => {\n  const Child = () => {\n    const alias = props;\n    return alias.children;\n  };\n  return null;\n};"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 16,
+					"endLine": 2,
+					"endColumn": 28,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nconst First = (props: Props) => {\n  const Child = () => {\n    const alias = props;\n    return alias.children;\n  };\n  return null;\n};"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified valid member does not borrow outer type",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nnamespace UI { export type Props = { title: string }; }\nconst Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nnamespace UI { export type Props = { title: string }; }\nconst Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified valid unresolved member",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nconst Box = (props: Missing.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nconst Box = (props: Missing.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified valid imported namespace",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "import type * as UI from \"./external\";\ntype Props = { children: unknown };\nconst Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "import type * as UI from \"./external\";\ntype Props = { children: unknown };\nconst Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified valid missing local member",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nnamespace UI { export type Other = { title: string }; }\nconst Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nnamespace UI { export type Other = { title: string }; }\nconst Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified valid nested member path",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nnamespace UI { export namespace Layout { export type Props = { title: string }; } }\nconst Box = (props: UI.Layout.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nnamespace UI { export namespace Layout { export type Props = { title: string }; } }\nconst Box = (props: UI.Layout.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified valid inner namespace shadows outer",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export type Props = { children: unknown }; }\nnamespace Host {\n  export namespace UI { export type Props = { title: string }; }\n  export const Box = (props: UI.Props) => null;\n}"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "namespace UI { export type Props = { children: unknown }; }\nnamespace Host {\n  export namespace UI { export type Props = { title: string }; }\n  export const Box = (props: UI.Props) => null;\n}"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified valid member ignores same-named local type",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export type Props = { title: string }; }\nfunction factory() {\n  type Props = { children: unknown };\n  const Box = (props: UI.Props) => null;\n  return Box;\n}"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "namespace UI { export type Props = { title: string }; }\nfunction factory() {\n  type Props = { children: unknown };\n  const Box = (props: UI.Props) => null;\n  return Box;\n}"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified valid children property used",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export type Props = { children: unknown }; }\nconst Box = (props: UI.Props) => <View>{props.children}</View>;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "namespace UI { export type Props = { children: unknown }; }\nconst Box = (props: UI.Props) => <View>{props.children}</View>;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified valid children binding used",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export interface Props { children: unknown } }\nconst Box = ({ children }: UI.Props) => <View>{children}</View>;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "namespace UI { export interface Props { children: unknown } }\nconst Box = ({ children }: UI.Props) => <View>{children}</View>;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified valid custom namespace helper",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export type PropsWithChildren<T> = { title: string }; }\nconst Box = (props: UI.PropsWithChildren<{ title: string }>) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "namespace UI { export type PropsWithChildren<T> = { title: string }; }\nconst Box = (props: UI.PropsWithChildren<{ title: string }>) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified valid React helper with used children",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "const Box = (props: React.PropsWithChildren<{ title: string }>) => props.children;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "const Box = (props: React.PropsWithChildren<{ title: string }>) => props.children;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified valid import-equals alias without children",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown };\nnamespace UI { export type Props = { title: string }; }\nimport Local = UI;\nconst Box = (props: Local.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown };\nnamespace UI { export type Props = { title: string }; }\nimport Local = UI;\nconst Box = (props: Local.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified invalid member declares children despite outer type",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { title: string };\nnamespace UI { export type Props = { children: unknown }; }\nconst Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 3,
+					"column": 14,
+					"endLine": 3,
+					"endColumn": 29,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { title: string };\nnamespace UI { export type Props = { children: unknown }; }\nconst Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified invalid member declares children without outer type",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export type Props = { children: unknown }; }\nconst Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 14,
+					"endLine": 2,
+					"endColumn": 29,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export type Props = { children: unknown }; }\nconst Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified invalid nested namespace member",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export namespace Layout { export type Props = { children: unknown }; } }\nconst Box = (props: UI.Layout.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 14,
+					"endLine": 2,
+					"endColumn": 36,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export namespace Layout { export type Props = { children: unknown }; } }\nconst Box = (props: UI.Layout.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified invalid dotted namespace member",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI.Layout { export type Props = { children: unknown }; }\nconst Box = (props: UI.Layout.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 14,
+					"endLine": 2,
+					"endColumn": 36,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI.Layout { export type Props = { children: unknown }; }\nconst Box = (props: UI.Layout.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified invalid local alias of qualified member",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export type Props = { children: unknown }; }\ntype BoxProps = UI.Props;\nconst Box = (props: BoxProps) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 3,
+					"column": 14,
+					"endLine": 3,
+					"endColumn": 29,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export type Props = { children: unknown }; }\ntype BoxProps = UI.Props;\nconst Box = (props: BoxProps) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified invalid import-equals alias",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export type Props = { children: unknown }; }\nimport Local = UI;\nconst Box = (props: Local.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 3,
+					"column": 14,
+					"endLine": 3,
+					"endColumn": 32,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export type Props = { children: unknown }; }\nimport Local = UI;\nconst Box = (props: Local.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified invalid import-equals nested alias",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export namespace Layout { export type Props = { children: unknown }; } }\nimport Local = UI.Layout;\nconst Box = (props: Local.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 3,
+					"column": 14,
+					"endLine": 3,
+					"endColumn": 32,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export namespace Layout { export type Props = { children: unknown }; } }\nimport Local = UI.Layout;\nconst Box = (props: Local.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified invalid namespace declared after component",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "const Box = (props: UI.Props) => null;\nnamespace UI { export type Props = { children: unknown }; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 14,
+					"endLine": 1,
+					"endColumn": 29,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "const Box = (props: UI.Props) => null;\nnamespace UI { export type Props = { children: unknown }; }"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified invalid namespace interface declares children",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export interface Props { children: unknown } }\nconst Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 14,
+					"endLine": 2,
+					"endColumn": 29,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export interface Props { children: unknown } }\nconst Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified invalid namespace interface extends local base",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI {\n  export interface Base { children: unknown }\n  export interface Props extends Base { title: string }\n}\nconst Box = (props: UI.Props) => props.title;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 5,
+					"column": 14,
+					"endLine": 5,
+					"endColumn": 29,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI {\n  export interface Base { children: unknown }\n  export interface Props extends Base { title: string }\n}\nconst Box = (props: UI.Props) => props.title;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified invalid local interface extends qualified base",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export interface Base { children: unknown } }\ninterface Props extends UI.Base { title: string }\nconst Box = (props: Props) => props.title;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 3,
+					"column": 14,
+					"endLine": 3,
+					"endColumn": 26,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export interface Base { children: unknown } }\ninterface Props extends UI.Base { title: string }\nconst Box = (props: Props) => props.title;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified invalid member ignores shadowing local type",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export type Props = { children: unknown }; }\nfunction factory() {\n  type Props = { title: string };\n  const Box = (props: UI.Props) => null;\n  return Box;\n}"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 4,
+					"column": 16,
+					"endLine": 4,
+					"endColumn": 31,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export type Props = { children: unknown }; }\nfunction factory() {\n  type Props = { title: string };\n  const Box = (props: UI.Props) => null;\n  return Box;\n}"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified invalid inner namespace supplies children",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export type Props = { title: string }; }\nnamespace Host {\n  export namespace UI { export type Props = { children: unknown }; }\n  export const Box = (props: UI.Props) => null;\n}"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 4,
+					"column": 23,
+					"endLine": 4,
+					"endColumn": 38,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export type Props = { title: string }; }\nnamespace Host {\n  export namespace UI { export type Props = { children: unknown }; }\n  export const Box = (props: UI.Props) => null;\n}"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified invalid React qualified helper",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "const Box = (props: React.PropsWithChildren<{ title: string }>) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 14,
+					"endLine": 1,
+					"endColumn": 63,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "const Box = (props: React.PropsWithChildren<{ title: string }>) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: qualified invalid custom namespace helper declares children",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export type PropsWithChildren = { children: unknown }; }\nconst Box = (props: UI.PropsWithChildren) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 14,
+					"endLine": 2,
+					"endColumn": 41,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export type PropsWithChildren = { children: unknown }; }\nconst Box = (props: UI.PropsWithChildren) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: boundaries valid private namespace member",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown }; namespace UI { type Props = { children: unknown }; } const Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown }; namespace UI { type Props = { children: unknown }; } const Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: boundaries valid private nested namespace",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown }; namespace UI { namespace Layout { export type Props = { children: unknown }; } } const Box = (props: UI.Layout.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown }; namespace UI { namespace Layout { export type Props = { children: unknown }; } } const Box = (props: UI.Layout.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: boundaries valid type parameter shadows namespace",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export type Props = { children: unknown }; } function factory<UI>() { const Box = (props: UI.Props) => null; return Box; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "namespace UI { export type Props = { children: unknown }; } function factory<UI>() { const Box = (props: UI.Props) => null; return Box; }"
+			}
+		},
+		{
+			"name": "require-children-usage: boundaries valid external import-equals alias",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "import UI = require(\"external\"); type Props = { children: unknown }; const Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "import UI = require(\"external\"); type Props = { children: unknown }; const Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: boundaries valid local helper spelling",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type PropsWithChildren<T> = { title: string }; const Box = (props: PropsWithChildren<{}>) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type PropsWithChildren<T> = { title: string }; const Box = (props: PropsWithChildren<{}>) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: boundaries valid local React namespace shadows helper",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace React { export type PropsWithChildren<T> = { title: string }; } const Box = (props: React.PropsWithChildren<{}>) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "namespace React { export type PropsWithChildren<T> = { title: string }; } const Box = (props: React.PropsWithChildren<{}>) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: boundaries valid non-React imported helper",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "import type { PropsWithChildren } from \"external\"; const Box = (props: PropsWithChildren<{}>) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "import type { PropsWithChildren } from \"external\"; const Box = (props: PropsWithChildren<{}>) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: boundaries valid cyclic namespace aliases",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "import First = Second; import Second = First; type Props = { children: unknown }; const Box = (props: First.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "import First = Second; import Second = First; type Props = { children: unknown }; const Box = (props: First.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: boundaries invalid ambient namespace",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "declare namespace UI { interface Props { children: unknown } } const Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 77,
+					"endLine": 1,
+					"endColumn": 92,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "declare namespace UI { interface Props { children: unknown } } const Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: boundaries invalid merged namespaces",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export type Props = { children: unknown }; } namespace UI { export type Other = { title: string }; } const Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 130,
+					"endLine": 1,
+					"endColumn": 145,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export type Props = { children: unknown }; } namespace UI { export type Other = { title: string }; } const Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: boundaries invalid exported import-equals member",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace Types { export type Props = { children: unknown }; } namespace UI { export import Layout = Types; } const Box = (props: UI.Layout.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 124,
+					"endLine": 1,
+					"endColumn": 146,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace Types { export type Props = { children: unknown }; } namespace UI { export import Layout = Types; } const Box = (props: UI.Layout.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: boundaries invalid renamed React namespace helper",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "import type * as R from \"react\"; const Box = (props: R.PropsWithChildren<{}>) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 47,
+					"endLine": 1,
+					"endColumn": 77,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "import type * as R from \"react\"; const Box = (props: R.PropsWithChildren<{}>) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: boundaries invalid renamed React helper",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "import type { PropsWithChildren as WithChildren } from \"react\"; const Box = (props: WithChildren<{}>) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 78,
+					"endLine": 1,
+					"endColumn": 101,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "import type { PropsWithChildren as WithChildren } from \"react\"; const Box = (props: WithChildren<{}>) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: boundaries invalid React import-equals helper",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "import React = require(\"react\"); const Box = (props: React.PropsWithChildren<{}>) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 47,
+					"endLine": 1,
+					"endColumn": 81,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "import React = require(\"react\"); const Box = (props: React.PropsWithChildren<{}>) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: merged valid exported member shadows outer type",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Base = { children: unknown }; namespace UI { export type Base = { title: string }; } namespace UI { export type Props = Base; } const Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Base = { children: unknown }; namespace UI { export type Base = { title: string }; } namespace UI { export type Props = Base; } const Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: merged valid private sibling member not visible",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { type Base = { children: unknown }; } namespace UI { export type Props = Base; } const Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "namespace UI { type Base = { children: unknown }; } namespace UI { export type Props = Base; } const Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: merged valid current private member wins",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export type Base = { children: unknown }; } namespace UI { type Base = { title: string }; export type Props = Base; } const Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "namespace UI { export type Base = { children: unknown }; } namespace UI { type Base = { title: string }; export type Props = Base; } const Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: merged valid external import-equals not React helper",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "import React = require(\"external\"); const Box = (props: React.PropsWithChildren<{}>) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "import React = require(\"external\"); const Box = (props: React.PropsWithChildren<{}>) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: merged invalid interface sees exported base",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export type Base = { children: unknown }; } namespace UI { export interface Props extends Base {} } const Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 129,
+					"endLine": 1,
+					"endColumn": 144,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export type Base = { children: unknown }; } namespace UI { export interface Props extends Base {} } const Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: merged invalid declaration sees nested namespace",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export namespace Layout { export type Props = { children: unknown }; } } namespace UI { export type Props = Layout.Props; } const Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 153,
+					"endLine": 1,
+					"endColumn": 168,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export namespace Layout { export type Props = { children: unknown }; } } namespace UI { export type Props = Layout.Props; } const Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: merged invalid dotted namespaces merge with nesting",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export namespace Layout { export type Base = { children: unknown }; } } namespace UI.Layout { export type Props = Base; } const Box = (props: UI.Layout.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 151,
+					"endLine": 1,
+					"endColumn": 173,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export namespace Layout { export type Base = { children: unknown }; } } namespace UI.Layout { export type Props = Base; } const Box = (props: UI.Layout.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: merged invalid dotted namespace sees parent exports",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export type Base = { children: unknown }; } namespace UI.Layout { export type Props = Base; } const Box = (props: UI.Layout.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 123,
+					"endLine": 1,
+					"endColumn": 145,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export type Base = { children: unknown }; } namespace UI.Layout { export type Props = Base; } const Box = (props: UI.Layout.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: bindings valid private namespace does not merge",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export namespace Layout { export type Base = { children: unknown }; } } namespace UI { namespace Layout { export type Other = {}; } export type Props = Layout.Base; } const Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "namespace UI { export namespace Layout { export type Base = { children: unknown }; } } namespace UI { namespace Layout { export type Other = {}; } export type Props = Layout.Base; } const Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: bindings invalid public interface combines siblings",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export interface Base { children: unknown } } namespace UI { export interface Base { title: string } export type Props = Base; } const Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 158,
+					"endLine": 1,
+					"endColumn": 173,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export interface Base { children: unknown } } namespace UI { export interface Base { title: string } export type Props = Base; } const Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: bindings invalid public nested namespace combines siblings",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI { export namespace Layout { export type Base = { children: unknown }; } } namespace UI { export namespace Layout { export type Other = {}; } export type Props = Layout.Base; } const Box = (props: UI.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 203,
+					"endLine": 1,
+					"endColumn": 218,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI { export namespace Layout { export type Base = { children: unknown }; } } namespace UI { export namespace Layout { export type Other = {}; } export type Props = Layout.Base; } const Box = (props: UI.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: bindings invalid implicit parent exposes dotted sibling",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "namespace UI.Shared { export type Base = { children: unknown }; } namespace UI.Layout { export type Props = Shared.Base; } const Box = (props: UI.Layout.Props) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 137,
+					"endLine": 1,
+					"endColumn": 159,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "namespace UI.Shared { export type Base = { children: unknown }; } namespace UI.Layout { export type Props = Shared.Base; } const Box = (props: UI.Layout.Props) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: alias valid rest spread to view",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { const { title, ...rest } = props; return <View {...rest} />; };"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { const { title, ...rest } = props; return <View {...rest} />; };"
+			}
+		},
+		{
+			"name": "require-children-usage: alias valid rest children read",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { const { title, ...rest } = props; return rest.children; };"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { const { title, ...rest } = props; return rest.children; };"
+			}
+		},
+		{
+			"name": "require-children-usage: alias valid computed key rest children read",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { const { ['title']: title, ...rest } = props; return rest.children; };"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { const { ['title']: title, ...rest } = props; return rest.children; };"
+			}
+		},
+		{
+			"name": "require-children-usage: alias valid write then read",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { props.children = null; return props.children; };"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { props.children = null; return props.children; };"
+			}
+		},
+		{
+			"name": "require-children-usage: alias invalid member of unrelated binding",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { const { title } = props; return title.children; };"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 66,
+					"endLine": 1,
+					"endColumn": 78,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { const { title } = props; return title.children; };"
+			}
+		},
+		{
+			"name": "require-children-usage: alias invalid children excluded from rest",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { const { children, ...rest } = props; return <View {...rest} />; };"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 66,
+					"endLine": 1,
+					"endColumn": 78,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { const { children, ...rest } = props; return <View {...rest} />; };"
+			}
+		},
+		{
+			"name": "require-children-usage: alias invalid computed children excluded from rest",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { const { ['children']: ignored, ...rest } = props; return <View {...rest} />; };"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 66,
+					"endLine": 1,
+					"endColumn": 78,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { const { ['children']: ignored, ...rest } = props; return <View {...rest} />; };"
+			}
+		},
+		{
+			"name": "require-children-usage: alias invalid write only",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { props.children = null; return null; };"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 66,
+					"endLine": 1,
+					"endColumn": 78,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { props.children = null; return null; };"
+			}
+		},
+		{
+			"name": "require-children-usage: alias invalid delete",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { delete props.children; return null; };"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 66,
+					"endLine": 1,
+					"endColumn": 78,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { delete props.children; return null; };"
+			}
+		},
+		{
+			"name": "require-children-usage: alias invalid array destructuring write",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { [props.children] = [null]; return null; };"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 1,
+					"column": 66,
+					"endLine": 1,
+					"endColumn": 78,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type Props = { children: unknown; title?: string }; const Box = (props: Props) => { [props.children] = [null]; return null; };"
+			}
+		},
+		{
+			"name": "require-children-usage: index valid props.children",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type P = { children: unknown };\nconst Foo = (props: P) => props.children;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type P = { children: unknown };\nconst Foo = (props: P) => props.children;"
+			}
+		},
+		{
+			"name": "require-children-usage: index valid inline children",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "function Foo({ children }: { children: unknown }) { return children; }"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "function Foo({ children }: { children: unknown }) { return children; }"
+			}
+		},
+		{
+			"name": "require-children-usage: index valid no children",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type P = { title: string };\nconst Foo = (props: P) => props.title;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "type P = { title: string };\nconst Foo = (props: P) => props.title;"
+			}
+		},
+		{
+			"name": "require-children-usage: index valid PropsWithChildren used",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "import type { PropsWithChildren } from \"react\";\nconst Foo = (props: PropsWithChildren) => props.children;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [],
+			"output": {
+				"a.tsx": "import type { PropsWithChildren } from \"react\";\nconst Foo = (props: PropsWithChildren) => props.children;"
+			}
+		},
+		{
+			"name": "require-children-usage: index invalid children unused",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "type P = { children: unknown };\nconst Foo = (props: P) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 14,
+					"endLine": 2,
+					"endColumn": 22,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "type P = { children: unknown };\nconst Foo = (props: P) => null;"
+			}
+		},
+		{
+			"name": "require-children-usage: index invalid PropsWithChildren unused",
+			"rule": "require-children-usage",
+			"files": {
+				"a.tsx": "import type { PropsWithChildren } from \"react\";\nconst Foo = (props: PropsWithChildren) => null;"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "require-children-usage",
+					"line": 2,
+					"column": 14,
+					"endLine": 2,
+					"endColumn": 38,
+					"message": "`children` is declared but never rendered. Reserve children for components that render arbitrary caller content."
+				}
+			],
+			"output": {
+				"a.tsx": "import type { PropsWithChildren } from \"react\";\nconst Foo = (props: PropsWithChildren) => null;"
+			}
+		}
+	]
+}

@@ -1,0 +1,214 @@
+{
+	"createConfig": [
+		{
+			"options": null,
+			"error": {
+				"type": "TypeError",
+				"message": "createConfig options must be an object."
+			}
+		},
+		{
+			"options": [],
+			"error": {
+				"type": "TypeError",
+				"message": "createConfig options must be an object."
+			}
+		},
+		{
+			"options": {
+				"preset": "nope"
+			},
+			"error": {
+				"type": "RangeError",
+				"message": "Unknown createConfig preset: nope. Use \"base\", \"default\", or \"fast\"."
+			}
+		},
+		{
+			"options": {
+				"prettier": "yes"
+			},
+			"error": {
+				"type": "TypeError",
+				"message": "createConfig prettier must be a boolean."
+			}
+		},
+		{
+			"options": {
+				"agent": "yes"
+			},
+			"error": {
+				"type": "TypeError",
+				"message": "createConfig agent must be false, true, or an options object."
+			}
+		},
+		{
+			"options": {
+				"tsconfigProjects": [
+					1
+				]
+			},
+			"error": {
+				"type": "TypeError",
+				"message": "createConfig tsconfigProjects must be an array of strings."
+			}
+		},
+		{
+			"options": {
+				"inlineStyles": "loud"
+			},
+			"error": {
+				"type": "TypeError",
+				"message": "createConfig inlineStyles must be false, true, or an ESLint rule severity."
+			}
+		}
+	],
+	"createMobileAppConfig": [
+		{
+			"options": {
+				"preset": "nope"
+			},
+			"error": {
+				"type": "RangeError",
+				"message": "Unknown createMobileAppConfig preset: nope. Use \"default\" or \"fast\"."
+			}
+		}
+	],
+	"createArchitectureConfig": [
+		{
+			"options": [],
+			"error": {
+				"type": "TypeError",
+				"message": "createArchitectureConfig options must be an object."
+			}
+		},
+		{
+			"options": null,
+			"error": {
+				"type": "TypeError",
+				"message": "createArchitectureConfig options must be an object."
+			}
+		},
+		{
+			"options": "x",
+			"error": {
+				"type": "TypeError",
+				"message": "createArchitectureConfig options must be an object."
+			}
+		},
+		{
+			"options": {
+				"layers": {
+					"routes": ""
+				}
+			},
+			"error": {
+				"type": "TypeError",
+				"message": "createArchitectureConfig layers.routes must be a non-empty string."
+			}
+		},
+		{
+			"options": {
+				"layers": {
+					"routes": 1
+				}
+			},
+			"error": {
+				"type": "TypeError",
+				"message": "createArchitectureConfig layers.routes must be a non-empty string."
+			}
+		},
+		{
+			"options": {
+				"layers": {
+					"ui": ""
+				}
+			},
+			"error": {
+				"type": "TypeError",
+				"message": "createArchitectureConfig layers.ui must be a non-empty string."
+			}
+		},
+		{
+			"options": {
+				"layers": {
+					"ui": 1
+				}
+			},
+			"error": {
+				"type": "TypeError",
+				"message": "createArchitectureConfig layers.ui must be a non-empty string."
+			}
+		},
+		{
+			"options": {
+				"layers": {
+					"tokens": ""
+				}
+			},
+			"error": {
+				"type": "TypeError",
+				"message": "createArchitectureConfig layers.tokens must be a non-empty string."
+			}
+		},
+		{
+			"options": {
+				"layers": {
+					"tokens": 1
+				}
+			},
+			"error": {
+				"type": "TypeError",
+				"message": "createArchitectureConfig layers.tokens must be a non-empty string."
+			}
+		},
+		{
+			"options": {
+				"layers": {
+					"components": ""
+				}
+			},
+			"error": {
+				"type": "TypeError",
+				"message": "createArchitectureConfig layers.components must be a non-empty string."
+			}
+		},
+		{
+			"options": {
+				"layers": {
+					"components": 1
+				}
+			},
+			"error": {
+				"type": "TypeError",
+				"message": "createArchitectureConfig layers.components must be a non-empty string."
+			}
+		},
+		{
+			"options": {
+				"nativeUi": "yes"
+			},
+			"error": {
+				"type": "TypeError",
+				"message": "createArchitectureConfig nativeUi must be an object."
+			}
+		},
+		{
+			"options": {
+				"nativeUi": []
+			},
+			"error": {
+				"type": "TypeError",
+				"message": "createArchitectureConfig nativeUi must be an object."
+			}
+		},
+		{
+			"options": {
+				"nativeUi": null
+			},
+			"error": {
+				"type": "TypeError",
+				"message": "createArchitectureConfig nativeUi must be an object."
+			}
+		}
+	]
+}

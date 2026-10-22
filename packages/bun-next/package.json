@@ -92,7 +92,11 @@
 		"rules/**/*.js",
 		"utils/*.js",
 		"utils/*.json",
-		"!**/*.test.js"
+		"!**/*.test.js",
+		"!config-cases.js",
+		"!rules/check-port.js",
+		"!rules/rule-harness.js",
+		"!rules/__cases__"
 	],
 	"peerDependencies": {
 		"expo": "^54.0.33 || ^55.0.0 || ^56.0.0 || ^57.0.0",

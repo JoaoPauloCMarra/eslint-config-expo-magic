@@ -1,0 +1,1042 @@
+{
+	"meta": {
+		"no-shared-value-misuse": {
+			"type": "problem",
+			"docs": {
+				"description": "Prevent render-time SharedValue initialization and worklet `.get()` reads."
+			},
+			"schema": [],
+			"messages": {
+				"initializeFromSharedValue": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later.",
+				"getInWorklet": "Use `.value`, not `.get()`, when reading SharedValues inside Reanimated worklet hooks."
+			}
+		}
+	},
+	"cases": [
+		{
+			"name": "no-shared-value-misuse: valid foreign values and Map.get",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nconst model = { value: 1 };\nconst values = new Map<string, number>();\nexport function Example() {\n\tconst source = useSharedValue(values.get(\"x\") ?? model.value);\n\tconst style = useAnimatedStyle(() => ({ opacity: model.value, x: values.get(\"x\") ?? 0 }));\n\treturn [source, style];\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nconst model = { value: 1 };\nconst values = new Map<string, number>();\nexport function Example() {\n\tconst source = useSharedValue(values.get(\"x\") ?? model.value);\n\tconst style = useAnimatedStyle(() => ({ opacity: model.value, x: values.get(\"x\") ?? 0 }));\n\treturn [source, style];\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: valid other library",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useSharedValue } from 'other-library';\nconst model = { value: 1, get: () => 1 };\nconst source = useSharedValue(model.value);\nconst other = useSharedValue(model.get());\nexport { other, source };"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import { useSharedValue } from 'other-library';\nconst model = { value: 1, get: () => 1 };\nconst source = useSharedValue(model.value);\nconst other = useSharedValue(model.get());\nexport { other, source };"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: valid shadowed hook name",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useSharedValue } from 'react-native-reanimated';\nfunction build(useSharedValue: (value: number) => number) {\n\tconst model = { value: 1 };\n\treturn useSharedValue(model.value);\n}\nexport { build, useSharedValue };"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import { useSharedValue } from 'react-native-reanimated';\nfunction build(useSharedValue: (value: number) => number) {\n\tconst model = { value: 1 };\n\treturn useSharedValue(model.value);\n}\nexport { build, useSharedValue };"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: valid animated style result is not a shared value",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst style = useAnimatedStyle(() => ({ value: 1 }));\n\treturn useSharedValue(style.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst style = useAnimatedStyle(() => ({ value: 1 }));\n\treturn useSharedValue(style.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: valid animated reaction result is not a shared value",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedReaction, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst source = useSharedValue(0);\n\tconst reaction = useAnimatedReaction(() => source.value, () => { });\n\treturn useSharedValue(reaction.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import { useAnimatedReaction, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst source = useSharedValue(0);\n\tconst reaction = useAnimatedReaction(() => source.value, () => { });\n\treturn useSharedValue(reaction.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: invalid renamed imports",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle as useStyle, useSharedValue as useSV } from 'react-native-reanimated';\nexport function Example() {\n\tconst source = useSV(0);\n\tconst alias = source;\n\tconst fromGet = useSV(source.get());\n\tconst fromValue = useSV(alias.value);\n\tconst style = useStyle(() => ({ opacity: source.get() }));\n\treturn [fromGet, fromValue, style];\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 5,
+					"column": 24,
+					"endLine": 5,
+					"endColumn": 34,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				},
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 6,
+					"column": 26,
+					"endLine": 6,
+					"endColumn": 37,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				},
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 7,
+					"column": 43,
+					"endLine": 7,
+					"endColumn": 53,
+					"message": "Use `.value`, not `.get()`, when reading SharedValues inside Reanimated worklet hooks."
+				}
+			],
+			"output": {
+				"a.ts": "import { useAnimatedStyle as useStyle, useSharedValue as useSV } from 'react-native-reanimated';\nexport function Example() {\n\tconst source = useSV(0);\n\tconst alias = source;\n\tconst fromGet = useSV(source.get());\n\tconst fromValue = useSV(alias.value);\n\tconst style = useStyle(() => ({ opacity: source.get() }));\n\treturn [fromGet, fromValue, style];\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: invalid SharedValue type annotation",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import type { SharedValue as Shared } from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: Shared<number>) {\n\treturn useSharedValue(source.get());\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 24,
+					"endLine": 4,
+					"endColumn": 34,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import type { SharedValue as Shared } from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: Shared<number>) {\n\treturn useSharedValue(source.get());\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: invalid namespace import",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import * as Reanimated from 'react-native-reanimated';\nexport function Example() {\n\tconst source = Reanimated.useSharedValue(0);\n\treturn Reanimated.useAnimatedStyle(() => ({ opacity: source.get() }));\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 55,
+					"endLine": 4,
+					"endColumn": 65,
+					"message": "Use `.value`, not `.get()`, when reading SharedValues inside Reanimated worklet hooks."
+				}
+			],
+			"output": {
+				"a.ts": "import * as Reanimated from 'react-native-reanimated';\nexport function Example() {\n\tconst source = Reanimated.useSharedValue(0);\n\treturn Reanimated.useAnimatedStyle(() => ({ opacity: source.get() }));\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: index flags shared value reads and hook get",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\ndeclare function usePanGesture(cfg: object): object;\nexport function build() {\n\tconst source = useSharedValue(0);\n\tconst alias = source;\n\tconst fromGet = useSharedValue(source.get());\n\tconst fromValue = useSharedValue(alias.value);\n\tconst style = useAnimatedStyle(() => ({ x: source.get() }));\n\tconst gesture = usePanGesture({ onStart: () => {} });\n\treturn [fromGet, fromValue, style, gesture];\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 6,
+					"column": 33,
+					"endLine": 6,
+					"endColumn": 43,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				},
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 7,
+					"column": 35,
+					"endLine": 7,
+					"endColumn": 46,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				},
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 8,
+					"column": 45,
+					"endLine": 8,
+					"endColumn": 55,
+					"message": "Use `.value`, not `.get()`, when reading SharedValues inside Reanimated worklet hooks."
+				}
+			],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\ndeclare function usePanGesture(cfg: object): object;\nexport function build() {\n\tconst source = useSharedValue(0);\n\tconst alias = source;\n\tconst fromGet = useSharedValue(source.get());\n\tconst fromValue = useSharedValue(alias.value);\n\tconst style = useAnimatedStyle(() => ({ x: source.get() }));\n\tconst gesture = usePanGesture({ onStart: () => {} });\n\treturn [fromGet, fromValue, style, gesture];\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: index composes with worklets",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useSharedValue } from 'react-native-reanimated';\ndeclare function scheduleOnRN(callback: () => void): void;\nexport function build() {\n\tconst source = useSharedValue(0);\n\tconst shared = useSharedValue(source.value);\n\tscheduleOnRN(() => {});\n\treturn shared;\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 5,
+					"column": 32,
+					"endLine": 5,
+					"endColumn": 44,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import { useSharedValue } from 'react-native-reanimated';\ndeclare function scheduleOnRN(callback: () => void): void;\nexport function build() {\n\tconst source = useSharedValue(0);\n\tconst shared = useSharedValue(source.value);\n\tscheduleOnRN(() => {});\n\treturn shared;\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: type namespace qualified SharedValue",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import type * as R from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: R.SharedValue<number>) {\n\treturn useSharedValue(source.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 24,
+					"endLine": 4,
+					"endColumn": 36,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import type * as R from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: R.SharedValue<number>) {\n\treturn useSharedValue(source.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: type namespace qualified DerivedValue",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import type * as R from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: R.DerivedValue<number>) {\n\treturn useSharedValue(source.get());\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 24,
+					"endLine": 4,
+					"endColumn": 34,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import type * as R from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: R.DerivedValue<number>) {\n\treturn useSharedValue(source.get());\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: type namespace qualified other type",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import type * as R from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: R.Other<number>) {\n\treturn useSharedValue(source.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import type * as R from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: R.Other<number>) {\n\treturn useSharedValue(source.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: type from other namespace is not shared value",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import type * as R from 'other-library';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: R.SharedValue<number>) {\n\treturn useSharedValue(source.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import type * as R from 'other-library';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: R.SharedValue<number>) {\n\treturn useSharedValue(source.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: type union with SharedValue",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import type { SharedValue } from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: SharedValue<number> | number) {\n\treturn useSharedValue(source.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 24,
+					"endLine": 4,
+					"endColumn": 36,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import type { SharedValue } from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: SharedValue<number> | number) {\n\treturn useSharedValue(source.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: type intersection with SharedValue",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import type { SharedValue } from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: SharedValue<number> & { extra: 1 }) {\n\treturn useSharedValue(source.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 24,
+					"endLine": 4,
+					"endColumn": 36,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import type { SharedValue } from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: SharedValue<number> & { extra: 1 }) {\n\treturn useSharedValue(source.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: type parenthesized SharedValue",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import type { SharedValue } from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: (SharedValue<number>)) {\n\treturn useSharedValue(source.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 24,
+					"endLine": 4,
+					"endColumn": 36,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import type { SharedValue } from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: (SharedValue<number>)) {\n\treturn useSharedValue(source.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: type array of SharedValue is not shared value",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import type { SharedValue } from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: SharedValue<number>[]) {\n\treturn useSharedValue(source.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import type { SharedValue } from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: SharedValue<number>[]) {\n\treturn useSharedValue(source.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: type SharedValue from other module",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import type { SharedValue } from 'other-library';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: SharedValue<number>) {\n\treturn useSharedValue(source.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import type { SharedValue } from 'other-library';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: SharedValue<number>) {\n\treturn useSharedValue(source.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: type DerivedValue",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import type { DerivedValue } from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: DerivedValue<number>) {\n\treturn useSharedValue(source.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 24,
+					"endLine": 4,
+					"endColumn": 36,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import type { DerivedValue } from 'react-native-reanimated';\nimport { useSharedValue } from 'react-native-reanimated';\nexport function clone(source: DerivedValue<number>) {\n\treturn useSharedValue(source.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: useDerivedValue is a shared value",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useDerivedValue, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\tconst derived = useDerivedValue(() => base.value);\n\treturn useSharedValue(derived.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 5,
+					"column": 24,
+					"endLine": 5,
+					"endColumn": 37,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import { useDerivedValue, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\tconst derived = useDerivedValue(() => base.value);\n\treturn useSharedValue(derived.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: useDerivedValue get inside useDerivedValue",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useDerivedValue, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useDerivedValue(() => base.get() + 1);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 31,
+					"endLine": 4,
+					"endColumn": 39,
+					"message": "Use `.value`, not `.get()`, when reading SharedValues inside Reanimated worklet hooks."
+				}
+			],
+			"output": {
+				"a.ts": "import { useDerivedValue, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useDerivedValue(() => base.get() + 1);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: value read inside worklet hooks is allowed",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useAnimatedStyle(() => ({ opacity: base.value }));\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useAnimatedStyle(() => ({ opacity: base.value }));\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: get inside useAnimatedReaction",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedReaction, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\tuseAnimatedReaction(() => base.get(), () => {});\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 28,
+					"endLine": 4,
+					"endColumn": 36,
+					"message": "Use `.value`, not `.get()`, when reading SharedValues inside Reanimated worklet hooks."
+				}
+			],
+			"output": {
+				"a.ts": "import { useAnimatedReaction, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\tuseAnimatedReaction(() => base.get(), () => {});\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: get inside useAnimatedProps",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedProps, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useAnimatedProps(() => ({ opacity: base.get() }));\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 44,
+					"endLine": 4,
+					"endColumn": 52,
+					"message": "Use `.value`, not `.get()`, when reading SharedValues inside Reanimated worklet hooks."
+				}
+			],
+			"output": {
+				"a.ts": "import { useAnimatedProps, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useAnimatedProps(() => ({ opacity: base.get() }));\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: get outside worklet hooks is allowed",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\tconst read = () => base.get();\n\treturn read;\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import { useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\tconst read = () => base.get();\n\treturn read;\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: get reference without a call is allowed",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useAnimatedStyle(() => ({ read: base.get }));\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useAnimatedStyle(() => ({ read: base.get }));\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: computed get call inside worklet hook",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useAnimatedStyle(() => ({ opacity: base['get']() }));\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 44,
+					"endLine": 4,
+					"endColumn": 55,
+					"message": "Use `.value`, not `.get()`, when reading SharedValues inside Reanimated worklet hooks."
+				}
+			],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useAnimatedStyle(() => ({ opacity: base['get']() }));\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: computed value read in initializer",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useSharedValue(base['value']);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 24,
+					"endLine": 4,
+					"endColumn": 37,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useSharedValue(base['value']);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: dynamic computed member is ignored",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example(key: string) {\n\tconst base = useSharedValue(0);\n\treturn useSharedValue(base[key]);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example(key: string) {\n\tconst base = useSharedValue(0);\n\treturn useSharedValue(base[key]);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: type assertion wrappers around hook and object",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = (useSharedValue as any)(0);\n\tconst copy = useSharedValue((base as any).value);\n\tconst nonNull = useSharedValue(base!.value);\n\tconst satisfied = useSharedValue((base satisfies object as any).value);\n\treturn [copy, nonNull, satisfied];\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 30,
+					"endLine": 4,
+					"endColumn": 49,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				},
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 5,
+					"column": 33,
+					"endLine": 5,
+					"endColumn": 44,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				},
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 6,
+					"column": 35,
+					"endLine": 6,
+					"endColumn": 71,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = (useSharedValue as any)(0);\n\tconst copy = useSharedValue((base as any).value);\n\tconst nonNull = useSharedValue(base!.value);\n\tconst satisfied = useSharedValue((base satisfies object as any).value);\n\treturn [copy, nonNull, satisfied];\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: optional chain on shared value",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useSharedValue(base?.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 24,
+					"endLine": 4,
+					"endColumn": 35,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useSharedValue(base?.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: shared value initialized with wrapped call",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0) as any;\n\treturn useSharedValue(base.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 24,
+					"endLine": 4,
+					"endColumn": 34,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0) as any;\n\treturn useSharedValue(base.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: destructured declarator is not tracked",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst { base } = { base: useSharedValue(0) };\n\treturn useSharedValue(base.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst { base } = { base: useSharedValue(0) };\n\treturn useSharedValue(base.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: declarator without initializer",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tlet base;\n\treturn useSharedValue(base.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tlet base;\n\treturn useSharedValue(base.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: alias chain of shared values",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst first = useSharedValue(0);\n\tconst second = first;\n\tconst third = second;\n\treturn useSharedValue(third.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 6,
+					"column": 24,
+					"endLine": 6,
+					"endColumn": 35,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst first = useSharedValue(0);\n\tconst second = first;\n\tconst third = second;\n\treturn useSharedValue(third.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: alias declared before its source",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst second = first;\n\tconst first = useSharedValue(0);\n\treturn useSharedValue(second.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 5,
+					"column": 24,
+					"endLine": 5,
+					"endColumn": 36,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst second = first;\n\tconst first = useSharedValue(0);\n\treturn useSharedValue(second.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: shared value parameter via nested hook argument",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useSharedValue(Math.max(base.value, 1));\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 33,
+					"endLine": 4,
+					"endColumn": 43,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useSharedValue(Math.max(base.value, 1));\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: import with string literal name",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useSharedValue as useSV, 'useAnimatedStyle' as useStyle } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSV(0);\n\treturn useStyle(() => ({ opacity: base.get() }));\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 36,
+					"endLine": 4,
+					"endColumn": 44,
+					"message": "Use `.value`, not `.get()`, when reading SharedValues inside Reanimated worklet hooks."
+				}
+			],
+			"output": {
+				"a.ts": "import { useSharedValue as useSV, 'useAnimatedStyle' as useStyle } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSV(0);\n\treturn useStyle(() => ({ opacity: base.get() }));\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: default import is ignored",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import Reanimated from 'react-native-reanimated';\nexport function Example() {\n\tconst base = Reanimated.useSharedValue(0);\n\treturn Reanimated.useSharedValue(base.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import Reanimated from 'react-native-reanimated';\nexport function Example() {\n\tconst base = Reanimated.useSharedValue(0);\n\treturn Reanimated.useSharedValue(base.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: namespace computed member call",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import * as R from 'react-native-reanimated';\nexport function Example() {\n\tconst base = R['useSharedValue'](0);\n\treturn R.useSharedValue(base.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 26,
+					"endLine": 4,
+					"endColumn": 36,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import * as R from 'react-native-reanimated';\nexport function Example() {\n\tconst base = R['useSharedValue'](0);\n\treturn R.useSharedValue(base.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: namespace dynamic member is ignored",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import * as R from 'react-native-reanimated';\nexport function Example(name: string) {\n\tconst base = R.useSharedValue(0);\n\treturn R[name](base.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import * as R from 'react-native-reanimated';\nexport function Example(name: string) {\n\tconst base = R.useSharedValue(0);\n\treturn R[name](base.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: callee that is not an identifier or member",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example(factory: () => any) {\n\tconst base = useSharedValue(0);\n\treturn factory()(base.value);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example(factory: () => any) {\n\tconst base = useSharedValue(0);\n\treturn factory()(base.value);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: plain call outside hooks",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn console.log(base.value, base.get());\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn console.log(base.value, base.get());\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: worklet hook with shared value read after callback",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useAnimatedStyle(() => ({}), [base.get()]);\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 39,
+					"endLine": 4,
+					"endColumn": 47,
+					"message": "Use `.value`, not `.get()`, when reading SharedValues inside Reanimated worklet hooks."
+				}
+			],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\treturn useAnimatedStyle(() => ({}), [base.get()]);\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: both messages in one file",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\tconst style = useAnimatedStyle(() => ({ a: base.get(), b: useSharedValue(base.get()) }));\n\treturn style;\n}"
+			},
+			"lint": [
+				"a.ts"
+			],
+			"messages": [
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 45,
+					"endLine": 4,
+					"endColumn": 53,
+					"message": "Use `.value`, not `.get()`, when reading SharedValues inside Reanimated worklet hooks."
+				},
+				{
+					"file": "a.ts",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 75,
+					"endLine": 4,
+					"endColumn": 83,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.ts": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Example() {\n\tconst base = useSharedValue(0);\n\tconst style = useAnimatedStyle(() => ({ a: base.get(), b: useSharedValue(base.get()) }));\n\treturn style;\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: tsx component",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"a.tsx": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Box() {\n\tconst base = useSharedValue(0);\n\tconst other = useSharedValue(base.value);\n\treturn <View>{other.value}</View>;\n}"
+			},
+			"lint": [
+				"a.tsx"
+			],
+			"messages": [
+				{
+					"file": "a.tsx",
+					"rule": "no-shared-value-misuse",
+					"line": 4,
+					"column": 31,
+					"endLine": 4,
+					"endColumn": 41,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"a.tsx": "import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';\nexport function Box() {\n\tconst base = useSharedValue(0);\n\tconst other = useSharedValue(base.value);\n\treturn <View>{other.value}</View>;\n}"
+			}
+		},
+		{
+			"name": "no-shared-value-misuse: test-project/preset-fixtures/reanimated.tsx",
+			"rule": "no-shared-value-misuse",
+			"files": {
+				"preset-fixtures/reanimated.tsx": "import { useSharedValue } from 'react-native-reanimated';\n\nexport function ReanimatedFixture() {\n\tconst source = useSharedValue(0);\n\tconst offset = useSharedValue(source.value);\n\tusePanGesture({ onStart: () => {} });\n\n\treturn <>{offset.value}</>;\n}\n"
+			},
+			"lint": [
+				"preset-fixtures/reanimated.tsx"
+			],
+			"messages": [
+				{
+					"file": "preset-fixtures/reanimated.tsx",
+					"rule": "no-shared-value-misuse",
+					"line": 5,
+					"column": 32,
+					"endLine": 5,
+					"endColumn": 44,
+					"message": "Do not initialize `useSharedValue(...)` from another SharedValue. Initialize from a plain value and sync later."
+				}
+			],
+			"output": {
+				"preset-fixtures/reanimated.tsx": "import { useSharedValue } from 'react-native-reanimated';\n\nexport function ReanimatedFixture() {\n\tconst source = useSharedValue(0);\n\tconst offset = useSharedValue(source.value);\n\tusePanGesture({ onStart: () => {} });\n\n\treturn <>{offset.value}</>;\n}\n"
+			}
+		}
+	]
+}

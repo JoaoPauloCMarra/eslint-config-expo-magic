@@ -3,134 +3,43 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const profiles = require('../../test-project/bun-golden/profiles.js');
 const bunNext = require('./index.js');
-const { toOxlintConfig } = require('./utils/to-oxlint.js');
+const {
+	expectationsDirectory,
+	invalidOptions,
+	profiles,
+	withPackagePlaceholder,
+} = require('./config-cases.js');
 
 const bunNextDirectory = __dirname;
-const rulesDirectory = path.join(bunNextDirectory, 'rules');
-const fiveXDirectory = path.resolve(
-	bunNextDirectory,
-	'../eslint-config-expo-magic',
-);
-const fiveX = {
-	createConfig: require(fiveXDirectory).createConfig,
-	createMobileAppConfig: require(path.join(fiveXDirectory, 'mobile-app.js'))
-		.createMobileAppConfig,
-};
 
-const portFiles = {
-	boundaries: 'boundaries.js',
-	expo: 'expo.js',
-	'expo-magic': 'expo-magic/index.js',
-	'expo-magic-reanimated': 'expo-magic-reanimated.js',
-	'react-19-upgrade': 'react-19-upgrade.js',
-	'react-native': 'react-native.js',
-	'testing-library': 'testing-library.js',
-	'unused-imports': 'unused-imports.js',
-};
-
-function portPath(name) {
-	return path.join(rulesDirectory, portFiles[name]);
+function recorded(name) {
+	return JSON.parse(
+		fs.readFileSync(path.join(expectationsDirectory, `${name}.json`), 'utf8'),
+	);
 }
 
-function existingPorts() {
-	return Object.keys(portFiles).filter((name) => fs.existsSync(portPath(name)));
-}
-
-function isOff(value) {
-	const level = Array.isArray(value) ? value[0] : value;
-
-	return level === 'off' || level === 0;
-}
-
-function usedPrefixes(entries) {
-	const prefixes = new Set();
-
-	for (const entry of entries) {
-		for (const [name, value] of Object.entries(entry.rules ?? {})) {
-			const slash = name.lastIndexOf('/');
-			if (slash !== -1 && !isOff(value)) prefixes.add(name.slice(0, slash));
-		}
-	}
-
-	return prefixes;
-}
-
-function expectedConverterOptions() {
-	const jsPlugins = {};
-	const jsPluginRules = {};
-
-	for (const name of existingPorts()) {
-		jsPlugins[name] = portPath(name);
-		jsPluginRules[name] = new Set(Object.keys(require(portPath(name)).rules));
-	}
-
-	return { jsPlugins, jsPluginRules };
-}
-
-describe('bun-next createConfig matches the 5.x package through the converter', () => {
-	for (const profile of profiles) {
-		test(profile.name, () => {
-			const entries = fiveX[profile.factory](profile.options);
-			const missing = Object.keys(portFiles).filter(
-				(name) => !existingPorts().includes(name),
-			);
-			const prefixes = usedPrefixes(entries);
-
-			if (missing.some((name) => prefixes.has(name))) {
-				expect(() => bunNext[profile.factory](profile.options)).toThrow(
-					/Port missing/,
-				);
-
-				return;
-			}
-
-			expect(bunNext[profile.factory](profile.options)).toStrictEqual(
-				toOxlintConfig(entries, expectedConverterOptions()),
+describe('createConfig matches the configs recorded from 5.x', () => {
+	for (const { name, factory, options } of profiles) {
+		test(name, () => {
+			expect(withPackagePlaceholder(bunNext[factory](options))).toEqual(
+				recorded(`profile-${name}`),
 			);
 		});
 	}
 });
 
-describe('bun-next createConfig keeps 5.x option validation', () => {
-	const invalidOptions = [
-		null,
-		[],
-		{ preset: 'nope' },
-		{ prettier: 'yes' },
-		{ agent: 'yes' },
-		{ tsconfigProjects: [1] },
-		{ inlineStyles: 'loud' },
-	];
+describe('option validation matches the errors recorded from 5.x', () => {
+	const validation = recorded('validation');
 
-	for (const options of invalidOptions) {
-		test(JSON.stringify(options), () => {
-			let expected;
-			try {
-				fiveX.createConfig(options);
-			} catch (error) {
-				expected = error;
-			}
-
-			expect(expected).toBeInstanceOf(Error);
-			expect(() => bunNext.createConfig(options)).toThrow(expected.message);
+	for (const factory of ['createConfig', 'createMobileAppConfig']) {
+		validation[factory].forEach(({ options, error }, index) => {
+			test(`${factory} ${JSON.stringify(options)}`, () => {
+				expect(invalidOptions[factory][index]).toEqual(options);
+				expect(() => bunNext[factory](options)).toThrow(error.message);
+			});
 		});
 	}
-
-	test('createMobileAppConfig rejects an unknown preset', () => {
-		let expected;
-		try {
-			fiveX.createMobileAppConfig({ preset: 'nope' });
-		} catch (error) {
-			expected = error;
-		}
-
-		expect(expected).toBeInstanceOf(Error);
-		expect(() => bunNext.createMobileAppConfig({ preset: 'nope' })).toThrow(
-			expected.message,
-		);
-	});
 });
 
 describe('bun-next has no npm runtime dependency', () => {
@@ -204,7 +113,7 @@ describe('bun-next has no npm runtime dependency', () => {
 					'		build();',
 					'		results[name] = "ok";',
 					'	} catch (error) {',
-					'		results[name] = /^Port missing/.test(error.message) ? "port missing" : error.message;',
+					'		results[name] = error.message;',
 					'	}',
 					'}',
 					'console.log(JSON.stringify(results));',
@@ -222,11 +131,8 @@ describe('bun-next has no npm runtime dependency', () => {
 			expect(result.stderr.toString()).toBe('');
 			expect(result.exitCode).toBe(0);
 			expect(
-				Object.entries(results).filter(
-					([, outcome]) => outcome !== 'ok' && outcome !== 'port missing',
-				),
+				Object.entries(results).filter(([, outcome]) => outcome !== 'ok'),
 			).toEqual([]);
-			expect(results.base).toBe('ok');
 		} finally {
 			fs.rmSync(temporaryRoot, { force: true, recursive: true });
 		}
