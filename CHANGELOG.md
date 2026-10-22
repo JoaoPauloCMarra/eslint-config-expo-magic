@@ -2,6 +2,15 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
+## 6.0.0-next.0
+
+Unreleased. Published as 6.0.0 once a stable Bun release ships `bun lint`.
+
+### Breaking Changes
+
+- The package targets Bun's built-in `bun lint` and `bun fmt` instead of ESLint and Prettier, and has no dependencies. Configs move from `eslint.config.js` to `oxlint.config.ts`; `createConfig` options and the rule set stay the same. See [docs/MIGRATING.md](docs/MIGRATING.md).
+- The `.mjs` entry points, the focused-layer subpaths (`agent-guardrails`, `native-ui`, `reanimated` and the rest; use the `createConfig` option of the same name), and the `eslint` and `prettier` bins are removed. `expo-magic-init-agent` is now `expo-magic-init`. `createArchitectureConfig` takes `base` instead of `baseConfig`.
+
 ## 5.5.0
 
 Released: 2026-10-14

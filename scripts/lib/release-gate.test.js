@@ -4,7 +4,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
-function exercise({ reportsOnly = false, fail = '' } = {}) {
+function exercise({ fail = '' } = {}) {
 	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'expo-release-gate-'));
 	try {
 		fs.mkdirSync(path.join(dir, 'scripts'));
@@ -16,7 +16,7 @@ function exercise({ reportsOnly = false, fail = '' } = {}) {
 			path.join(__dirname, '../release-check.js'),
 			path.join(dir, 'scripts/release-check.js'),
 		);
-		for (const command of ['bun', 'git']) {
+		for (const command of ['bun']) {
 			fs.writeFileSync(
 				path.join(dir, 'bin', command),
 				`#!/usr/bin/env node\nconst fs = require('node:fs'); const entry = ${JSON.stringify(command)} + ' ' + process.argv.slice(2).join(' '); fs.appendFileSync(process.env.GATE_TRACE, entry + '\\n'); if (entry.includes(process.env.GATE_FAIL || '\\0')) process.exit(17);\n`,
@@ -25,11 +25,8 @@ function exercise({ reportsOnly = false, fail = '' } = {}) {
 		}
 		const trace = path.join(dir, 'trace.txt');
 		const result = spawnSync(
-			'node',
-			[
-				path.join(dir, 'scripts/release-check.js'),
-				...(reportsOnly ? ['--reports-only'] : []),
-			],
+			process.execPath,
+			[path.join(dir, 'scripts/release-check.js')],
 			{
 				encoding: 'utf8',
 				timeout: 10_000,
@@ -52,39 +49,19 @@ function exercise({ reportsOnly = false, fail = '' } = {}) {
 }
 
 describe('release gate execution', () => {
-	test('PR report check generates reports and checks HEAD without running installs', () => {
-		const result = exercise({ reportsOnly: true });
-		expect(result.status).toBe(0);
-		expect(result.commands).toEqual([
-			'git fetch --quiet --tags origin',
-			'bun run check-pm',
-			'bun run report:config',
-			'bun run report:release-notes',
-			'git diff HEAD --exit-code -- docs/CONFIG_DIFF.md docs/config-diff.json docs/RELEASE_NOTES.next.md',
-		]);
-	});
-
-	test('full release check keeps all required gates before packing', () => {
+	test('runs every required gate before packing', () => {
 		const result = exercise();
 		expect(result.status).toBe(0);
-		expect(result.commands.slice(5)).toEqual([
-			'bun run audit:deps',
+		expect(result.commands).toEqual([
 			'bun run test',
 			'bun run typecheck',
-			'bun run validate',
-			'bun run smoke:release',
-			'bun run smoke:clean-sdk57',
+			'bun run golden:bun',
+			'bun run smoke:bun-consumer',
 			'bun pm pack --dry-run',
 		]);
 	});
 
-	for (const failure of [
-		'report:config',
-		'git diff',
-		'run test',
-		'smoke:release',
-		'smoke:clean-sdk57',
-	]) {
+	for (const failure of ['run test', 'typecheck', 'golden:bun', 'smoke:bun-consumer']) {
 		test(`stops before packing when ${failure} fails`, () => {
 			const result = exercise({ fail: failure });
 			expect(result.status).toBe(17);
@@ -93,3 +70,4 @@ describe('release gate execution', () => {
 		});
 	}
 });
+

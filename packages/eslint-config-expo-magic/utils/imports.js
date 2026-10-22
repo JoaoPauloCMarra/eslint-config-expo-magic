@@ -1,27 +1,25 @@
-/** @type {import('eslint').Linter.Config[]} */
 // Rationale: https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/RULES.md#-imports--organization
-const { fixupPluginRules } = require('@eslint/compat');
-const importX = require('eslint-plugin-import-x');
-const unusedImports = require('eslint-plugin-unused-imports');
+
+const { importX } = require('./external-config.json');
 
 // The base config owns `import-x/resolver`; the plugin's `{ typescript: true }` would replace its options.
 const { 'import-x/resolver': _resolver, ...typeScriptImportSettings } =
-	importX.configs.typescript.settings;
+	importX.typescript.settings;
 
 function createImportConfig({ noCycle = true } = {}) {
 	return [
 		{
 			plugins: {
-				'import-x': fixupPluginRules(importX),
-				'unused-imports': fixupPluginRules(unusedImports),
+				'import-x': {},
+				'unused-imports': {},
 			},
 			settings: {
-				...importX.configs.recommended.settings,
+				...importX.recommended.settings,
 				...typeScriptImportSettings,
 			},
 			rules: {
-				...importX.configs.recommended.rules,
-				...importX.configs.typescript.rules,
+				...importX.recommended.rules,
+				...importX.typescript.rules,
 				'unused-imports/no-unused-imports': 'error',
 
 				'import-x/first': 'error',

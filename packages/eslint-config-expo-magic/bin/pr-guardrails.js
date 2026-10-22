@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 require('../pr-guardrails.js')
 	.runCli()

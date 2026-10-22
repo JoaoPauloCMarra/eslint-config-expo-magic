@@ -142,12 +142,10 @@ function resolveAgentAwareOption(
 }
 
 function createImportCycleConfig() {
-	const { fixupPluginRules } = require('@eslint/compat');
-
 	return [
 		{
 			plugins: {
-				'import-x': fixupPluginRules(require('eslint-plugin-import-x')),
+				'import-x': {},
 			},
 			rules: {
 				'import-x/no-cycle': 'error',
@@ -331,11 +329,10 @@ function createConfig(options = {}) {
 	}
 
 	if (inlineStyles) {
-		const { fixupPluginRules } = require('@eslint/compat');
 		finalConfig.push({
 			files: ['**/*.tsx'],
 			plugins: {
-				'react-native': fixupPluginRules(require('eslint-plugin-react-native')),
+				'react-native': {},
 			},
 			rules: {
 				'react-native/no-inline-styles':
@@ -354,9 +351,7 @@ function createConfig(options = {}) {
 	if (effectiveReactCompiler) {
 		const reactCompilerConfig = require('./react-compiler.js');
 		finalConfig.push(...reactCompilerConfig);
-		restrictedSyntaxGroups.push(
-			...reactCompilerConfig.restrictedSyntaxGroups,
-		);
+		restrictedSyntaxGroups.push(...reactCompilerConfig.restrictedSyntaxGroups);
 	}
 
 	if (effectiveReanimated) {

@@ -10,6 +10,7 @@ Release or publish work is skipped when:
 2. A GitHub release already exists for the package version tag.
 3. npm already has `eslint-config-expo-magic@<version>`.
 4. The triggering `CI` run did not come from a push to `main`. `release.yml` has no manual trigger, and a manually dispatched or scheduled `CI` run never releases, even on `main`.
+5. The version is a prerelease (it contains `-`, such as `6.0.0-next.0`). Work in progress on `main` is never published or tagged.
 
 When both npm publish and GitHub release creation are needed, npm publish runs first and the workflow verifies `npm view eslint-config-expo-magic@<version>` plus `dist-tags.latest` before creating the GitHub release.
 
@@ -19,17 +20,15 @@ The release body is the `## <version>` section of `CHANGELOG.md`. The workflow e
 
 The workflow and manual publishing both run `scripts/publish-package.js`. It runs these steps in order and stops at the first failure. Step 4 runs only with `--publish`:
 
-1. Check that every `main`, `module`, `types`, `exports`, and `bin` target exists and is listed in the package `files`.
-2. Run `scripts/release-check.js`: `check-pm`, `report:config`, and `report:release-notes`, then fail if `docs/CONFIG_DIFF.md`, `docs/config-diff.json`, or `docs/RELEASE_NOTES.next.md` differ from the committed files, then `audit:deps`, `test`, `typecheck`, `validate`, `smoke:release`, `smoke:clean-sdk57`, and `bun pm pack --dry-run`.
+1. Check that every `main`, `types`, `exports`, and `bin` target exists and is listed in the package `files`.
+2. Run `scripts/release-check.js`: `test`, `typecheck`, `golden:bun`, `smoke:bun-consumer`, and `bun pm pack --dry-run`. The workflow skips this step with `--ci-verified`, because it only runs after CI passed on the same commit.
 3. Run `bun pm pack --dry-run` and `npm publish --dry-run --ignore-scripts --access public`.
 4. Publish with `npm publish --ignore-scripts --access public`, with `--provenance` in GitHub Actions.
 
-Because npm runs with `--ignore-scripts`, the package `prepublishOnly` script does not run on this path. The gate is the explicit `release-check.js` call in step 2.
+`golden:bun` and `smoke:bun-consumer` need a Bun with `bun lint`; until a stable release ships it, they download the latest canary (`scripts/lib/bun-binary.js`).
 
-Commit the regenerated report files before you release. Otherwise step 2 fails. `smoke:clean-sdk57` runs Expo Doctor against the SDK 57 versions in `test-project/package.json`, so that pin must match the patch that Expo Doctor expects.
+To publish manually, run `bun run publish-package --publish`. Other arguments go to both `npm publish` commands.
 
-To publish manually, run `bun run publish-package --publish`. `bun run publish-package -- --publish` is the same, because `bun run` removes the `--` separator. Other arguments go to both `npm publish` commands.
+See [TESTING.md](TESTING.md) for what the gate covers.
 
-## Candidate validation
 
-See [TESTING.md](TESTING.md) for executable coverage, release decisions, and sampling limits. CI runs `bun run report:check` against the current commit, in addition to tests, fixtures, public types, dependency audit, packed consumers and the clean SDK57 consumer. `report:check` regenerates only the release reports and checks them against HEAD; `release:check` performs the full gate before publication.

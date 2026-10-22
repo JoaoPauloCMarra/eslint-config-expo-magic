@@ -1,5 +1,5 @@
-import type { TypedConfig } from './types';
+import type { OxlintConfig } from './types';
 
-declare const config: TypedConfig;
+declare const config: OxlintConfig;
 
-export = config;
+export default config;

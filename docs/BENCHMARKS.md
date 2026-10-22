@@ -1,6 +1,6 @@
 # Benchmarks
 
-5.x (ESLint 10 + Prettier 3) against the Bun-only 6.0 package (`bun lint` + `bun fmt`), measured with `bun run bench:bun` (`scripts/bench-lint-format.js`).
+5.x (ESLint 10 + Prettier 3) against the Bun-only 6.0 package (`bun lint` + `bun fmt`), measured with `scripts/bench-lint-format.js` at commit `6d30493` (the script needed ESLint and was removed with 5.x).
 
 Setup: macOS arm64, 12 CPUs, Bun 1.4.4-canary.1+963452075. Both tools lint the same files with the same profile options. Each command runs once to warm up and then N times; the tables show the median wall time (min–max) and the median peak resident memory. `bun run golden:bun` checks that both report the same rules in the same files for these profiles, so the speedup does not come from skipped rules.
 
@@ -31,6 +31,8 @@ Setup: macOS arm64, 12 CPUs, Bun 1.4.4-canary.1+963452075. Both tools lint the s
 | --check   | 1658 ms (1590–1781), 302 MB | 36 ms (34–47), 32 MB | 46.0x  |
 
 ## Reproduce
+
+Check out `6d30493`, run `bun install`, then:
 
 ```bash
 bun run bench:bun -- --runs 10 --profile fast --profile testing --profile full

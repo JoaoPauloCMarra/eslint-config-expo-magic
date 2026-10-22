@@ -1,5 +1,5 @@
-import type { Config } from 'prettier';
+import type { FormatterOptions } from './types';
 
-declare const config: Config;
+declare const config: FormatterOptions;
 
 export = config;

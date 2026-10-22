@@ -100,7 +100,9 @@ function createNativeUiConfig(options = {}) {
 		config.push({
 			files: allowFiles,
 			rules: {
-				'no-restricted-imports': createRestrictedImportsRule(baseRestrictedImports),
+				'no-restricted-imports': createRestrictedImportsRule(
+					baseRestrictedImports,
+				),
 			},
 		});
 	}

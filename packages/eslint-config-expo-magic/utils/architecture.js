@@ -1,4 +1,4 @@
-const plugin = require('./plugin/index.js');
+const plugin = require('../rules/expo-magic/index.js');
 const { defaultRestrictions } = require('./native-ui.js');
 const { baseRestrictedImports } = require('./restricted-imports.js');
 const {

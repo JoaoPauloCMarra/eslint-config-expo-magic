@@ -1,6 +1,4 @@
-const {
-	createBasePreset,
-	defaultTsconfigProjectGlobs,
-} = require('./utils/config-core.js');
+const { createConfig } = require('./index.js');
+const { presetModule } = require('./utils/preset-module.js');
 
-module.exports = createBasePreset(defaultTsconfigProjectGlobs, []);
+module.exports = presetModule(() => createConfig({ preset: 'base' }));

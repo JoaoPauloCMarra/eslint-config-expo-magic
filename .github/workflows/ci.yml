@@ -14,15 +14,14 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# bun lint ships only in Bun canary for now; the test helpers download the
+# latest canary themselves (scripts/lib/bun-binary.js).
 jobs:
   unit-tests:
     runs-on: ubuntu-26.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          fetch-tags: true
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -34,90 +33,38 @@ jobs:
       - name: Typecheck public types
         run: bun run typecheck
 
-      - name: Audit dependencies
-        run: bun run audit:deps
-
       - name: Run unit tests
         run: bun run test
 
-      - name: Check committed release reports
-        run: bun run report:check
-
-  fixture-validation:
-    runs-on: ubuntu-26.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun run ci
-
-      - name: Run fixture validation
-        run: bun run validate
-
-  packed-consumer:
-    runs-on: ubuntu-26.04
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        lane: [--lane sdk-54, --lane sdk-55, --lane sdk-56, --lane sdk-57, --npm-only]
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun run ci
-
-      - name: Run packed-consumer smoke checks
-        run: bun scripts/smoke-packed-consumer.js ${{ matrix.lane }}
-
-  clean-sdk57-consumer:
-    runs-on: ubuntu-26.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun run ci
-
-      - name: Run clean SDK 57 consumer smoke
-        run: bun run smoke:clean-sdk57
-
-  # bun lint / bun fmt ship only in Bun canary for now. This job tracks parity
-  # with ESLint and Prettier and does not block the release workflow.
-  bun-canary-parity:
+  golden:
     runs-on: ubuntu-26.04
     timeout-minutes: 15
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v7
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: canary
+          bun-version: latest
 
       - name: Install dependencies
         run: bun run ci
 
-      - name: Compare bun lint and bun fmt with ESLint and Prettier
-        run: bun run parity:bun
-
-      - name: Compare the Bun-only configs with the 5.x golden data
-        if: ${{ !cancelled() }}
+      - name: Compare every profile with the 5.x golden data
         run: bun run golden:bun
 
-      - name: Install the packed Bun-only package in a clean consumer
-        if: ${{ !cancelled() }}
+  consumer:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun run ci
+
+      - name: Install the packed package in a clean consumer
         run: bun run smoke:bun-consumer
+

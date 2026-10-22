@@ -1,12 +1,10 @@
-const prettierConfig = require('eslint-config-prettier/flat');
-const pluginPrettier = require('eslint-plugin-prettier');
+const { prettier: prettierConfig } = require('./external-config.json');
 
-/** @type {import('eslint').Linter.Config[]} */
 // Rationale: https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/RULES.md#formatting
 module.exports = [
 	{
 		plugins: {
-			prettier: pluginPrettier,
+			prettier: {},
 		},
 		rules: {
 			'prettier/prettier': 'error',

@@ -1,50 +1,34 @@
-import type { ESLint, Linter, Rule } from 'eslint';
+export type RuleSeverity = 'off' | 'warn' | 'error' | 0 | 1 | 2;
 
-export type FlatConfig = Linter.Config;
+export type RuleEntry = RuleSeverity | readonly [RuleSeverity, ...unknown[]];
 
-export type RestrictedSyntaxSelector = Readonly<{
-	selector: string;
-	message?: string;
-}>;
+export type GlobalValue = 'readonly' | 'writable' | 'off';
 
-export type RestrictedSyntaxScope =
-	| 'typescript'
-	| 'typescript-without-tsx'
-	| 'tsx'
-	| 'test'
-	| 'test-typescript'
-	| 'test-tsx';
-
-export type RestrictedSyntaxGroup = Readonly<{
-	files: readonly string[];
-	selectors: readonly RestrictedSyntaxSelector[];
-	scope?: RestrictedSyntaxScope | readonly RestrictedSyntaxScope[];
-	capability?: string;
-	allowFiles?: readonly string[];
-}>;
-
-export type RestrictedSyntaxConfig = FlatConfig[] & {
-	restrictedSyntaxGroups: readonly RestrictedSyntaxGroup[];
+/** One file-scoped block of an oxlint config. Later overrides win. */
+export type OxlintOverride = {
+	files: string[];
+	excludeFiles?: string[];
+	globals?: Record<string, GlobalValue>;
+	rules?: Record<string, RuleEntry>;
 };
 
-export type AgentGuardrailsConfig = RestrictedSyntaxConfig & {
-	base: FlatConfig[];
-	syntaxBase: FlatConfig[];
-	createAgentGuardrailsConfig(): FlatConfig[];
-	createRestrictedSyntaxGroups(): RestrictedSyntaxGroup[];
+/** The oxlint-format config that `bun lint` reads from `oxlint.config.ts`. */
+export type OxlintConfig = {
+	options?: { typeAware?: boolean };
+	categories: Record<string, RuleSeverity | 'allow' | 'deny'>;
+	plugins: string[];
+	jsPlugins: { name: string; specifier: string }[];
+	settings: Record<string, unknown>;
+	ignorePatterns: string[];
+	overrides: OxlintOverride[];
 };
+
+/** Prettier-compatible options that `bun fmt` reads from `.prettierrc.js`. */
+export type FormatterOptions = Readonly<Record<string, unknown>>;
 
 export type AppGuardrailsOptions = Readonly<{
 	queryHookPattern?: string;
 }>;
-
-export type AppGuardrailsConfig = RestrictedSyntaxConfig & {
-	base: FlatConfig[];
-	createAppGuardrailsConfig(options?: AppGuardrailsOptions): FlatConfig[];
-	createRestrictedSyntaxGroups(
-		options?: AppGuardrailsOptions,
-	): RestrictedSyntaxGroup[];
-};
 
 export type ComponentStructureOptions = Readonly<{
 	propsTypePattern?: string;
@@ -122,7 +106,7 @@ export type CreateConfigOptions = Readonly<{
 	componentStructure?: boolean | ComponentStructureOptions;
 	deprecatedApis?: boolean | DeprecatedApiOptions;
 	featureBoundaries?: boolean | FeatureBoundaryOptions;
-	inlineStyles?: boolean | Linter.RuleSeverity;
+	inlineStyles?: boolean | RuleSeverity;
 	nativeUi?: boolean | NativeUiOptions;
 	reactCompiler?: boolean;
 	reanimated?: boolean | ReanimatedOptions;
@@ -131,40 +115,53 @@ export type CreateConfigOptions = Readonly<{
 	worklets?: boolean;
 }>;
 
-export type ReactCompilerRuleName =
-	| 'react-hooks/incompatible-library'
-	| 'react-hooks/unsupported-syntax'
-	| 'react-hooks/immutability'
-	| 'react-hooks/purity'
-	| 'react-hooks/preserve-manual-memoization'
-	| 'react-hooks/set-state-in-render'
-	| 'react-hooks/static-components';
+export type MobileAppConfigOptions = Readonly<{
+	preset?: 'default' | 'fast';
+	tsconfigProjects?: readonly string[];
+	extraIgnores?: readonly string[];
+	/** Extra files that may import the raw primitives they wrap. */
+	additionalNativeUiWrapperFiles?: readonly string[];
+}>;
 
-export type ReactCompilerConfig = FlatConfig[] & {
-	rules: Readonly<Record<ReactCompilerRuleName, Linter.RuleEntry>>;
-	restrictedSyntaxGroups: readonly RestrictedSyntaxGroup[];
+export type ArchitectureLayers = {
+	/** Route or navigation-host folder under `srcRoot`. Expo: `app`. Bare: `core`. */
+	routes: string;
+	/** UI layer folder. Expo: `uikit`. Bare: `shared`. */
+	ui: string;
+	/** Design-token folder. Expo: `uikit/tokens`. Bare: `shared/theme`. */
+	tokens: string;
+	/** Owned-primitive folder. Expo: `uikit/components`. Bare: `shared/ui`. */
+	components: string;
 };
 
-export type ReanimatedConfig = FlatConfig[] & {
-	createReanimatedConfig(options?: ReanimatedOptions): FlatConfig[];
-	createRestrictedSyntaxGroups(
-		options?: ReanimatedOptions,
-	): RestrictedSyntaxGroup[];
-	createSharedValueUsageConfig(): FlatConfig[];
-	restrictedSyntaxGroups: readonly RestrictedSyntaxGroup[];
-	sharedValueUsageRule: Rule.RuleModule;
+export type RestrictedImportPattern = {
+	group?: string[];
+	regex?: string;
+	message?: string;
 };
 
-export type SemanticColorsConfig = FlatConfig[] & {
-	createSemanticColorsConfig(options?: SemanticColorsOptions): FlatConfig[];
-	createRestrictedSyntaxGroups(
-		options?: SemanticColorsOptions,
-	): RestrictedSyntaxGroup[];
-	createAllowConfig(options?: SemanticColorsOptions): FlatConfig[];
-	restrictedSyntaxGroups: readonly RestrictedSyntaxGroup[];
+export type ArchitectureOptions = {
+	/** Layer vocabulary. Defaults to the Expo lane. */
+	layers?: Partial<ArchitectureLayers>;
+	/** Source root. Defaults to `src`. */
+	srcRoot?: string;
+	/** Import alias prefix for `src`. Defaults to `@`. */
+	aliasPrefix?: string;
+	/** Colour token module path, as in `semanticColors` (`uikit/tokens/colors`). */
+	tokenModule?: string;
+	/** Logger module allowed to call `console.*`. */
+	loggerModule?: string;
+	/** Files permitted to import raw native primitives. */
+	nativeWrappers?: string[];
+	/** Extra `no-restricted-imports` paths merged into every layer block. */
+	extraNativeUiRestrictions?: NativeUiRestriction[];
+	/** Extra `no-restricted-imports` patterns merged into every layer block. */
+	extraNativeLibPatterns?: RestrictedImportPattern[];
+	/** The same `nativeUi` options passed in `base`. */
+	nativeUi?: boolean | NativeUiOptions;
+	/** `createConfig` options for the config the architecture blocks extend. */
+	base?: CreateConfigOptions;
 };
-
-export type TypedConfig = FlatConfig[];
 
 export type GuardrailInput = Readonly<{
 	eventName: string;
@@ -300,16 +297,5 @@ export type PrGuardrailsConfig = {
 	readPullRequestInputFromEnv(
 		deps?: PrGuardrailsInputDeps,
 	): Promise<GuardrailInput>;
-	runCli(
-		options?: GuardrailOptions,
-		deps?: PrGuardrailsCliDeps,
-	): Promise<void>;
-};
-
-export type ComponentStructureModule = FlatConfig[] & {
-	createComponentStructureConfig(
-		options?: ComponentStructureOptions,
-	): FlatConfig[];
-	plugin: ESLint.Plugin;
-	recommended: FlatConfig[];
+	runCli(options?: GuardrailOptions, deps?: PrGuardrailsCliDeps): Promise<void>;
 };

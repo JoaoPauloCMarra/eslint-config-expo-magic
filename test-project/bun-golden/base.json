@@ -1,7 +1,6 @@
 {
 	"profile": "base",
 	"files": [
-		".eslintrc.js",
 		"App.tsx",
 		"BadImports.tsx",
 		"Legacy.js",
@@ -27,7 +26,6 @@
 		"components/UnusedComponent.tsx",
 		"cycleA.ts",
 		"cycleB.ts",
-		"eslint.config.js",
 		"import-violations.ts",
 		"index.js",
 		"invalid-syntax/duplicate-args.ts",
@@ -72,10 +70,7 @@
 		"test-imports.tsx",
 		"test.web.tsx",
 		"types.ts",
-		"utils/helpers.ts",
-		"validate-comprehensive.js",
-		"validation-results.js",
-		"validation-results.test.js"
+		"utils/helpers.ts"
 	],
 	"findings": [
 		"App.tsx:100:5 @typescript-eslint/no-unused-vars 1",
@@ -252,8 +247,7 @@
 		"preset-fixtures/native-ui.tsx:2:10 @typescript-eslint/no-unused-vars 1",
 		"preset-fixtures/native-ui.tsx:2:21 @typescript-eslint/no-unused-vars 1",
 		"preset-fixtures/native-ui.tsx:3:10 @typescript-eslint/no-unused-vars 1",
-		"test.web.tsx:2:1 expo/use-dom-exports 2",
-		"validate-comprehensive.js:232:31 no-undef 2"
+		"test.web.tsx:2:1 expo/use-dom-exports 2"
 	],
 	"fixes": {
 		"App.tsx": "c4177a78d626636bea985b9f96b11672394344fcc3e0013d801a2519cbc58c1e",

@@ -1,5 +1,5 @@
 const { createConfig } = require('./create-config.js');
-const expoMagicPlugin = require('./plugin/index.js');
+const expoMagicPlugin = require('../rules/expo-magic/index.js');
 const { testTsxFiles } = require('./file-patterns.js');
 const { defaultRestrictions } = require('./native-ui.js');
 const { baseRestrictedImports } = require('./restricted-imports.js');

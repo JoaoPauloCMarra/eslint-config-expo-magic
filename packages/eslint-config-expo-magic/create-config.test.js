@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const bunNext = require('./index.js');
+const expoMagic = require('./index.js');
 const {
 	expectationsDirectory,
 	invalidOptions,
@@ -11,7 +11,7 @@ const {
 	withPackagePlaceholder,
 } = require('./config-cases.js');
 
-const bunNextDirectory = __dirname;
+const packageDirectory = __dirname;
 
 function recorded(name) {
 	return JSON.parse(
@@ -22,7 +22,7 @@ function recorded(name) {
 describe('createConfig matches the configs recorded from 5.x', () => {
 	for (const { name, factory, options } of profiles) {
 		test(name, () => {
-			expect(withPackagePlaceholder(bunNext[factory](options))).toEqual(
+			expect(withPackagePlaceholder(expoMagic[factory](options))).toEqual(
 				recorded(`profile-${name}`),
 			);
 		});
@@ -36,13 +36,13 @@ describe('option validation matches the errors recorded from 5.x', () => {
 		validation[factory].forEach(({ options, error }, index) => {
 			test(`${factory} ${JSON.stringify(options)}`, () => {
 				expect(invalidOptions[factory][index]).toEqual(options);
-				expect(() => bunNext[factory](options)).toThrow(error.message);
+				expect(() => expoMagic[factory](options)).toThrow(error.message);
 			});
 		});
 	}
 });
 
-describe('bun-next has no npm runtime dependency', () => {
+describe('the package has no npm runtime dependency', () => {
 	const packageSources = [
 		'index.js',
 		'utils',
@@ -51,7 +51,7 @@ describe('bun-next has no npm runtime dependency', () => {
 	];
 
 	function collectSources(target) {
-		const absolute = path.join(bunNextDirectory, target);
+		const absolute = path.join(packageDirectory, target);
 		if (fs.statSync(absolute).isFile()) return [absolute];
 
 		return fs
@@ -71,7 +71,7 @@ describe('bun-next has no npm runtime dependency', () => {
 			for (const match of source.matchAll(specifier)) {
 				const value = match[2];
 				if (!value.startsWith('.') && !value.startsWith('node:')) {
-					offenders.push(`${path.relative(bunNextDirectory, file)}: ${value}`);
+					offenders.push(`${path.relative(packageDirectory, file)}: ${value}`);
 				}
 			}
 		}
@@ -81,12 +81,12 @@ describe('bun-next has no npm runtime dependency', () => {
 
 	test('loads and builds configs from a copy outside the repository', () => {
 		const temporaryRoot = fs.mkdtempSync(
-			path.join(os.tmpdir(), 'bun-next-isolated-'),
+			path.join(os.tmpdir(), 'expo-magic-isolated-'),
 		);
 
 		try {
-			const copy = path.join(temporaryRoot, 'bun-next');
-			fs.cpSync(bunNextDirectory, copy, {
+			const copy = path.join(temporaryRoot, 'eslint-config-expo-magic');
+			fs.cpSync(packageDirectory, copy, {
 				recursive: true,
 				filter: (source) =>
 					!source.endsWith('.test.js') &&

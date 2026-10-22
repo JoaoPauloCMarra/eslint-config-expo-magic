@@ -15,11 +15,6 @@
 		"reason": "oxlint counts a declared function used only in a typeof type query as used."
 	},
 	{
-		"pair": "validation-results.test.js import-x/order 2",
-		"side": "missing",
-		"reason": "Bun classifies bun:test as a built-in module; eslint-plugin-import-x does not."
-	},
-	{
 		"pair": "preset-fixtures/extensions/probe.d.mts null 2",
 		"side": "missing",
 		"reason": "ESLint fails to parse this .d.mts file; Bun parses it."
@@ -48,11 +43,6 @@
 		"pair": "__tests__/App.test.tsx jest/no-standalone-expect 2",
 		"side": "extra",
 		"reason": "oxlint reports the top-level expect() on line 156, which eslint-plugin-jest skips."
-	},
-	{
-		"pair": "validation-results.test.js no-redeclare 1",
-		"side": "extra",
-		"reason": "oxlint no-redeclare reports a module-scope const that shadows the configured jest globals; ESLint treats CommonJS module scope as non-global."
 	},
 	{
 		"file": "App.tsx",
@@ -88,11 +78,6 @@
 		"file": "test-imports.tsx",
 		"side": "fix",
 		"reason": "oxlint's import/first has no fix when statements are interleaved with imports; ESLint moves the imports up."
-	},
-	{
-		"file": "validation-results.test.js",
-		"side": "fix",
-		"reason": "Bun classifies bun:test as a built-in module, so import/order does not reorder it."
 	},
 	{
 		"file": "preset-fixtures/agent-only.test.ts",

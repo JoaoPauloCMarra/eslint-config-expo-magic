@@ -8,12 +8,8 @@
 	"main": "index.js",
 	"type": "commonjs",
 	"scripts": {
-		"lint": "eslint .",
-		"lint:fix": "eslint . --fix",
-		"lint:quiet": "eslint . --quiet",
 		"test": "jest",
-		"test:watch": "jest --watch",
-		"validate": "bun run validate-comprehensive.js"
+		"test:watch": "jest --watch"
 	},
 	"devDependencies": {
 		"@testing-library/jest-native": "^5.4.3",
@@ -24,7 +20,6 @@
 		"babel-plugin-module-resolver": "^5.0.3",
 		"babel-plugin-react-compiler": "^1.0.0",
 		"eslint-config-expo-magic": "workspace:*",
-		"eslint-import-resolver-typescript": "^4.4.5",
 		"expo": "57.0.29",
 		"expo-status-bar": "57.0.1",
 		"jest-expo": "57.0.6",

@@ -1,7 +1,6 @@
 {
 	"profile": "default",
 	"files": [
-		".eslintrc.js",
 		"App.tsx",
 		"BadImports.tsx",
 		"Legacy.js",
@@ -27,7 +26,6 @@
 		"components/UnusedComponent.tsx",
 		"cycleA.ts",
 		"cycleB.ts",
-		"eslint.config.js",
 		"import-violations.ts",
 		"index.js",
 		"invalid-syntax/duplicate-args.ts",
@@ -72,10 +70,7 @@
 		"test-imports.tsx",
 		"test.web.tsx",
 		"types.ts",
-		"utils/helpers.ts",
-		"validate-comprehensive.js",
-		"validation-results.js",
-		"validation-results.test.js"
+		"utils/helpers.ts"
 	],
 	"findings": [
 		"App.tsx:110:7 react/no-is-mounted 2",
@@ -654,49 +649,7 @@
 		"test-imports.tsx:6:1 import-x/order 2",
 		"test-imports.tsx:7:1 no-console 1",
 		"test.web.tsx:2:1 expo/use-dom-exports 2",
-		"types.ts:4:1 import-x/no-anonymous-default-export 2",
-		"validate-comprehensive.js:232:31 no-undef 2",
-		"validate-comprehensive.js:333:2 no-console 1",
-		"validate-comprehensive.js:334:2 no-console 1",
-		"validate-comprehensive.js:344:4 no-console 1",
-		"validate-comprehensive.js:350:4 no-console 1",
-		"validate-comprehensive.js:357:3 no-console 1",
-		"validate-comprehensive.js:362:4 no-console 1",
-		"validate-comprehensive.js:367:3 no-console 1",
-		"validate-comprehensive.js:469:2 no-console 1",
-		"validate-comprehensive.js:470:2 no-console 1",
-		"validate-comprehensive.js:471:2 no-console 1",
-		"validate-comprehensive.js:480:2 no-console 1",
-		"validate-comprehensive.js:481:2 no-console 1",
-		"validate-comprehensive.js:482:2 no-console 1",
-		"validate-comprehensive.js:483:2 no-console 1",
-		"validate-comprehensive.js:484:2 no-console 1",
-		"validate-comprehensive.js:486:2 no-console 1",
-		"validate-comprehensive.js:487:2 no-console 1",
-		"validate-comprehensive.js:511:3 no-console 1",
-		"validate-comprehensive.js:521:3 no-console 1",
-		"validate-comprehensive.js:522:34 no-console 1",
-		"validate-comprehensive.js:526:3 no-console 1",
-		"validate-comprehensive.js:528:4 no-console 1",
-		"validate-comprehensive.js:533:3 no-console 1",
-		"validate-comprehensive.js:534:32 no-console 1",
-		"validate-comprehensive.js:538:3 no-console 1",
-		"validate-comprehensive.js:539:41 no-console 1",
-		"validate-comprehensive.js:543:3 no-console 1",
-		"validate-comprehensive.js:544:45 no-console 1",
-		"validate-comprehensive.js:548:3 no-console 1",
-		"validate-comprehensive.js:549:42 no-console 1",
-		"validate-comprehensive.js:553:3 no-console 1",
-		"validate-comprehensive.js:555:4 no-console 1",
-		"validate-comprehensive.js:5:23 import-x/order 2",
-		"validate-comprehensive.js:698:2 no-console 1",
-		"validate-comprehensive.js:699:2 no-console 1",
-		"validate-comprehensive.js:715:3 no-console 1",
-		"validate-comprehensive.js:716:3 no-console 1",
-		"validate-comprehensive.js:720:2 no-console 1",
-		"validate-comprehensive.js:721:2 no-console 1",
-		"validate-comprehensive.js:736:4 no-console 1",
-		"validation-results.test.js:2:36 import-x/order 2"
+		"types.ts:4:1 import-x/no-anonymous-default-export 2"
 	],
 	"fixes": {
 		"App.tsx": "45d821d9424d474b830d24b03291a6ce29a60d68246e9af4b332663eff73c0d5",
@@ -711,8 +664,6 @@
 		"preset-fixtures/default-only.ts": "437d35121f743906fb50249aed0eb4230a5464f84484e69d08daddcf6d424bb5",
 		"preset-fixtures/feature-boundaries/tracking-service.ts": "f75e03b6376af948324de7faed7f33735bd5d0c4e23e4e930d17a8a3d4fb27c6",
 		"preset-fixtures/native-ui.tsx": "e0ed3eaf779193a7aeccd47d88b3132a1a0dc2d7a5957509f3e90c28671d575b",
-		"test-imports.tsx": "9aec6bcfc89da2f79db8131662c956c698c481d90132995e5e6d24e60f8ec66b",
-		"validate-comprehensive.js": "fc45d11d47034e57c203870ee0dd8e317f5d6f2af6e603bec4d05472967b345f",
-		"validation-results.test.js": "fc2011601b646eebfa107a804aecb8eca2561de4bca802be187ad30d0f839c93"
+		"test-imports.tsx": "9aec6bcfc89da2f79db8131662c956c698c481d90132995e5e6d24e60f8ec66b"
 	}
 }

@@ -1,3 +1,4 @@
-const { createConfig } = require('./utils/create-config.js');
+const { createConfig } = require('./index.js');
+const { presetModule } = require('./utils/preset-module.js');
 
-module.exports = createConfig({ typeChecked: true });
+module.exports = presetModule(() => createConfig({ typeChecked: true }));

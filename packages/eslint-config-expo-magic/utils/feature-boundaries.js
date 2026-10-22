@@ -1,6 +1,3 @@
-const { fixupPluginRules } = require('@eslint/compat');
-const boundaries = require('eslint-plugin-boundaries');
-
 const defaultFeatureElementTypes = [
 	'feature-api',
 	'feature-atom',
@@ -113,10 +110,9 @@ function createElementSettings(sharedComponentPatterns) {
 
 function createDependencyRules(featureElementTypes) {
 	const sameFeatureSelectors = createSameFeatureSelectors(featureElementTypes);
-	const sameFeatureAtomFileSelector = dependencyFileSelector(
-		'feature-atom',
-		{ feature: '{{from.element.captured.feature}}' },
-	);
+	const sameFeatureAtomFileSelector = dependencyFileSelector('feature-atom', {
+		feature: '{{from.element.captured.feature}}',
+	});
 	const anyFeatureAtomFileSelector = dependencyFileSelector('feature-atom');
 
 	return [
@@ -227,7 +223,7 @@ function createFeatureBoundaryConfig(options = {}) {
 	return [
 		{
 			plugins: {
-				boundaries: fixupPluginRules(boundaries),
+				boundaries: {},
 			},
 			settings: {
 				'boundaries/elements': createElementSettings(sharedComponentPatterns),

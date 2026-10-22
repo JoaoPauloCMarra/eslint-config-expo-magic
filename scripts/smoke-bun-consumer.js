@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-// Packs packages/bun-next, installs it into a fresh project without ESLint or
+// Packs packages/eslint-config-expo-magic, installs it into a fresh project without ESLint or
 // Prettier, sets it up with expo-magic-init, and checks that bun lint and
 // bun fmt work from the shipped files alone. Needs a Bun with the built-in
 // bun lint (the latest canary unless BUN_PARITY_BIN is set).
@@ -12,7 +12,7 @@ const { spawnSync } = require('node:child_process');
 const { resolveBunBinary } = require('./lib/bun-binary.js');
 
 const rootDir = path.resolve(__dirname, '..');
-const packageDir = path.join(rootDir, 'packages', 'bun-next');
+const packageDir = path.join(rootDir, 'packages', 'eslint-config-expo-magic');
 
 // Put the tested Bun first on PATH: a `"lint": "bun lint"` script calls `bun`
 // from PATH, and a Bun without the built-in command would run the script again.

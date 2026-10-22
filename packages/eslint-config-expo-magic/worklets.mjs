@@ -1,7 +1,0 @@
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
-const config = require('./worklets.js');
-
-export default config;
-export const restrictedSyntaxGroups = config.restrictedSyntaxGroups;

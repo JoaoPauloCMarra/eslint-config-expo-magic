@@ -1,11 +1,6 @@
-const {
+const { createMobileAppConfig } = require('./index.js');
+const { presetModule } = require('./utils/preset-module.js');
+
+module.exports = presetModule(() => createMobileAppConfig(), {
 	createMobileAppConfig,
-	createMobileAppRestrictedImportsConfig,
-} = require('./utils/mobile-app.js');
-
-const config = createMobileAppConfig();
-
-module.exports = config;
-module.exports.createMobileAppConfig = createMobileAppConfig;
-module.exports.createMobileAppRestrictedImportsConfig =
-	createMobileAppRestrictedImportsConfig;
+});

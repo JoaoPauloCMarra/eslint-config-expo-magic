@@ -1,25 +1,22 @@
 {
 	"name": "eslint-config-expo-magic",
-	"version": "5.5.0",
-	"description": "ESLint flat config for Expo, React Native, and TypeScript projects",
+	"version": "6.0.0-next.0",
+	"private": true,
+	"description": "Bun lint and bun fmt config for Expo, React Native, and TypeScript projects",
 	"keywords": [
-		"eslint",
-		"eslint-flat-config",
-		"eslintconfig",
-		"eslint-config",
-		"eslint-plugin",
+		"bun",
+		"bun-lint",
+		"bun-fmt",
+		"oxlint",
+		"lint",
+		"format",
 		"react",
 		"react-native",
 		"expo",
-		"eslint-expo",
-		"expo-eslint",
-		"react-native-eslint",
 		"typescript",
-		"prettier",
 		"jest",
 		"testing-library",
-		"mobile",
-		"linting"
+		"mobile"
 	],
 	"homepage": "https://github.com/JoaoPauloCMarra/eslint-config-expo-magic#readme",
 	"bugs": {
@@ -35,231 +32,75 @@
 		"type": "git",
 		"url": "git+https://github.com/JoaoPauloCMarra/eslint-config-expo-magic.git"
 	},
+	"type": "commonjs",
 	"main": "index.js",
-	"module": "index.mjs",
 	"types": "index.d.ts",
 	"exports": {
 		".": {
 			"types": "./index.d.ts",
-			"require": "./index.js",
-			"import": "./index.mjs"
+			"default": "./index.js"
 		},
 		"./base": {
 			"types": "./base.d.ts",
-			"require": "./base.js",
-			"import": "./base.mjs"
+			"default": "./base.js"
 		},
 		"./fast": {
 			"types": "./fast.d.ts",
-			"require": "./fast.js",
-			"import": "./fast.mjs"
-		},
-		"./agent": {
-			"types": "./agent.d.ts",
-			"require": "./agent.js",
-			"import": "./agent.mjs"
-		},
-		"./agent-guardrails": {
-			"types": "./agent-guardrails.d.ts",
-			"require": "./agent-guardrails.js",
-			"import": "./agent-guardrails.mjs"
-		},
-		"./architecture": {
-			"types": "./architecture.d.ts",
-			"import": "./architecture.mjs",
-			"require": "./architecture.js",
-			"default": "./architecture.js"
+			"default": "./fast.js"
 		},
 		"./strict": {
 			"types": "./strict.d.ts",
-			"require": "./strict.js",
-			"import": "./strict.mjs"
+			"default": "./strict.js"
 		},
 		"./typed": {
 			"types": "./typed.d.ts",
-			"require": "./typed.js",
-			"import": "./typed.mjs"
+			"default": "./typed.js"
 		},
-		"./app-guardrails": {
-			"types": "./app-guardrails.d.ts",
-			"require": "./app-guardrails.js",
-			"import": "./app-guardrails.mjs"
-		},
-		"./component-structure": {
-			"types": "./component-structure.d.ts",
-			"require": "./component-structure.js",
-			"import": "./component-structure.mjs"
-		},
-		"./deprecated-apis": {
-			"types": "./deprecated-apis.d.ts",
-			"require": "./deprecated-apis.js",
-			"import": "./deprecated-apis.mjs"
-		},
-		"./feature-boundaries": {
-			"types": "./feature-boundaries.d.ts",
-			"require": "./feature-boundaries.js",
-			"import": "./feature-boundaries.mjs"
-		},
-		"./native-ui": {
-			"types": "./native-ui.d.ts",
-			"require": "./native-ui.js",
-			"import": "./native-ui.mjs"
+		"./agent": {
+			"types": "./agent.d.ts",
+			"default": "./agent.js"
 		},
 		"./mobile-app": {
 			"types": "./mobile-app.d.ts",
-			"require": "./mobile-app.js",
-			"import": "./mobile-app.mjs"
+			"default": "./mobile-app.js"
+		},
+		"./architecture": {
+			"types": "./architecture.d.ts",
+			"default": "./architecture.js"
 		},
 		"./prettier": {
 			"types": "./prettier.d.ts",
-			"require": "./prettier.js",
-			"import": "./prettier.mjs"
+			"default": "./prettier.js"
 		},
 		"./pr-guardrails": {
 			"types": "./pr-guardrails.d.ts",
-			"require": "./pr-guardrails.js",
-			"import": "./pr-guardrails.mjs"
-		},
-		"./react-compiler": {
-			"types": "./react-compiler.d.ts",
-			"require": "./react-compiler.js",
-			"import": "./react-compiler.mjs"
-		},
-		"./reanimated": {
-			"types": "./reanimated.d.ts",
-			"require": "./reanimated.js",
-			"import": "./reanimated.mjs"
-		},
-		"./semantic-colors": {
-			"types": "./semantic-colors.d.ts",
-			"require": "./semantic-colors.js",
-			"import": "./semantic-colors.mjs"
-		},
-		"./storybook": {
-			"types": "./storybook.d.ts",
-			"require": "./storybook.js",
-			"import": "./storybook.mjs"
-		},
-		"./worklets": {
-			"types": "./worklets.d.ts",
-			"require": "./worklets.js",
-			"import": "./worklets.mjs"
+			"default": "./pr-guardrails.js"
 		},
 		"./package.json": "./package.json"
 	},
 	"bin": {
-		"eslint": "bin/eslint.js",
-		"expo-magic-init": "bin/init-agent.js",
-		"expo-magic-init-agent": "bin/init-agent.js",
-		"expo-magic-pr-guardrails": "bin/pr-guardrails.js",
-		"prettier": "bin/prettier.js"
+		"expo-magic-init": "bin/init.js",
+		"expo-magic-pr-guardrails": "bin/pr-guardrails.js"
 	},
 	"sideEffects": false,
 	"files": [
-		"index.js",
-		"index.mjs",
-		"base.js",
-		"base.mjs",
-		"fast.js",
-		"fast.mjs",
-		"agent.js",
-		"agent.mjs",
-		"agent-guardrails.js",
-		"agent-guardrails.mjs",
-		"architecture.js",
-		"architecture.mjs",
-		"strict.js",
-		"strict.mjs",
-		"typed.js",
-		"typed.mjs",
-		"app-guardrails.js",
-		"app-guardrails.mjs",
-		"component-structure.js",
-		"component-structure.mjs",
-		"deprecated-apis.js",
-		"deprecated-apis.mjs",
-		"feature-boundaries.js",
-		"feature-boundaries.mjs",
-		"native-ui.js",
-		"native-ui.mjs",
-		"mobile-app.js",
-		"mobile-app.mjs",
-		"prettier.js",
-		"prettier.mjs",
-		"pr-guardrails.js",
-		"pr-guardrails.mjs",
-		"react-compiler.js",
-		"react-compiler.mjs",
-		"reanimated.js",
-		"reanimated.mjs",
-		"semantic-colors.js",
-		"semantic-colors.mjs",
-		"storybook.js",
-		"storybook.mjs",
-		"worklets.js",
-		"worklets.mjs",
-		"index.d.ts",
-		"base.d.ts",
-		"fast.d.ts",
-		"agent.d.ts",
-		"agent-guardrails.d.ts",
-		"architecture.d.ts",
-		"strict.d.ts",
-		"typed.d.ts",
-		"app-guardrails.d.ts",
-		"component-structure.d.ts",
-		"deprecated-apis.d.ts",
-		"feature-boundaries.d.ts",
-		"native-ui.d.ts",
-		"mobile-app.d.ts",
-		"prettier.d.ts",
-		"pr-guardrails.d.ts",
-		"react-compiler.d.ts",
-		"reanimated.d.ts",
-		"semantic-colors.d.ts",
-		"storybook.d.ts",
-		"worklets.d.ts",
-		"types.d.ts",
+		"*.js",
+		"*.d.ts",
+		".prettierrc.js",
 		"README.md",
 		"bin/*.js",
+		"rules/**/*.js",
 		"utils/*.js",
-		"utils/plugin/*.js",
-		"utils/plugin/rules/*.js",
-		".prettierrc.js"
+		"utils/*.json",
+		"!**/*.test.js",
+		"!config-cases.js",
+		"!rules/check-port.js",
+		"!rules/rule-harness.js",
+		"!rules/__cases__"
 	],
-	"scripts": {
-		"test": "bun test",
-		"typecheck": "tsc -p tsconfig.types.json",
-		"prepublishOnly": "node ../../scripts/release-check.js",
-		"pack:dry-run": "bun pm pack --dry-run",
-		"publish:dry-run": "bun publish --dry-run",
-		"ci": "bun install --frozen-lockfile",
-		"dev": "bun run --if-present",
-		"build": "bun run --if-present"
-	},
-	"dependencies": {
-		"@eslint/compat": "^2.1.1",
-		"eslint": "^10.11.0",
-		"eslint-config-expo": "^57.0.2",
-		"eslint-config-prettier": "^10.1.8",
-		"eslint-import-resolver-typescript": "^4.4.5",
-		"eslint-plugin-boundaries": "^7.2.0",
-		"eslint-plugin-import-x": "^4.17.1",
-		"eslint-plugin-jest": "^29.16.6",
-		"eslint-plugin-prettier": "^5.5.6",
-		"eslint-plugin-react-19-upgrade": "^1.11.0",
-		"eslint-plugin-react-hooks": "^7.1.1",
-		"eslint-plugin-react-native": "^5.0.0",
-		"eslint-plugin-testing-library": "^7.16.2",
-		"eslint-plugin-unused-imports": "^4.4.1",
-		"globals": "^17.12.0",
-		"prettier": "^3.9.9",
-		"typescript-eslint": "^8.71.0"
-	},
 	"peerDependencies": {
 		"expo": "^54.0.33 || ^55.0.0 || ^56.0.0 || ^57.0.0",
-		"react": "^19.1.0 || ^19.2.0",
-		"typescript": ">=5.9.3 <6.1.0"
+		"react": "^19.1.0 || ^19.2.0"
 	},
 	"peerDependenciesMeta": {
 		"expo": {
@@ -270,13 +111,6 @@
 		}
 	},
 	"engines": {
-		"node": "^20.19.0 || ^22.13.0 || >=24",
-		"bun": ">=1.4.0"
-	},
-	"packageManager": "bun@1.4.3",
-	"devDependencies": {
-		"babel-jest": "^30.5.2",
-		"bun-types": "^1.4.3",
-		"jest": "^30.5.2"
+		"bun": ">=1.4.4"
 	}
 }

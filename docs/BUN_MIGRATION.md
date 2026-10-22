@@ -1,14 +1,14 @@
 # Bun-only migration (6.0)
 
-Status: in progress, release held. Plan written against `4a91ed6`.
+Status: swapped on `main` as `6.0.0-next.0`, release held. Plan written against `4a91ed6`.
 
 ## Decision
 
 The next major version drops ESLint, Prettier and every ESLint plugin package. Linting runs on `bun lint` with an oxlint-format config. Formatting runs on `bun fmt`.
 
-The work happens on `main` in a separate, unpublished workspace package, `packages/bun-next` (`private: true`). The published `packages/eslint-config-expo-magic` (5.x) stays unchanged until release day, so the existing CI jobs keep running on stable Bun.
+The Bun-only package was built next to 5.x as `packages/bun-next` and replaced `packages/eslint-config-expo-magic` on `main` as `6.0.0-next.0` (`private: true`). The release workflow skips prerelease versions, so nothing is published or tagged. 5.5.0 stays the published version.
 
-**Release gate:** a stable Bun release ships `bun lint`, and every golden test passes on that stable release. Bun 1.4.4 (2026-10-22) ships `bun fmt` only. On release day, `packages/bun-next` replaces `packages/eslint-config-expo-magic` and is published as `eslint-config-expo-magic@6.0.0`.
+**Release gate:** a stable Bun release ships `bun lint`, and every golden test passes on that stable release. Bun 1.4.4 (2026-10-22) ships `bun fmt` only. On release day the package is published as `eslint-config-expo-magic@6.0.0`.
 
 ## Facts the design rests on (Bun canary, 2026-10-22)
 
@@ -26,10 +26,10 @@ The work happens on `main` in a separate, unpublished workspace package, `packag
 ## Architecture
 
 ```
-createConfig(options)                      packages/bun-next/utils/create-config.js
+createConfig(options)                      packages/eslint-config-expo-magic/utils/create-config.js
   └─ composes layers (same order and options as 5.x)
        └─ flat-style entries with rule data only (no plugin objects)
-  └─ toOxlintConfig(entries)               packages/bun-next/utils/to-oxlint.js
+  └─ toOxlintConfig(entries)               packages/eslint-config-expo-magic/utils/to-oxlint.js
        ├─ base rules + overrides[{ files, excludeFiles, rules, globals }]
        ├─ rule-name map: @typescript-eslint/* → typescript/*, import-x/* → import/*
        ├─ plugins + categories + settings + globals + ignorePatterns
@@ -38,67 +38,63 @@ consumer oxlint.config.ts → export default createConfig({...}) → bun lint
 consumer bunfig.toml [fmt] or the package .prettierrc.js → bun fmt
 ```
 
-External presets (the eslint-config-expo, typescript-eslint and react-hooks recommended rule tables) are snapshotted once into `utils/external-rules.json` by `scripts/snapshot-external-rules.js`, so the package needs no runtime dependency on them.
+External presets (the eslint-config-expo, typescript-eslint and react-hooks recommended rule tables) were snapshotted from 5.5.0 into `utils/external-config.json`, so the package needs no runtime dependency on them.
 
 ## Tests first (golden master from 5.5.0)
 
-All golden data comes from the current package running on ESLint and Prettier, and is committed before any implementation:
+All golden data came from 5.5.0 running on ESLint and Prettier, and was committed before the implementation. The recorders left the repository with 5.x; the recordings are frozen:
 
 | Test              | Source of truth                                                                                   | Pass condition                                                                                                |
 | ----------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | Findings          | `eslint -f json` on `test-project` for each profile in `test-project/bun-golden/profiles.js`      | `bun lint` reports the same `file:line:col rule severity` set, apart from entries in `known-divergences.json` |
 | Autofix           | `eslint --fix-dry-run` output for each fixable file and profile                                   | `bun lint --fix-dry-run` produces byte-identical output                                                       |
 | Format            | `prettier --check` file list and `prettier` output for each file                                  | `bun fmt --check` gives the same file list and the same output                                                |
-| Consumer contract | packed `bun-next` in a temporary consumer project with no `eslint`, `prettier` or plugin packages | `bun lint` and `bun fmt` run, report the expected findings, and exit with the expected codes                  |
-| Local rules       | existing RuleTester cases in `utils/plugin/rules/*.test.ts`                                       | the same cases pass through `bun lint` fixtures                                                               |
+| Consumer contract | the packed package in a temporary consumer project with no `eslint`, `prettier` or plugin packages | `bun lint` and `bun fmt` run, report the expected findings, and exit with the expected codes                  |
+| Rule ports        | the original plugins (and the 5.x RuleTester cases) on each case in `rules/__expectations__/*.json` | `bun lint` gives the same messages, positions and fully fixed output; reviewed `divergence` entries excepted |
+| Configs           | 5.x `createConfig`/`createArchitectureConfig` converted by `toOxlintConfig`, in `__expectations__/configs/` | the package returns the same config and the same option errors                                              |
 
 ## Benchmarks
 
-`scripts/bench-lint-format.js` runs each command at least 10 times after a warm-up, on the same machine, and reports the median wall time and peak RSS for:
-
-- ESLint 10 + Prettier 3.9 (5.5.0)
-- `bun lint` + `bun fmt` (6.0)
-
-It covers `test-project`, with and without type-aware rules. The results go in `docs/BENCHMARKS.md`.
+`docs/BENCHMARKS.md` records the comparison of ESLint 10 + Prettier 3.9 (5.5.0) with `bun lint` + `bun fmt` (6.0) on `test-project`, with and without type-aware rules: median wall time and peak RSS over at least 10 runs after a warm-up. The benchmark script needed ESLint and left with it.
 
 ## Phases
 
 1. Golden data and RED test harness (`test-project/bun-golden/`, `scripts/lib/bun-golden.test.js`). Done.
 2. Snapshot of the external rules, plus the `toOxlintConfig` converter with unit tests. Done.
-3. `packages/bun-next` `createConfig` for every profile; the findings golden passes. Done.
+3. `createConfig` for every profile; the findings golden passes. Done.
 4. Port the JavaScript-only rules; the findings and autofix goldens pass for every profile. Done.
-5. Package surface and consumer contract: `package.json`, exports, types (`type-tests.ts`), `createArchitectureConfig`, `expo-magic-init`, `pr-guardrails`, README and MIGRATING in `packages/bun-next/`, and `bun run smoke:bun-consumer`. Done.
+5. Package surface and consumer contract: `package.json`, exports, types (`type-tests.ts`), `createArchitectureConfig`, `expo-magic-init`, `pr-guardrails`, README and MIGRATING, and `bun run smoke:bun-consumer`. Done.
 6. Benchmarks (`docs/BENCHMARKS.md`). Done.
-7. Release day (gated, see below).
+7. Record every ESLint-based test as expectations, then swap the package on `main` as `6.0.0-next.0` and drop 5.x with its scripts. Done.
+8. Remove ESLint, Prettier and the plugins from the repository's devDependencies, format the repository with `bun fmt`, and run CI on Bun canary.
+9. Release day (gated, see below).
 
 ### Release-day checklist
 
-Start only when a stable Bun release ships `bun lint` and `bun run golden:bun`, `bun run parity:bun` and `bun run smoke:bun-consumer` pass on it (`BUN_PARITY_BIN=<stable bun>`).
+Start only when a stable Bun release ships `bun lint` and `bun run release:check` passes on it.
 
-1. Replace `packages/eslint-config-expo-magic` with `packages/bun-next`: name `eslint-config-expo-magic`, version `6.0.0`, drop `private`, and set `engines.bun` to that stable release.
-2. Copy `packages/bun-next/README.md` to the root `README.md` (they must stay byte-identical) and move `packages/bun-next/MIGRATING.md` to the top of `docs/MIGRATING.md`.
-3. Point the golden, parity, bench and smoke scripts at the new path; keep the golden data and drop the 5.x-only scripts (`generate-bun-golden.js`, `snapshot-external-config.js`, the ESLint-based smoke lanes) and the ESLint devDependencies.
-4. Switch CI from `bun-version: latest` + canary job to the stable release, and make the Bun jobs blocking.
-5. Add the `## 6.0.0` CHANGELOG section, run `bun run report:config` and `bun run report:release-notes`, commit, then `bun run release:check`.
+1. Set the version to `6.0.0`, drop `private`, and set `engines.bun` to that stable release.
+2. Rename the CHANGELOG section to `## 6.0.0` with the release date, and remove the "in development" note from both READMEs.
+3. Switch CI to the stable release.
 
 ## Status (2026-10-22, Bun canary 1.4.4-canary.1+963452075)
 
-Phases 1–6 are done; the release is held for a stable Bun with `bun lint`. `packages/bun-next` builds every profile with no npm package at runtime: the external preset tables are snapshotted in `utils/external-config.json` (`bun run snapshot:external`), and the 25 rules that needed ESLint plugin packages are dependency-free ports in `packages/bun-next/rules/` (expo, react-native, react-19-upgrade, testing-library, unused-imports, boundaries). Each port has differential tests that run the original plugin and the port side by side through ESLint and require identical messages, positions and fixes. `packages/bun-next/create-config.test.js` proves that `createConfig` and `createMobileAppConfig` deep-equal the 5.x config converted by `toOxlintConfig` for every profile.
+Phases 1–7 are done; the release is held for a stable Bun with `bun lint`. The package builds every profile with no npm package at runtime, and the 25 rules that needed ESLint plugin packages are dependency-free ports in `packages/eslint-config-expo-magic/rules/` (expo, react-native, react-19-upgrade, testing-library, unused-imports, boundaries, plus the local expo-magic and expo-magic-reanimated rules).
 
-`bun run golden:bun` lints `test-project` with the `bun-next` config for every profile on the latest Bun canary:
+`bun run golden:bun` lints `test-project` for every profile on the latest Bun canary:
 
 | Profile        | Rules matched in files | Findings | Autofix |
 | -------------- | ---------------------- | -------- | ------- |
-| default        | 228                    | ok       | ok      |
-| fast           | 189                    | ok       | ok      |
-| base           | 57                     | ok       | ok      |
-| strict         | 230                    | ok       | ok      |
-| typed          | 286                    | ok       | ok      |
-| testing        | 276                    | ok       | ok      |
-| agent          | 254                    | ok       | ok      |
-| react-compiler | 229                    | ok       | ok      |
-| full           | 373                    | ok       | ok      |
-| mobile-app     | 333                    | ok       | ok      |
+| default        | 225                    | ok       | ok      |
+| fast           | 186                    | ok       | ok      |
+| base           | 56                     | ok       | ok      |
+| strict         | 227                    | ok       | ok      |
+| typed          | 283                    | ok       | ok      |
+| testing        | 272                    | ok       | ok      |
+| agent          | 251                    | ok       | ok      |
+| react-compiler | 226                    | ok       | ok      |
+| full           | 369                    | ok       | ok      |
+| mobile-app     | 329                    | ok       | ok      |
 
 The findings gate is that each rule fires in each file where 5.x fires it, and nowhere else. oxlint's rule implementations report some rules on another node or a different number of times (for example `import/no-duplicates` once per module), so per-finding counts and positions are informational (`--verbose`).
 
@@ -118,6 +114,11 @@ The autofix gate runs `bun lint --fix` repeatedly until nothing changes (ESLint 
 - Type-aware rules use Bun's type checker, which behaves like TypeScript 7: `compilerOptions.baseUrl` is an error. Write `paths` targets relative to the tsconfig instead (`"@/*": ["./*"]`).
 - Bun treats `import React` as used in JSX files, and `bun:test` as a built-in module.
 
-## Out of scope until release day
+### Coverage changes made when the tests moved to recordings
 
-Version bumps, `CHANGELOG.md`, `docs/CONFIG_DIFF.md`, `docs/config-diff.json`, `docs/RELEASE_NOTES.next.md`, and any change to the published 5.x package.
+- The boundaries ignore-pattern fuzz runs 110 of the 700 generated patterns, one case each; file and element descriptor patterns still run all 700, batched.
+- `testing-library` `await-async-queries: findBy from dom import` uses an `async` callback: Bun skips a fix whose result does not parse.
+- `react-19-upgrade` `no-prop-types: invalid 4` runs only as `.js`: two `static propTypes` members are a TypeScript parse error in Bun.
+- Port meta checks compare `type`, `fixable` and the messages the port keeps, not docs or schema (`unused-imports` reimplements only the import half).
+- The Windows-path filename cases call the rules directly (`rules/expo-magic/windows-paths.test.js`).
+- The golden data no longer lists the deleted ESLint tooling files in `test-project` (`eslint.config.js`, `.eslintrc.js`, `validate-comprehensive.js`, `validation-results*`).

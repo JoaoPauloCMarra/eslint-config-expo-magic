@@ -1,4 +1,4 @@
-const plugin = require('./plugin/index.js');
+const plugin = require('../rules/expo-magic/index.js');
 const { testFiles } = require('./file-patterns.js');
 
 const propTypeFiles = ['**/*.ts', '**/*.tsx'];

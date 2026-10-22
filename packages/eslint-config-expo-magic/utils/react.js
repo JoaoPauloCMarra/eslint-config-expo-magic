@@ -1,10 +1,9 @@
-/** @type {import('eslint').Linter.Config[]} */
 // Rationale: https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/RULES.md#react--react-native
-const { fixupPluginRules } = require('@eslint/compat');
-const expoConfig = require('eslint-config-expo/flat');
-const pluginReactHooks = require('eslint-plugin-react-hooks');
-const pluginReactNative = require('eslint-plugin-react-native');
-const pluginReact19Upgrade = require('eslint-plugin-react-19-upgrade');
+
+const {
+	expo: expoConfig,
+	reactHooks: { recommendedRules: recommendedHooksRules },
+} = require('./external-config.json');
 
 function createExpoReactBaseConfig() {
 	const expoReactConfig = expoConfig.find(
@@ -27,14 +26,13 @@ function createExpoReactBaseConfig() {
 		...expoReactConfig,
 		plugins: {
 			...plugins,
-			react: fixupPluginRules(plugins.react),
+			react: {},
 		},
 		rules,
 	};
 }
 
 function createReactConfig({ fast = false } = {}) {
-	const recommendedHooksRules = pluginReactHooks.configs.flat.recommended.rules;
 	const hooksRules = fast
 		? {
 				'react-hooks/rules-of-hooks':
@@ -50,9 +48,9 @@ function createReactConfig({ fast = false } = {}) {
 		createExpoReactBaseConfig(),
 		{
 			plugins: {
-				'react-hooks': fixupPluginRules(pluginReactHooks),
-				'react-native': fixupPluginRules(pluginReactNative),
-				'react-19-upgrade': fixupPluginRules(pluginReact19Upgrade),
+				'react-hooks': {},
+				'react-native': {},
+				'react-19-upgrade': {},
 			},
 			rules: {
 				...hooksRules,

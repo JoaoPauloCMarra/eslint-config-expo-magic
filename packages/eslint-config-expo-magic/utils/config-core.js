@@ -1,13 +1,8 @@
-const globals = require('globals');
-const { fixupConfigRules } = require('@eslint/compat');
-const {
-	createTypeScriptImportResolver,
-} = require('eslint-import-resolver-typescript');
-const expoConfig = require('eslint-config-expo/flat');
-const { createNodeResolver } = require('eslint-plugin-import-x');
-
+const externalConfig = require('./external-config.json');
 const allExtensions = require('./extensions.js');
 const { typeScriptFiles } = require('./file-patterns.js');
+
+const { globals, expo: expoConfig } = externalConfig;
 
 const legacyTypeScriptFiles = new Set(['**/*.ts', '**/*.tsx', '**/*.d.ts']);
 
@@ -115,13 +110,10 @@ function createTypeScriptParserOptions(tsconfigProjects) {
 }
 
 function createTypeCheckedConfigs(tsconfigProjects) {
-	const tseslint = require('typescript-eslint');
+	const tseslint = externalConfig.typescriptEslint;
 	const seenConfigNames = new Set();
 
-	return [
-		...tseslint.configs.recommendedTypeChecked,
-		...tseslint.configs.stylisticTypeChecked,
-	]
+	return [...tseslint.recommendedTypeChecked, ...tseslint.stylisticTypeChecked]
 		.filter((configEntry) => {
 			if (!configEntry.name || !seenConfigNames.has(configEntry.name)) {
 				seenConfigNames.add(configEntry.name);
@@ -148,7 +140,7 @@ function createTypeCheckedConfigs(tsconfigProjects) {
 		});
 }
 
-const filteredExpoConfig = fixupConfigRules(createExpoBaseConfig());
+const filteredExpoConfig = createExpoBaseConfig();
 
 function createTypeScriptImportResolverConfig(tsconfigProjects) {
 	return {
@@ -163,10 +155,6 @@ function createTypeScriptImportResolverConfig(tsconfigProjects) {
 function createSharedConfig(tsconfigProjects, extraIgnores = []) {
 	const typescriptImportResolver =
 		createTypeScriptImportResolverConfig(tsconfigProjects);
-	const importXResolvers = [
-		createTypeScriptImportResolver(typescriptImportResolver),
-		createNodeResolver({ extensions: allExtensions }),
-	];
 
 	return [
 		{
@@ -191,7 +179,6 @@ function createSharedConfig(tsconfigProjects, extraIgnores = []) {
 					node: { extensions: allExtensions },
 					typescript: typescriptImportResolver,
 				},
-				'import-x/resolver-next': importXResolvers,
 			},
 			languageOptions: {
 				globals: {

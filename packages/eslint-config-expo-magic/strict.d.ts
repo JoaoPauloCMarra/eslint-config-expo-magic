@@ -1,5 +1,5 @@
-import type { Linter } from 'eslint';
+import type { OxlintConfig } from './types';
 
-declare const strictConfig: Linter.Config[];
+declare const config: OxlintConfig;
 
-export = strictConfig;
+export default config;

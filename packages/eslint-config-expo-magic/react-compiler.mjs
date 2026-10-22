@@ -1,8 +1,0 @@
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
-const config = require('./react-compiler.js');
-
-export default config;
-export const rules = config.rules;
-export const restrictedSyntaxGroups = config.restrictedSyntaxGroups;

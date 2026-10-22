@@ -1,6 +1,3 @@
-const { fixupPluginRules } = require('@eslint/compat');
-const pluginReactHooks = require('eslint-plugin-react-hooks');
-
 const rules = {
 	'react-hooks/incompatible-library': 'error',
 	'react-hooks/unsupported-syntax': 'error',
@@ -14,7 +11,7 @@ const rules = {
 const config = [
 	{
 		plugins: {
-			'react-hooks': fixupPluginRules(pluginReactHooks),
+			'react-hooks': {},
 		},
 		rules: { ...rules },
 	},
