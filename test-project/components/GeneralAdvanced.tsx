@@ -20,9 +20,6 @@ export const GeneralAdvanced = () => {
 	// no-console
 	console.log('test');
 
-	// no-dupe-args
-	function dupeArgs(a, a) {}
-
 	// no-dupe-keys
 	const obj = { a: 1, a: 2 };
 
@@ -42,10 +39,6 @@ export const GeneralAdvanced = () => {
 
 	// no-restricted-imports
 	import('fs');
-
-	// no-restricted-syntax
-	with (obj) {
-	}
 
 	// no-undef
 	undefinedVar;
@@ -69,10 +62,6 @@ export const GeneralAdvanced = () => {
 
 	// no-var
 	let oldVar = 'old';
-
-	// no-with
-	with (obj) {
-	}
 
 	// unused-imports/no-unused-imports
 

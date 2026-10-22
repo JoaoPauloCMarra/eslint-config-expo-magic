@@ -1,0 +1,57 @@
+[
+	{
+		"pair": "components/ReactCompilerTests.tsx no-unreachable 1",
+		"side": "missing",
+		"reason": "ESLint reports the catch clause after a returning try block; it is reachable when the try throws."
+	},
+	{
+		"pair": "preset-fixtures/app-guardrails.tsx @typescript-eslint/no-unused-vars 2",
+		"side": "missing",
+		"reason": "oxlint counts a declared function used only in a typeof type query as used."
+	},
+	{
+		"pair": "preset-fixtures/app-guardrails.tsx @typescript-eslint/no-unused-vars 1",
+		"side": "missing",
+		"reason": "oxlint counts a declared function used only in a typeof type query as used."
+	},
+	{
+		"pair": "validation-results.test.js import-x/order 2",
+		"side": "missing",
+		"reason": "Bun classifies bun:test as a built-in module; eslint-plugin-import-x does not."
+	},
+	{
+		"pair": "preset-fixtures/extensions/probe.d.mts null 2",
+		"side": "missing",
+		"reason": "ESLint fails to parse this .d.mts file; Bun parses it."
+	},
+	{
+		"pair": "preset-fixtures/extensions/probe.d.mts @typescript-eslint/no-explicit-any 2",
+		"side": "extra",
+		"reason": "Bun lints the .d.mts file that ESLint fails to parse."
+	},
+	{
+		"pair": "preset-fixtures/extensions/probe.d.mts no-restricted-syntax 2",
+		"side": "extra",
+		"reason": "Bun lints the .d.mts file that ESLint fails to parse."
+	},
+	{
+		"pair": "__tests__/App.test.tsx jest/no-mocks-import 2",
+		"side": "missing",
+		"reason": "oxlint jest/no-mocks-import does not report `import '../__mocks__/App.tsx'`. Upstream report candidate."
+	},
+	{
+		"pair": "__tests__/JestAdvanced.test.tsx jest/no-export 2",
+		"side": "missing",
+		"reason": "oxlint jest/no-export does not report the export in this file. Upstream report candidate."
+	},
+	{
+		"pair": "__tests__/App.test.tsx jest/no-standalone-expect 2",
+		"side": "extra",
+		"reason": "oxlint reports the top-level expect() on line 156, which eslint-plugin-jest skips."
+	},
+	{
+		"pair": "validation-results.test.js no-redeclare 1",
+		"side": "extra",
+		"reason": "oxlint no-redeclare reports a module-scope const that shadows the configured jest globals; ESLint treats CommonJS module scope as non-global."
+	}
+]

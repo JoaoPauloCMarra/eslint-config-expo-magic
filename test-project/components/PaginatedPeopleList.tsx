@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from 'react';
 import { StyleSheet, View, Text, FlatList } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 
-type Props<T> = {
+export type LegacyProps<T> = {
 	ref?: RefObject<FlatList<T>>;
 	data: T[];
 	loading: boolean;

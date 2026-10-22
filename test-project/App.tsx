@@ -195,11 +195,11 @@ class BadErrorBoundary extends React.Component<any> {
 console.log(BadErrorBoundary);
 
 // ❌ This should trigger react-hooks/component-hook-factories
-const hookFactory = () => {
+const hookFactoryWithJsx = () => {
 	useState(0);
 	return () => <View />;
 };
-console.log(hookFactory);
+console.log(hookFactoryWithJsx);
 
 // ❌ This should trigger react-hooks/immutability
 const MutationInEffect = ({ item }: any) => {
@@ -237,13 +237,6 @@ console.log(SafeAreaView);
 // ✅ This should resolve with TS alias support
 import AliasTarget from '@/types';
 console.log(AliasTarget);
-
-// ❌ This should trigger @typescript-eslint/no-dupe-class-members and no-dupe-class-members
-class Dupe {
-	foo() {}
-	foo() {}
-}
-console.log(Dupe);
 
 // ❌ This should trigger @typescript-eslint/triple-slash-reference
 /// <reference path="foo" />

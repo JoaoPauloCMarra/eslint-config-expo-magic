@@ -74,7 +74,7 @@ const expectedRules = {
 	'testing-library/no-dom-import': ['__tests__/App.test.tsx'],
 
 	// Import rules
-	'import-x/export': ['duplicate-exports.ts'],
+	'import-x/export': ['invalid-syntax/duplicate-exports.ts'],
 	'import-x/first': ['App.tsx'],
 	'import-x/no-amd': ['components/ImportsAdvanced.tsx'],
 	'import-x/no-anonymous-default-export': ['BadImports.tsx'],
@@ -97,7 +97,7 @@ const expectedRules = {
 	'expo/no-env-var-destructuring': ['App.tsx'],
 	'expo/use-dom-exports': ['test.web.tsx'],
 	'no-console': ['App.tsx', 'babel.config.js', 'index.js', 'metro.config.js'],
-	'no-dupe-args': ['components/GeneralAdvanced.tsx'],
+	'no-dupe-args': ['invalid-syntax/duplicate-args.ts'],
 	'no-dupe-class-members': ['Legacy.js'],
 	'no-dupe-keys': ['App.tsx'],
 	'no-duplicate-case': ['App.tsx'],
@@ -114,7 +114,7 @@ const expectedRules = {
 	'no-unused-labels': ['App.tsx'],
 	'no-unused-vars': ['metro.config.js'],
 	'no-var': ['App.tsx'],
-	'no-with': ['components/GeneralAdvanced.tsx'],
+	'no-with': ['invalid-syntax/with-statement.ts'],
 	'unicode-bom': ['bom.js'],
 	'unused-imports/no-unused-imports': ['App.tsx'],
 	'use-isnan': ['App.tsx'],
@@ -146,7 +146,9 @@ Object.assign(expectedRules, {
 	'@typescript-eslint/array-type': ['App.tsx'],
 	'@typescript-eslint/consistent-type-assertions': ['TsRules.ts'],
 	'@typescript-eslint/consistent-type-imports': ['App.tsx'],
-	'@typescript-eslint/no-dupe-class-members': ['App.tsx'],
+	'@typescript-eslint/no-dupe-class-members': [
+		'invalid-syntax/duplicate-class-members.ts',
+	],
 	'@typescript-eslint/no-extra-non-null-assertion': ['App.tsx'],
 	'@typescript-eslint/no-import-type-side-effects': ['App.tsx'],
 	'@typescript-eslint/no-meaningless-void-operator': ['App.tsx'],

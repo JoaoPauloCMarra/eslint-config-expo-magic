@@ -113,3 +113,7 @@ jobs:
 
       - name: Compare bun lint and bun fmt with ESLint and Prettier
         run: bun run parity:bun
+
+      - name: Compare the Bun-only configs with the 5.x golden data
+        if: ${{ !cancelled() }}
+        run: bun run golden:bun

@@ -1,17 +1,8 @@
 const path = require('node:path');
 const { stripVTControlCharacters } = require('node:util');
 
-const reactHooksDivergence =
-	'Bun native react-hooks reports compiler findings that eslint-plugin-react-hooks 7.1.1 does not';
-
-const knownLintDivergences = [
-	['App.tsx', 'react-hooks/purity'],
-	['App.tsx', 'react-hooks/static-components'],
-	['App.tsx', 'react-hooks/immutability'],
-	['components/GeneralAdvanced.tsx', 'react-hooks/immutability'],
-	['components/GeneralAdvanced.tsx', 'react-hooks/unsupported-syntax'],
-	['components/PaginatedPeopleList.tsx', 'react-hooks/refs'],
-].map(([file, ruleId]) => ({ file, ruleId, reason: reactHooksDivergence }));
+// { file, ruleId, reason } entries for findings only `bun lint` reports.
+const knownLintDivergences = [];
 
 function lintFindingKeys(results, rootDir) {
 	return results.flatMap((result) => {
