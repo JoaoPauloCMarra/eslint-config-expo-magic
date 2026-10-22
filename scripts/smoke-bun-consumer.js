@@ -63,9 +63,13 @@ function main() {
 	const consumerDir = path.join(workDir, 'app');
 
 	try {
+		// The npm canary binary is named bun.exe, so link it as `bun`.
+		const binDir = path.join(workDir, 'bin');
+		fs.mkdirSync(binDir);
+		fs.symlinkSync(bun, path.join(binDir, 'bun'));
 		pathEnv = {
 			...process.env,
-			PATH: `${path.dirname(bun)}${path.delimiter}${process.env.PATH}`,
+			PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
 		};
 		console.log(`bun ${run(bun, ['--revision'], workDir).stdout.trim()}`);
 		run(bun, ['pm', 'pack', '--destination', workDir], packageDir);
@@ -90,6 +94,7 @@ function main() {
 			'src/disabled.ts':
 				'// eslint-disable-next-line @typescript-eslint/no-explicit-any\nexport const allowed: any = 1;\n',
 			'src/formatted.ts': 'export const formatted = { a: 1 };\n',
+			'src/handlers.ts': 'export const handlePress = () => undefined;\n',
 			'src/unformatted.ts': 'export const unformatted = {a:1}\n',
 		});
 
@@ -121,19 +126,10 @@ function main() {
 			'expo-magic-init writes .prettierrc.js',
 		);
 
-		// B1: Bun rejects the mobile-app profile's id-match lookahead pattern.
-		const mobileApp = run(bun, ['lint', '-f', 'json'], consumerDir, [0, 1, 2]);
-		const output = `${mobileApp.stdout}${mobileApp.stderr}`;
-		if (/look-around/.test(output)) {
-			console.log(
-				'note - the mobile-app profile is still blocked by B1 (id-match look-around)',
-			);
-		} else {
-			check(
-				mobileApp.stdout.startsWith('{'),
-				'the mobile-app profile lints; B1 is fixed, update docs/BUN_MIGRATION.md',
-			);
-		}
+		check(
+			lintRules(bun, consumerDir).has('src/handlers.ts eslint(id-match)'),
+			'the mobile-app profile lints and its rewritten id-match pattern reports handlePress',
+		);
 
 		fs.writeFileSync(
 			path.join(consumerDir, 'oxlint.config.ts'),
@@ -160,9 +156,10 @@ function main() {
 		);
 
 		const script = run(bun, ['run', 'lint'], consumerDir, [0, 1]);
+		const scriptOutput = `${script.stdout}${script.stderr}`;
 		check(
-			/no-explicit-any/.test(`${script.stdout}${script.stderr}`),
-			'the "lint": "bun lint" script runs the built-in linter',
+			/no-explicit-any/.test(scriptOutput),
+			`the "lint": "bun lint" script runs the built-in linter${/no-explicit-any/.test(scriptOutput) ? '' : `\n${scriptOutput.slice(-1500)}`}`,
 		);
 
 		const format = run(bun, ['fmt', '--check', 'src'], consumerDir, [0, 1]);

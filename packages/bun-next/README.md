@@ -203,6 +203,7 @@ The rule set is the same as in 5.x, and the repository's golden tests check that
 - Some rules report a different number of times or on another node, for example `import/no-duplicates` reports once per module.
 - `import React` counts as used in files with JSX, and `bun:test` is a built-in module.
 - `bun lint --fix` applies one pass of fixes; run it again if it reports fixable problems. Some fixes that ESLint offers only as suggestions are applied automatically, such as `@ts-ignore` → `@ts-expect-error`.
+- The mobile-app profile's `id-match` rule uses an equivalent pattern without look-ahead, because Bun cannot compile `^(?!handle[A-Z])`; its message shows the longer pattern.
 - Reports name TypeScript rules `typescript/<rule>` and import rules `import/<rule>`; `eslint-disable` comments with the `@typescript-eslint/` and `import-x/` names keep working.
 
 ## Compatibility

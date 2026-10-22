@@ -152,20 +152,7 @@ function main() {
 				'utf8',
 			),
 		);
-		let report;
-		try {
-			report = lintProfile(profile, golden);
-		} catch (error) {
-			if (!profile.blockedBy || !error.message.includes(profile.blockedBy))
-				throw error;
-			console.log(`${profile.name}: blocked (${profile.blockedBy})`);
-			continue;
-		}
-		if (profile.blockedBy) {
-			console.log(
-				`${profile.name}: no longer blocked; remove blockedBy from profiles.js`,
-			);
-		}
+		const report = lintProfile(profile, golden);
 		const comparison = compareGolden({
 			golden,
 			report,

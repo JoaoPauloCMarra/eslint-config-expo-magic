@@ -59,6 +59,23 @@ describe('toOxlintConfig', () => {
 		expect(config.plugins).toEqual(['import', 'jest', 'react', 'typescript']);
 	});
 
+	test('rewrites an id-match look-ahead that Bun cannot compile', () => {
+		const config = toOxlintConfig([
+			{
+				rules: {
+					'id-match': ['error', '^(?!handle[A-Z])', { properties: true }],
+				},
+			},
+		]);
+		const [severity, pattern, options] = config.overrides[0].rules['id-match'];
+
+		expect(severity).toBe('error');
+		expect(pattern).not.toMatch(/\(\?[!=<]/);
+		expect(new RegExp(pattern).test('handlePress')).toBe(false);
+		expect(new RegExp(pattern).test('onPress')).toBe(true);
+		expect(options).toEqual({ properties: true });
+	});
+
 	test('replaces prettier/prettier with bun/format', () => {
 		const config = toOxlintConfig([
 			{

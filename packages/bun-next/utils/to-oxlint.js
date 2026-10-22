@@ -3,6 +3,7 @@
 // entries win exactly as in ESLint flat config.
 
 const { intersectGlobs } = require('./intersect-globs.js');
+const { rewriteNegativePrefix } = require('./negative-prefix.js');
 
 const renamedPrefixes = {
 	'@typescript-eslint': 'typescript',
@@ -19,6 +20,19 @@ const nativePlugins = {
 };
 
 const builtInPrefixes = new Set(['bun']);
+
+// Bun compiles id-match patterns without look-around support.
+function ruleValue(name, value) {
+	if (
+		name !== 'id-match' ||
+		!Array.isArray(value) ||
+		typeof value[1] !== 'string'
+	) {
+		return value;
+	}
+
+	return [value[0], rewriteNegativePrefix(value[1]), ...value.slice(2)];
+}
 
 function ruleName(name) {
 	if (name === 'prettier/prettier') return 'bun/format';
@@ -129,7 +143,7 @@ function toOxlintConfig(entries, { jsPlugins = {}, jsPluginRules = {} } = {}) {
 				);
 			}
 			if (prefix === 'typescript') typeScriptValues.set(converted, value);
-			rules[converted] = value;
+			rules[converted] = ruleValue(converted, value);
 		}
 		for (const name of Object.keys(rules)) {
 			const typeScriptName = `typescript/${name}`;

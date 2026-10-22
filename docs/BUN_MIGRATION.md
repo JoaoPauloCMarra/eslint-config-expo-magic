@@ -87,18 +87,18 @@ Phases 1–6 are done; the release is held for a stable Bun with `bun lint`. `pa
 
 `bun run golden:bun` lints `test-project` with the `bun-next` config for every profile on the latest Bun canary:
 
-| Profile        | Rules matched in files | Findings     | Autofix |
-| -------------- | ---------------------- | ------------ | ------- |
-| default        | 228                    | ok           | ok      |
-| fast           | 189                    | ok           | ok      |
-| base           | 57                     | ok           | ok      |
-| strict         | 230                    | ok           | ok      |
-| typed          | 286                    | ok           | ok      |
-| testing        | 276                    | ok           | ok      |
-| agent          | 254                    | ok           | ok      |
-| react-compiler | 229                    | ok           | ok      |
-| full           | 373                    | ok           | ok      |
-| mobile-app     | —                      | blocked (B1) | —       |
+| Profile        | Rules matched in files | Findings | Autofix |
+| -------------- | ---------------------- | -------- | ------- |
+| default        | 228                    | ok       | ok      |
+| fast           | 189                    | ok       | ok      |
+| base           | 57                     | ok       | ok      |
+| strict         | 230                    | ok       | ok      |
+| typed          | 286                    | ok       | ok      |
+| testing        | 276                    | ok       | ok      |
+| agent          | 254                    | ok       | ok      |
+| react-compiler | 229                    | ok       | ok      |
+| full           | 373                    | ok       | ok      |
+| mobile-app     | 333                    | ok       | ok      |
 
 The findings gate is that each rule fires in each file where 5.x fires it, and nowhere else. oxlint's rule implementations report some rules on another node or a different number of times (for example `import/no-duplicates` once per module), so per-finding counts and positions are informational (`--verbose`).
 
@@ -106,7 +106,7 @@ The autofix gate runs `bun lint --fix` repeatedly until nothing changes (ESLint 
 
 ### Blockers and upstream report candidates
 
-- **B1:** Bun's oxlint config parser rejects the `id-match` pattern `^(?!handle[A-Z])` used by the mobile-app profile ("look-around is not supported"), although Bun documents rule-option patterns as JavaScript regular expressions.
+- **B1 (worked around):** Bun's oxlint config parser rejects the `id-match` pattern `^(?!handle[A-Z])` used by the mobile-app profile ("look-around is not supported"), although Bun documents rule-option patterns as JavaScript regular expressions. `toOxlintConfig` rewrites `^(?!P)` patterns into an equivalent pattern without look-around (`utils/negative-prefix.js`, fuzz-tested against the original), so the rule keeps its `id-match` ID and existing disable comments. Still worth reporting upstream.
 - `bun lint --fix` applies one pass; ESLint repeats until no fix applies.
 - oxlint's `no-var` fix rewrites redeclared `var`s to duplicate `const`s, which TypeScript rejects.
 - oxlint applies fixes that ESLint offers only as suggestions (`use-isnan`, `no-unsafe-negation`, `@ts-ignore` → `@ts-expect-error`).

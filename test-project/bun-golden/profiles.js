@@ -39,14 +39,5 @@ module.exports = [
 		options: { reactCompiler: true },
 	},
 	{ name: 'full', factory: 'createConfig', options: fullOptions },
-	{
-		name: 'mobile-app',
-		factory: 'createMobileAppConfig',
-		options: {},
-		// Bun's oxlint config parser rejects the id-match lookahead pattern
-		// `^(?!handle[A-Z])`, although Bun documents rule-option patterns as
-		// JavaScript regular expressions. Upstream report candidate.
-		blockedBy:
-			'look-around, including look-ahead and look-behind, is not supported',
-	},
+	{ name: 'mobile-app', factory: 'createMobileAppConfig', options: {} },
 ];
