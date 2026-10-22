@@ -42,7 +42,7 @@
 	{
 		"pair": "__tests__/JestAdvanced.test.tsx jest/no-export 2",
 		"side": "missing",
-		"reason": "oxlint jest/no-export does not report the export in this file. Upstream report candidate."
+		"reason": "The fixture exports from inside a describe callback, which is not valid module code; ESLint still reports it, oxlint does not."
 	},
 	{
 		"pair": "__tests__/App.test.tsx jest/no-standalone-expect 2",
@@ -53,5 +53,55 @@
 		"pair": "validation-results.test.js no-redeclare 1",
 		"side": "extra",
 		"reason": "oxlint no-redeclare reports a module-scope const that shadows the configured jest globals; ESLint treats CommonJS module scope as non-global."
+	},
+	{
+		"file": "App.tsx",
+		"side": "fix",
+		"reason": "oxlint's --fix rewrites redeclared `var`s to `const` (unsafe; upstream report candidate) and applies the use-isnan and no-unsafe-negation fixes that ESLint offers only as suggestions; import/first moves imports with a different layout."
+	},
+	{
+		"file": "Legacy.js",
+		"side": "fix",
+		"reason": "oxlint's no-var fix rewrites redeclared `var`s to `const` (unsafe; upstream report candidate). ESLint skips that fix."
+	},
+	{
+		"file": "components/TypeScriptAdvanced.tsx",
+		"side": "fix",
+		"reason": "oxlint's no-var fix rewrites redeclared `var`s to `const` (unsafe; upstream report candidate). ESLint skips that fix."
+	},
+	{
+		"file": "__tests__/App.test.tsx",
+		"side": "fix",
+		"reason": "oxlint's import/first and import/order fixes move imports and their comments with a different layout."
+	},
+	{
+		"file": "components/ImportsAdvanced.tsx",
+		"side": "fix",
+		"reason": "oxlint's import/first fix moves imports with a different layout, and oxlint's import/no-duplicates has no merge fix."
+	},
+	{
+		"file": "import-violations.ts",
+		"side": "fix",
+		"reason": "oxlint's import/first has no fix when statements are interleaved with imports; ESLint moves the imports up."
+	},
+	{
+		"file": "test-imports.tsx",
+		"side": "fix",
+		"reason": "oxlint's import/first has no fix when statements are interleaved with imports; ESLint moves the imports up."
+	},
+	{
+		"file": "validation-results.test.js",
+		"side": "fix",
+		"reason": "Bun classifies bun:test as a built-in module, so import/order does not reorder it."
+	},
+	{
+		"file": "preset-fixtures/agent-only.test.ts",
+		"side": "fix",
+		"reason": "oxlint applies the @ts-ignore -> @ts-expect-error rewrite as a fix; typescript-eslint offers it only as a suggestion."
+	},
+	{
+		"file": "preset-fixtures/feature-boundaries/tracking-service.ts",
+		"side": "fix",
+		"reason": "oxlint's no-confusing-void-expression fix inserts the block body with different spacing; bun fmt normalizes it."
 	}
 ]

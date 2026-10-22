@@ -76,7 +76,7 @@ function isOff(value) {
 	return level === 'off' || level === 0;
 }
 
-function toOxlintConfig(entries, { jsPlugins = {} } = {}) {
+function toOxlintConfig(entries, { jsPlugins = {}, jsPluginRules = {} } = {}) {
 	const plugins = new Set();
 	const usedJsPlugins = new Set();
 	const ignorePatterns = [];
@@ -103,8 +103,15 @@ function toOxlintConfig(entries, { jsPlugins = {} } = {}) {
 			const converted = ruleName(name);
 			const prefix = rulePrefix(converted);
 
+			const definedRules = jsPluginRules[prefix];
+			const localName = converted.slice(converted.lastIndexOf('/') + 1);
+
 			if (prefix && nativePlugins[prefix]) plugins.add(nativePlugins[prefix]);
-			else if (prefix && jsPlugins[prefix]) usedJsPlugins.add(prefix);
+			else if (definedRules && !definedRules.has(localName)) {
+				// Bun rejects unknown rule names even when they are turned off.
+				if (isOff(value)) continue;
+				throw new Error(`The ${prefix} plugin has no rule ${converted}.`);
+			} else if (prefix && jsPlugins[prefix]) usedJsPlugins.add(prefix);
 			else if (prefix && !builtInPrefixes.has(prefix)) {
 				// Turning off a rule from a plugin Bun does not have changes nothing.
 				if (isOff(value)) continue;

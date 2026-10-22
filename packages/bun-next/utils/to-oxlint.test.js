@@ -102,6 +102,33 @@ describe('toOxlintConfig', () => {
 		expect(config.overrides).toEqual([]);
 	});
 
+	test('drops "off" settings for rules a JavaScript plugin does not define', () => {
+		const config = toOxlintConfig(
+			[
+				{
+					rules: {
+						'react-native/no-inline-styles': 'warn',
+						'react-native/no-raw-text': 'off',
+					},
+				},
+			],
+			{
+				jsPlugins: { 'react-native': '/pkg/rules/react-native.js' },
+				jsPluginRules: { 'react-native': new Set(['no-inline-styles']) },
+			},
+		);
+
+		expect(config.overrides[0].rules).toEqual({
+			'react-native/no-inline-styles': 'warn',
+		});
+		expect(() =>
+			toOxlintConfig([{ rules: { 'react-native/no-raw-text': 'error' } }], {
+				jsPlugins: { 'react-native': '/pkg/rules/react-native.js' },
+				jsPluginRules: { 'react-native': new Set(['no-inline-styles']) },
+			}),
+		).toThrow('react-native/no-raw-text');
+	});
+
 	test('fails on a rule whose plugin has no native or JavaScript source', () => {
 		expect(() =>
 			toOxlintConfig([{ rules: { 'unknown-plugin/rule': 'error' } }]),

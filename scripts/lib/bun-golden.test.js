@@ -1,5 +1,6 @@
 const { describe, expect, test } = require('bun:test');
 const {
+	compareFixes,
 	compareGolden,
 	goldenFromResults,
 	hashText,
@@ -162,6 +163,20 @@ describe('bun golden', () => {
 		expect(comparison.missing).toEqual([]);
 		expect(comparison.extra).toEqual([]);
 		expect(comparison.acceptedInvalidFiles).toEqual(['invalid-syntax/b.ts']);
+	});
+
+	test('compares fixed-output hashes per file', () => {
+		expect(
+			compareFixes(
+				{ 'a.ts': 'h1', 'b.ts': 'h2', 'c.ts': 'h3' },
+				{ 'a.ts': 'h1', 'b.ts': 'other', 'd.ts': 'h4' },
+			),
+		).toEqual({
+			matched: ['a.ts'],
+			different: ['b.ts'],
+			missing: ['c.ts'],
+			extra: ['d.ts'],
+		});
 	});
 
 	test('records findings, parse errors and fixed-output hashes', () => {

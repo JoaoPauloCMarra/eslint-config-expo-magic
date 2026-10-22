@@ -170,7 +170,28 @@ function compareGolden({ golden, report, divergences = [] }) {
 	};
 }
 
+function compareFixes(goldenFixes, bunFixes) {
+	const files = [
+		...new Set([...Object.keys(goldenFixes), ...Object.keys(bunFixes)]),
+	].sort();
+
+	return {
+		matched: files.filter(
+			(file) => goldenFixes[file] && goldenFixes[file] === bunFixes[file],
+		),
+		different: files.filter(
+			(file) =>
+				goldenFixes[file] &&
+				bunFixes[file] &&
+				goldenFixes[file] !== bunFixes[file],
+		),
+		missing: files.filter((file) => goldenFixes[file] && !bunFixes[file]),
+		extra: files.filter((file) => !goldenFixes[file] && bunFixes[file]),
+	};
+}
+
 module.exports = {
+	compareFixes,
 	compareGolden,
 	goldenFromResults,
 	hashText,

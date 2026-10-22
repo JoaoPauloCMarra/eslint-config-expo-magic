@@ -99,7 +99,7 @@ jobs:
   # with ESLint and Prettier and does not block the release workflow.
   bun-canary-parity:
     runs-on: ubuntu-26.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     continue-on-error: true
     steps:
       - uses: actions/checkout@v7

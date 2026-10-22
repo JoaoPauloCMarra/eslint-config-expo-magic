@@ -73,27 +73,34 @@ It covers `test-project`, with and without type-aware rules. The results go in `
 
 ## Status (2026-10-22, Bun canary 1.4.4-canary.1+963452075)
 
-Phase 1 is done and phase 2 is in progress. `bun run golden:bun` converts each 5.x profile with `toOxlintConfig` and runs `bun lint` on it. JavaScript-only plugins still load from their installed packages through shim modules.
+Phases 1–4 are done. `packages/bun-next` builds every profile with no npm package at runtime: the external preset tables are snapshotted in `utils/external-config.json` (`bun run snapshot:external`), and the 25 rules that needed ESLint plugin packages are dependency-free ports in `packages/bun-next/rules/` (expo, react-native, react-19-upgrade, testing-library, unused-imports, boundaries). Each port has differential tests that run the original plugin and the port side by side through ESLint and require identical messages, positions and fixes. `packages/bun-next/create-config.test.js` proves that `createConfig` and `createMobileAppConfig` deep-equal the 5.x config converted by `toOxlintConfig` for every profile.
 
-| Profile        | Rules matched in files | Result       |
-| -------------- | ---------------------- | ------------ |
-| default        | 228                    | ok           |
-| fast           | 189                    | ok           |
-| base           | 57                     | ok           |
-| strict         | 230                    | ok           |
-| typed          | 286                    | ok           |
-| testing        | 276                    | ok           |
-| agent          | 254                    | ok           |
-| react-compiler | 229                    | ok           |
-| full           | 373                    | ok           |
-| mobile-app     | —                      | blocked (B1) |
+`bun run golden:bun` lints `test-project` with the `bun-next` config for every profile on the latest Bun canary:
 
-The gate is that each rule fires in each file where 5.x fires it, and nowhere else. oxlint's rule implementations report some rules on another node or a different number of times (for example `import/no-duplicates` once per module), so per-finding counts and positions are informational (`--verbose`). Reviewed exceptions live in `test-project/bun-golden/divergences.json`, and the run fails when one stops occurring.
+| Profile        | Rules matched in files | Findings     | Autofix |
+| -------------- | ---------------------- | ------------ | ------- |
+| default        | 228                    | ok           | ok      |
+| fast           | 189                    | ok           | ok      |
+| base           | 57                     | ok           | ok      |
+| strict         | 230                    | ok           | ok      |
+| typed          | 286                    | ok           | ok      |
+| testing        | 276                    | ok           | ok      |
+| agent          | 254                    | ok           | ok      |
+| react-compiler | 229                    | ok           | ok      |
+| full           | 373                    | ok           | ok      |
+| mobile-app     | —                      | blocked (B1) | —       |
+
+The findings gate is that each rule fires in each file where 5.x fires it, and nowhere else. oxlint's rule implementations report some rules on another node or a different number of times (for example `import/no-duplicates` once per module), so per-finding counts and positions are informational (`--verbose`).
+
+The autofix gate runs `bun lint --fix` repeatedly until nothing changes (ESLint repeats up to 10 passes; `bun lint --fix` applies one) and requires each fixed file to match ESLint's output byte for byte. Reviewed exceptions for both gates live in `test-project/bun-golden/divergences.json`, and the run fails when one stops occurring.
 
 ### Blockers and upstream report candidates
 
 - **B1:** Bun's oxlint config parser rejects the `id-match` pattern `^(?!handle[A-Z])` used by the mobile-app profile ("look-around is not supported"), although Bun documents rule-option patterns as JavaScript regular expressions.
-- `jest/no-mocks-import` and `jest/no-export` miss one case each (see `divergences.json`).
+- `bun lint --fix` applies one pass; ESLint repeats until no fix applies.
+- oxlint's `no-var` fix rewrites redeclared `var`s to duplicate `const`s, which TypeScript rejects.
+- oxlint applies fixes that ESLint offers only as suggestions (`use-isnan`, `no-unsafe-negation`, `@ts-ignore` → `@ts-expect-error`).
+- `jest/no-mocks-import` misses a relative `__mocks__` import.
 
 ### Consumer-facing changes found so far
 
