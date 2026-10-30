@@ -1,0 +1,4 @@
+# Lint fixtures: the golden data hashes their exact content.
+test-project/
+# Recorded from 5.x and the original ESLint plugins; never edited by hand.
+**/__expectations__/

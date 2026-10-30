@@ -8,19 +8,19 @@ This document compares replacing ESLint and Prettier with **Oxlint** and **Oxfmt
 
 ## 1. What This Package Currently Enforces
 
-| Area | Source | Key rules / behavior |
-|------|--------|----------------------|
-| **TypeScript** | @typescript-eslint | type-only imports, no-explicit-any, no-floating-promises, no-unused-vars, naming-convention, consistent-type-definitions, etc. |
-| **React** | eslint-plugin-react | jsx-key, self-closing-comp, jsx-no-leaked-render, jsx-no-useless-fragment, no-children-prop, no-danger-with-children, no-unknown-property |
-| **React Hooks** | eslint-plugin-react-hooks | exhaustive-deps |
-| **React Native** | eslint-plugin-react-native | no-unused-styles, split-platform-components, no-single-element-style-arrays |
-| **React 19** | eslint-plugin-react-19-upgrade | no-default-props, no-prop-types, no-legacy-context, no-string-refs, no-factories |
-| **Imports** | eslint-plugin-import-x + unused-imports | first, order (groups: builtin → external → internal, path groups for react/react-native/expo/@/**), no-cycle, no-unresolved, no-unused-imports (remove line) |
-| **Jest** | eslint-plugin-jest | no-disabled-tests, no-focused-tests, prefer-hooks-on-top, valid-describe-callback, valid-title, expect-expect, no-done-callback, etc. |
-| **Testing Library** | eslint-plugin-testing-library | await-async-queries, no-await-sync-queries, no-debugging-utils, no-dom-import |
-| **Expo** | eslint-config-expo | expo/prefer-box-shadow, env/globals, base config |
-| **App / infra** | app.js | no-console, no-restricted-imports (e.g. SafeAreaView from react-native), no-unused-vars |
-| **Formatting** | Prettier | prettier/prettier via eslint-plugin-prettier |
+| Area                | Source                                  | Key rules / behavior                                                                                                                                         |
+| ------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **TypeScript**      | @typescript-eslint                      | type-only imports, no-explicit-any, no-floating-promises, no-unused-vars, naming-convention, consistent-type-definitions, etc.                               |
+| **React**           | eslint-plugin-react                     | jsx-key, self-closing-comp, jsx-no-leaked-render, jsx-no-useless-fragment, no-children-prop, no-danger-with-children, no-unknown-property                    |
+| **React Hooks**     | eslint-plugin-react-hooks               | exhaustive-deps                                                                                                                                              |
+| **React Native**    | eslint-plugin-react-native              | no-unused-styles, split-platform-components, no-single-element-style-arrays                                                                                  |
+| **React 19**        | eslint-plugin-react-19-upgrade          | no-default-props, no-prop-types, no-legacy-context, no-string-refs, no-factories                                                                             |
+| **Imports**         | eslint-plugin-import-x + unused-imports | first, order (groups: builtin → external → internal, path groups for react/react-native/expo/@/**), no-cycle, no-unresolved, no-unused-imports (remove line) |
+| **Jest**            | eslint-plugin-jest                      | no-disabled-tests, no-focused-tests, prefer-hooks-on-top, valid-describe-callback, valid-title, expect-expect, no-done-callback, etc.                        |
+| **Testing Library** | eslint-plugin-testing-library           | await-async-queries, no-await-sync-queries, no-debugging-utils, no-dom-import                                                                                |
+| **Expo**            | eslint-config-expo                      | expo/prefer-box-shadow, env/globals, base config                                                                                                             |
+| **App / infra**     | app.js                                  | no-console, no-restricted-imports (e.g. SafeAreaView from react-native), no-unused-vars                                                                      |
+| **Formatting**      | Prettier                                | prettier/prettier via eslint-plugin-prettier                                                                                                                 |
 
 ---
 
@@ -37,16 +37,16 @@ This document compares replacing ESLint and Prettier with **Oxlint** and **Oxfmt
 
 ### 2.2 Oxlint — Gaps for this package
 
-| Gap | Impact |
-|-----|--------|
-| **React Native** | No plugin. Missing: `no-unused-styles`, `split-platform-components`, `no-single-element-style-arrays`. These are central to “mobile-first” and bundle size. |
-| **React 19 upgrade** | No plugin. Missing: `no-default-props`, `no-prop-types`, `no-legacy-context`, `no-factories` (no-string-refs exists in react). |
-| **Expo** | No plugin. Missing: `expo/prefer-box-shadow` and any expo-specific rules. |
-| **Testing Library** | No plugin. Missing: `await-async-queries`, `no-await-sync-queries`, `no-debugging-utils`, `no-dom-import`. |
-| **Import order** | No equivalent to import-x `order` (builtin → external → internal, path groups for react, react-native, expo, `@/`, `./`). Only `eslint/sort-imports` (simpler). |
-| **Unused imports (remove line)** | No direct equivalent to `unused-imports/no-unused-imports`. no-unused-vars flags the binding; auto-removing the import line is different. |
-| **import/no-unresolved** | Not present in the Oxlint rules list (resolution may be handled differently or not). |
-| **jsx-no-leaked-render** | Not found in Oxlint rules (important for React Native to avoid rendering `0`/`NaN` outside `<Text>`). |
+| Gap                              | Impact                                                                                                                                                          |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **React Native**                 | No plugin. Missing: `no-unused-styles`, `split-platform-components`, `no-single-element-style-arrays`. These are central to “mobile-first” and bundle size.     |
+| **React 19 upgrade**             | No plugin. Missing: `no-default-props`, `no-prop-types`, `no-legacy-context`, `no-factories` (no-string-refs exists in react).                                  |
+| **Expo**                         | No plugin. Missing: `expo/prefer-box-shadow` and any expo-specific rules.                                                                                       |
+| **Testing Library**              | No plugin. Missing: `await-async-queries`, `no-await-sync-queries`, `no-debugging-utils`, `no-dom-import`.                                                      |
+| **Import order**                 | No equivalent to import-x `order` (builtin → external → internal, path groups for react, react-native, expo, `@/`, `./`). Only `eslint/sort-imports` (simpler). |
+| **Unused imports (remove line)** | No direct equivalent to `unused-imports/no-unused-imports`. no-unused-vars flags the binding; auto-removing the import line is different.                       |
+| **import/no-unresolved**         | Not present in the Oxlint rules list (resolution may be handled differently or not).                                                                            |
+| **jsx-no-leaked-render**         | Not found in Oxlint rules (important for React Native to avoid rendering `0`/`NaN` outside `<Text>`).                                                           |
 
 ### 2.3 Oxfmt — Formatting
 
@@ -123,11 +123,11 @@ Reasons:
 
 ## 5. Summary Table
 
-| Option | Lint | Format | Same quality as today? | Speed | Complexity |
-|--------|------|--------|------------------------|-------|------------|
-| **A** Full Oxlint+Oxfmt | Oxlint only | Oxfmt | No (big gaps) | Highest | Low |
-| **B** Hybrid | Oxlint + ESLint (gaps) | Oxfmt or Prettier | Yes | High | High |
-| **C** Stay (current) | ESLint | Prettier | Yes | Current | Low |
-| **D** Oxlint in ESLint | ESLint + oxlint plugin | Prettier | Yes | Better than C | Medium |
+| Option                  | Lint                   | Format            | Same quality as today? | Speed         | Complexity |
+| ----------------------- | ---------------------- | ----------------- | ---------------------- | ------------- | ---------- |
+| **A** Full Oxlint+Oxfmt | Oxlint only            | Oxfmt             | No (big gaps)          | Highest       | Low        |
+| **B** Hybrid            | Oxlint + ESLint (gaps) | Oxfmt or Prettier | Yes                    | High          | High       |
+| **C** Stay (current)    | ESLint                 | Prettier          | Yes                    | Current       | Low        |
+| **D** Oxlint in ESLint  | ESLint + oxlint plugin | Prettier          | Yes                    | Better than C | Medium     |
 
 **Bottom line:** To cover all rules you need (or equivalent quality), you either stay with ESLint+Prettier (Option C) or add Oxlint in front of or inside ESLint (Options B or D). A direct replacement of ESLint and Prettier with only Oxlint and Oxfmt (Option A) would not achieve the same quality for this package.

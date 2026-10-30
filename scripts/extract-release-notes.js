@@ -23,12 +23,15 @@ const { values } = parseArgs({
 });
 
 const releaseVersion =
-	values.version || JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')).version;
+	values.version ||
+	JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')).version;
 const changelogPath = path.resolve(rootDir, values.changelog);
 const releaseNotesPath = values.output;
 
 if (!releaseVersion) {
-	console.error('Release version missing. Pass --version or ensure package.json has it.');
+	console.error(
+		'Release version missing. Pass --version or ensure package.json has it.',
+	);
 	process.exit(1);
 }
 
@@ -71,4 +74,6 @@ if (section.length === 0 || body.length === 0) {
 }
 
 fs.writeFileSync(releaseNotesPath, `${section}\n`);
-console.log(`Wrote release notes section for ${releaseVersion} to ${releaseNotesPath}`);
+console.log(
+	`Wrote release notes section for ${releaseVersion} to ${releaseNotesPath}`,
+);

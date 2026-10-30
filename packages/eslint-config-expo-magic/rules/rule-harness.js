@@ -23,7 +23,10 @@ function lintTargets(testCase) {
 
 // Bun's span offsets count UTF-8 bytes; ESLint columns count UTF-16 units.
 function endPosition(text, byteOffset) {
-	const before = Buffer.from(text).subarray(0, byteOffset).toString().split('\n');
+	const before = Buffer.from(text)
+		.subarray(0, byteOffset)
+		.toString()
+		.split('\n');
 
 	return { line: before.length, column: before.at(-1).length + 1 };
 }
@@ -88,7 +91,12 @@ function bunLint(dir, args) {
 	const result = spawnSync(
 		resolveBunBinary(),
 		['lint', '--cwd', dir, '-c', path.join(dir, '.oxlintrc.json'), ...args],
-		{ cwd: dir, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, timeout: 120_000 },
+		{
+			cwd: dir,
+			encoding: 'utf8',
+			maxBuffer: 64 * 1024 * 1024,
+			timeout: 120_000,
+		},
 	);
 	if (![0, 1].includes(result.status)) {
 		throw new Error(

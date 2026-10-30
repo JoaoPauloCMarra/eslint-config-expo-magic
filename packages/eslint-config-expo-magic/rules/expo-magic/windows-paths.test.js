@@ -27,9 +27,9 @@ const importFrom = (source) => (visitors) =>
 	});
 
 test('kebab-case-filenames accepts a kebab-case Windows path', () => {
-	expect(run(kebabCaseFilenames, 'C:\\r\\src\\home-screen.tsx', program)).toEqual(
-		[],
-	);
+	expect(
+		run(kebabCaseFilenames, 'C:\\r\\src\\home-screen.tsx', program),
+	).toEqual([]);
 });
 
 test('kebab-case-filenames reports a PascalCase Windows path', () => {

@@ -78,7 +78,10 @@ function attempt({ rule = 'dependencies', options, settings = {} }) {
 						{
 							files: ['case-0/features/a/index.ts'],
 							rules: {
-								[`boundaries/${rule}`]: ['error', ...(options ? [options] : [])],
+								[`boundaries/${rule}`]: [
+									'error',
+									...(options ? [options] : []),
+								],
 							},
 						},
 					],
@@ -86,7 +89,15 @@ function attempt({ rule = 'dependencies', options, settings = {} }) {
 			);
 			const result = spawnSync(
 				resolveBunBinary(),
-				['lint', '--cwd', dir, '-c', path.join(dir, '.oxlintrc.json'), '-f', 'json'],
+				[
+					'lint',
+					'--cwd',
+					dir,
+					'-c',
+					path.join(dir, '.oxlintrc.json'),
+					'-f',
+					'json',
+				],
 				{ cwd: dir, encoding: 'utf8', timeout: 120_000 },
 			);
 			const { diagnostics } = JSON.parse(result.stdout);
@@ -106,7 +117,11 @@ describe('boundaries port rejects unsupported options and settings', () => {
 	});
 
 	test.each([
-		['unknown property', { options: { ...policy, unknown: true } }, /unsupported property "unknown"/],
+		[
+			'unknown property',
+			{ options: { ...policy, unknown: true } },
+			/unsupported property "unknown"/,
+		],
 		[
 			'legacy string selectors',
 			{ options: { policies: [{ from: 'feature', allow: ['feature'] }] } },

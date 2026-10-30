@@ -153,7 +153,9 @@ function ensureRequiredFiles() {
 			continue;
 		}
 
-		if (packageFiles.some((entry) => packageFilesEntryIncludesPath(entry, file))) {
+		if (
+			packageFiles.some((entry) => packageFilesEntryIncludesPath(entry, file))
+		) {
 			continue;
 		}
 

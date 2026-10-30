@@ -44,14 +44,14 @@ External presets (the eslint-config-expo, typescript-eslint and react-hooks reco
 
 All golden data came from 5.5.0 running on ESLint and Prettier, and was committed before the implementation. The recorders left the repository with 5.x; the recordings are frozen:
 
-| Test              | Source of truth                                                                                   | Pass condition                                                                                                |
-| ----------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Findings          | `eslint -f json` on `test-project` for each profile in `test-project/bun-golden/profiles.js`      | `bun lint` reports the same `file:line:col rule severity` set, apart from entries in `known-divergences.json` |
-| Autofix           | `eslint --fix-dry-run` output for each fixable file and profile                                   | `bun lint --fix-dry-run` produces byte-identical output                                                       |
-| Format            | `prettier --check` file list and `prettier` output for each file                                  | `bun fmt --check` gives the same file list and the same output                                                |
-| Consumer contract | the packed package in a temporary consumer project with no `eslint`, `prettier` or plugin packages | `bun lint` and `bun fmt` run, report the expected findings, and exit with the expected codes                  |
-| Rule ports        | the original plugins (and the 5.x RuleTester cases) on each case in `rules/__expectations__/*.json` | `bun lint` gives the same messages, positions and fully fixed output; reviewed `divergence` entries excepted |
-| Configs           | 5.x `createConfig`/`createArchitectureConfig` converted by `toOxlintConfig`, in `__expectations__/configs/` | the package returns the same config and the same option errors                                              |
+| Test              | Source of truth                                                                                             | Pass condition                                                                                                |
+| ----------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Findings          | `eslint -f json` on `test-project` for each profile in `test-project/bun-golden/profiles.js`                | `bun lint` reports the same `file:line:col rule severity` set, apart from entries in `known-divergences.json` |
+| Autofix           | `eslint --fix-dry-run` output for each fixable file and profile                                             | `bun lint --fix-dry-run` produces byte-identical output                                                       |
+| Format            | `prettier --check` file list and `prettier` output for each file                                            | `bun fmt --check` gives the same file list and the same output                                                |
+| Consumer contract | the packed package in a temporary consumer project with no `eslint`, `prettier` or plugin packages          | `bun lint` and `bun fmt` run, report the expected findings, and exit with the expected codes                  |
+| Rule ports        | the original plugins (and the 5.x RuleTester cases) on each case in `rules/__expectations__/*.json`         | `bun lint` gives the same messages, positions and fully fixed output; reviewed `divergence` entries excepted  |
+| Configs           | 5.x `createConfig`/`createArchitectureConfig` converted by `toOxlintConfig`, in `__expectations__/configs/` | the package returns the same config and the same option errors                                                |
 
 ## Benchmarks
 
@@ -66,7 +66,7 @@ All golden data came from 5.5.0 running on ESLint and Prettier, and was committe
 5. Package surface and consumer contract: `package.json`, exports, types (`type-tests.ts`), `createArchitectureConfig`, `expo-magic-init`, `pr-guardrails`, README and MIGRATING, and `bun run smoke:bun-consumer`. Done.
 6. Benchmarks (`docs/BENCHMARKS.md`). Done.
 7. Record every ESLint-based test as expectations, then swap the package on `main` as `6.0.0-next.0` and drop 5.x with its scripts. Done.
-8. Remove ESLint, Prettier and the plugins from the repository's devDependencies, format the repository with `bun fmt`, and run CI on Bun canary.
+8. Remove ESLint, Prettier and the plugins from the repository's devDependencies, format the repository with `bun fmt` (CI runs `bun fmt --check`; `.prettierignore` skips `test-project/` and the recordings), and run CI on Bun canary. Done.
 9. Release day (gated, see below).
 
 ### Release-day checklist
@@ -75,11 +75,11 @@ Start only when a stable Bun release ships `bun lint` and `bun run release:check
 
 1. Set the version to `6.0.0`, drop `private`, and set `engines.bun` to that stable release.
 2. Rename the CHANGELOG section to `## 6.0.0` with the release date, and remove the "in development" note from both READMEs.
-3. Switch CI to the stable release.
+3. Switch CI from `bun-version: canary` to `latest`.
 
 ## Status (2026-10-22, Bun canary 1.4.4-canary.1+963452075)
 
-Phases 1–7 are done; the release is held for a stable Bun with `bun lint`. The package builds every profile with no npm package at runtime, and the 25 rules that needed ESLint plugin packages are dependency-free ports in `packages/eslint-config-expo-magic/rules/` (expo, react-native, react-19-upgrade, testing-library, unused-imports, boundaries, plus the local expo-magic and expo-magic-reanimated rules).
+Phases 1–8 are done; the release is held for a stable Bun with `bun lint`. The repository has no ESLint, Prettier or plugin package left. The package builds every profile with no npm package at runtime, and the 25 rules that needed ESLint plugin packages are dependency-free ports in `packages/eslint-config-expo-magic/rules/` (expo, react-native, react-19-upgrade, testing-library, unused-imports, boundaries, plus the local expo-magic and expo-magic-reanimated rules).
 
 `bun run golden:bun` lints `test-project` for every profile on the latest Bun canary:
 

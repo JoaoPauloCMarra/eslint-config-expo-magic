@@ -24,19 +24,19 @@ warnings caused by borrowing an unrelated type are removed.
 
 ## Coverage matrix
 
-| Behavior | Focused evidence | Status |
-| --- | --- | --- |
-| Outer terminal-name collisions | Qualified type with unrelated outer Props | Pass |
-| Namespace aliases/interfaces/inheritance | Direct, nested, dotted, interface extends | Pass |
-| Scope and visibility | Private members, local namespace/type-parameter shadows | Pass |
-| Merged declarations | Exported aliases, interfaces and nested namespaces; private controls | Pass |
-| Dotted parents | Explicit/dotted merging and implicit-parent sibling lookup | Pass |
-| Import aliases | Local import-equals chains and cycle termination | Pass |
-| React helper recognition | Implicit, named, renamed, namespace and import-equals forms | Pass |
-| External types | No borrowing of unrelated local declarations | Pass |
-| Actual children usage | Existing rendering/props forwarding and scope cases | Pass |
-| Other local plugin rules | Six colocated rule test files | Pass |
-| Full package/config/export consumers | Full test, validate, typecheck, packed SDK consumers | Pending heavy-test slot |
+| Behavior                                 | Focused evidence                                                     | Status                  |
+| ---------------------------------------- | -------------------------------------------------------------------- | ----------------------- |
+| Outer terminal-name collisions           | Qualified type with unrelated outer Props                            | Pass                    |
+| Namespace aliases/interfaces/inheritance | Direct, nested, dotted, interface extends                            | Pass                    |
+| Scope and visibility                     | Private members, local namespace/type-parameter shadows              | Pass                    |
+| Merged declarations                      | Exported aliases, interfaces and nested namespaces; private controls | Pass                    |
+| Dotted parents                           | Explicit/dotted merging and implicit-parent sibling lookup           | Pass                    |
+| Import aliases                           | Local import-equals chains and cycle termination                     | Pass                    |
+| React helper recognition                 | Implicit, named, renamed, namespace and import-equals forms          | Pass                    |
+| External types                           | No borrowing of unrelated local declarations                         | Pass                    |
+| Actual children usage                    | Existing rendering/props forwarding and scope cases                  | Pass                    |
+| Other local plugin rules                 | Six colocated rule test files                                        | Pass                    |
+| Full package/config/export consumers     | Full test, validate, typecheck, packed SDK consumers                 | Pending heavy-test slot |
 
 ## Verification receipts
 

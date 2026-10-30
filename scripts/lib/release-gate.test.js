@@ -61,7 +61,12 @@ describe('release gate execution', () => {
 		]);
 	});
 
-	for (const failure of ['run test', 'typecheck', 'golden:bun', 'smoke:bun-consumer']) {
+	for (const failure of [
+		'run test',
+		'typecheck',
+		'golden:bun',
+		'smoke:bun-consumer',
+	]) {
 		test(`stops before packing when ${failure} fails`, () => {
 			const result = exercise({ fail: failure });
 			expect(result.status).toBe(17);
@@ -70,4 +75,3 @@ describe('release gate execution', () => {
 		});
 	}
 });
-

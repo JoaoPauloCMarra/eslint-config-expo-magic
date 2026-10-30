@@ -14,8 +14,8 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-# bun lint ships only in Bun canary for now; the test helpers download the
-# latest canary themselves (scripts/lib/bun-binary.js).
+# bun lint ships only in Bun canary for now. Switch to `latest` once a stable
+# release has it.
 jobs:
   unit-tests:
     runs-on: ubuntu-26.04
@@ -25,10 +25,13 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: canary
 
       - name: Install dependencies
         run: bun run ci
+
+      - name: Check formatting
+        run: bun fmt --check
 
       - name: Typecheck public types
         run: bun run typecheck
@@ -44,7 +47,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: canary
 
       - name: Install dependencies
         run: bun run ci
@@ -60,11 +63,10 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: canary
 
       - name: Install dependencies
         run: bun run ci
 
       - name: Install the packed package in a clean consumer
         run: bun run smoke:bun-consumer
-

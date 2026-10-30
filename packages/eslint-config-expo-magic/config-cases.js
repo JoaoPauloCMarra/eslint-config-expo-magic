@@ -134,7 +134,11 @@ function withPackagePlaceholder(config) {
 	);
 }
 
-const expectationsDirectory = path.join(__dirname, '__expectations__', 'configs');
+const expectationsDirectory = path.join(
+	__dirname,
+	'__expectations__',
+	'configs',
+);
 
 module.exports = {
 	architectureOptionSets,

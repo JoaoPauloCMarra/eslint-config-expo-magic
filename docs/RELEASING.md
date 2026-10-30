@@ -30,5 +30,3 @@ The workflow and manual publishing both run `scripts/publish-package.js`. It run
 To publish manually, run `bun run publish-package --publish`. Other arguments go to both `npm publish` commands.
 
 See [TESTING.md](TESTING.md) for what the gate covers.
-
-
