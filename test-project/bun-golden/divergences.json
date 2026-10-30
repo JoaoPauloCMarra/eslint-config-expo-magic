@@ -5,6 +5,11 @@
 		"reason": "ESLint reports the catch clause after a returning try block; it is reachable when the try throws."
 	},
 	{
+		"pair": "components/ReactCompilerTests.tsx @typescript-eslint/no-misused-promises 2",
+		"side": "missing",
+		"reason": "React Native 0.88 (Expo SDK 58) types Text onPress as returning unknown, not void, so an async handler is no longer a misused promise. 5.5.0 was recorded on React Native 0.86."
+	},
+	{
 		"pair": "preset-fixtures/app-guardrails.tsx @typescript-eslint/no-unused-vars 2",
 		"side": "missing",
 		"reason": "oxlint counts a declared function used only in a typeof type query as used."

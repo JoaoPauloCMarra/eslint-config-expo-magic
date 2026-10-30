@@ -213,9 +213,9 @@ The rule set is the same as in 5.x, and the repository's golden tests check that
 | Surface      | Supported range or lane                                       |
 | ------------ | ------------------------------------------------------------- |
 | Bun          | A release with the built-in `bun lint` and `bun fmt` commands |
-| Expo         | SDK 54, 55, 56, and 57                                        |
-| React Native | Expo-coupled; SDK 57 uses RN 0.86                             |
-| React        | 19.1 and 19.2                                                 |
+| Expo         | SDK 54, 55, 56, 57, and 58                                    |
+| React Native | Expo-coupled; SDK 58 uses RN 0.88                             |
+| React        | 19.1, 19.2, and 19.3                                          |
 
 The package does not depend on Node.js, ESLint, Prettier, or TypeScript at runtime.
 

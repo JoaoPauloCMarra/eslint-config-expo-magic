@@ -11,6 +11,11 @@ Unreleased. Published as 6.0.0 once a stable Bun release ships `bun lint`.
 - The package targets Bun's built-in `bun lint` and `bun fmt` instead of ESLint and Prettier, and has no dependencies. Configs move from `eslint.config.js` to `oxlint.config.ts`; `createConfig` options and the rule set stay the same. See [docs/MIGRATING.md](docs/MIGRATING.md).
 - The `.mjs` entry points, the focused-layer subpaths (`agent-guardrails`, `native-ui`, `reanimated` and the rest; use the `createConfig` option of the same name), and the `eslint` and `prettier` bins are removed. `expo-magic-init-agent` is now `expo-magic-init`. `createArchitectureConfig` takes `base` instead of `baseConfig`.
 
+### Compatibility
+
+- Adds Expo SDK 58 and React 19.3 to the peer ranges. The fixture project uses Expo 58.0.21, React Native 0.88.1 and React 19.3.0.
+- React Native 0.88 types `onPress` handlers as returning `unknown`, so `@typescript-eslint/no-misused-promises` no longer reports an `async` function passed to `onPress`.
+
 ## 5.5.0
 
 Released: 2026-10-14
