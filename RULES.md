@@ -1,10 +1,10 @@
 # 📜 Configuration Rationale (The "Why")
 
-This document explains the reasoning behind the opinionated rules enforced by `eslint-config-expo-magic`.
+This document explains the reasoning behind the opinionated rules enforced by `eslint-config-expo-magic`. Rule IDs keep their ESLint names (`@typescript-eslint/*`, `import-x/*`, `react-native/*`). `bun lint` runs them under Bun's own plugin names, and `eslint-disable` comments still work.
 
 ## Preset defaults
 
-The root and typed/strict presets keep core Expo, TypeScript, React Native, import, and application rules active. Formatting and test-plugin rules are optional integrations and are disabled unless `createConfig({ prettier: true, testing: true })` opts into them. The fast preset keeps the core React and React Native hooks but skips type-aware parsing, React Compiler diagnostics, and import-cycle traversal.
+The root and typed/strict presets keep core Expo, TypeScript, React Native, import, and application rules active. Formatting and test-plugin rules are optional integrations and are disabled unless `createConfig({ prettier: true, testing: true })` opts into them. The fast preset keeps the core React and React Native hooks but skips type-aware analysis, React Compiler diagnostics, and import-cycle traversal.
 
 ## 🔷 TypeScript
 
@@ -34,16 +34,22 @@ The root and typed/strict presets keep core Expo, TypeScript, React Native, impo
 - **Presets**: Typed, strict, agent, and mobile-app only. The default and fast presets do not enable it.
 - **Rationale**: Catch cases where an async function is passed to a synchronous callback or prop where the returned promise would be ignored.
 
+### `@typescript-eslint/switch-exhaustiveness-check`
+
+- **Rule**: Error when a `switch` on a union does not handle every member. With `requireDefaultForNonUnion`, a `switch` on a non-union value such as `string` needs a `default`.
+- **Presets**: Every type-aware preset. The fast and base presets do not enable it.
+- **Rationale**: A new state added to a union fails lint at each `switch` that ignores it, so a lifecycle cannot skip a state silently.
+
 ### `@typescript-eslint/no-redeclare`
 
 - **Rule**: Prevent variable redeclaration.
-- **Source**: Inherited from `eslint-config-expo` at `warn`.
+- **Source**: Snapshotted from `eslint-config-expo` at `warn`.
 - **Rationale**: Avoids confusion and potential bugs from accidental redeclaration.
 
 ### `@typescript-eslint/no-require-imports`
 
 - **Rule**: Prefer ES6 imports over require().
-- **Source**: Inherited from `eslint-config-expo` at `warn`, with asset and data file extensions allowed. `typeChecked` (and the typed preset) raises it to `error`.
+- **Source**: Snapshotted from `eslint-config-expo` at `warn`, with asset and data file extensions allowed. `typeChecked` (and the typed preset) raises it to `error`.
 - **Rationale**: Ensures consistent import style and better tree-shaking support.
 
 ### `@typescript-eslint/naming-convention`
@@ -110,7 +116,7 @@ The root and typed/strict presets keep core Expo, TypeScript, React Native, impo
 
 ## 🛡️ Optional Hardening Layers
 
-These layers are off by default and enabled per project via `createConfig({ ... })` or their subpath exports.
+These layers are off by default and enabled per project with the `createConfig({ ... })` option of the same name.
 
 ### `reanimated` / `worklets`
 
@@ -158,6 +164,8 @@ These rules do not apply to test files, where local mock components are not publ
 
 ### `agent-guardrails`
 
+Part of the `agent` preset.
+
 - Bans unsafe TypeScript suppressions (`@ts-ignore`, `@ts-nocheck`) and requires described `@ts-expect-error`.
 - Errors on `any`, `as any`, double assertions, non-null assertions, floating promises, misused promises, and empty catch blocks.
 - Flags focused or skipped tests, broad snapshot assertions, generated attribution strings, and TODO/FIXME/HACK dumps.
@@ -166,9 +174,12 @@ These rules do not apply to test files, where local mock components are not publ
 
 ## 📦 Imports & Organization
 
+The `import-x/*` rules run in Bun's built-in import plugin and keep their `import-x/` IDs in this package's options.
+
 ### `unused-imports/no-unused-imports`
 
-- **Rule**: Auto-remove unused imports.
+- **Rule**: Auto-remove unused imports (`bun lint --fix`).
+- **Source**: A dependency-free port in the package.
 - **Rationale**: Keeps files clean and prevents tree-shaking failures.
 
 ### `import-x/order`
@@ -189,13 +200,13 @@ These rules do not apply to test files, where local mock components are not publ
 ### `import-x/no-duplicates`
 
 - **Rule**: Disallow duplicated imports from the same module.
-- **Source**: The `eslint-plugin-import-x` recommended config, at `warn`.
+- **Source**: The `import-x` recommended rule set, snapshotted at `warn`.
 - **Rationale**: Prevents redundant imports and keeps import blocks clean and predictable.
 
 ### `import-x/no-unresolved`
 
 - **Rule**: Ensure all imports can be resolved.
-- **Source**: The `eslint-plugin-import-x` recommended config, at `error`.
+- **Source**: The `import-x` recommended rule set, snapshotted at `error`.
 - **Rationale**: Catches typos and missing dependencies early.
 
 ### `import-x/no-named-as-default-member`
@@ -205,11 +216,11 @@ These rules do not apply to test files, where local mock components are not publ
 
 ## ✨ Formatting
 
-The `prettier/prettier` rule is optional in the generic root preset and enabled in the v5 mobile-app profile. The package owns `eslint-config-prettier`, `eslint-plugin-prettier`, and Prettier; consumers do not install them separately.
+`bun fmt` formats the code with the options in `.prettierrc.js`; `eslint-config-expo-magic/prettier` exports the shared options. The `prettier: true` option of `createConfig` adds Bun's `bun/format` rule, which reports formatting differences during `bun lint`. It is optional in the generic root preset and enabled in the mobile-app profile.
 
 ## 🧪 Testing
 
-Jest and Testing Library rules are disabled in the root and fast presets by default. Their plugins ship with the package; enable them with `createConfig({ testing: true })` when the project has those test surfaces.
+Jest and Testing Library rules are disabled in the root and fast presets by default. The Jest rules run in Bun's built-in jest plugin, and the Testing Library rules are ports in the package; enable them with `createConfig({ testing: true })` when the project has those test surfaces.
 
 ### `testing-library/await-async-queries`
 
@@ -240,7 +251,7 @@ Jest and Testing Library rules are disabled in the root and fast presets by defa
 
 ### Core JavaScript Rules
 
-These rules come from `eslint-config-expo`. This package does not change their level.
+These rules are snapshotted from `eslint-config-expo`. This package does not change their level.
 
 - **`eqeqeq`** (`warn`, `"smart"`): Enforce strict equality (`===` and `!==`), except for `typeof` checks, comparisons between literals, and `null` checks.
 - **`no-dupe-args`** (`error`): Prevent duplicate function parameters.
@@ -264,7 +275,7 @@ These rules come from `eslint-config-expo`. This package does not change their l
 
 ### Expo rules
 
-`expo/no-dynamic-env-var` and `expo/no-env-var-destructuring` come from `eslint-config-expo` at `error`. This package sets `expo/prefer-box-shadow` to `warn` in every preset.
+`expo/no-dynamic-env-var` and `expo/no-env-var-destructuring` are ported from `eslint-plugin-expo` and set at `error` as in `eslint-config-expo`. This package sets `expo/prefer-box-shadow` to `warn` in every preset.
 
 ### `expo/no-dynamic-env-var`
 
@@ -335,13 +346,14 @@ across platforms.
 
 ### Composition over replacement
 
-ESLint flat config replaces rule options when a later entry supplies them, so a
-block that declares only its own `no-restricted-imports` or
+An oxlint override replaces a rule's options when a later override supplies
+them, so a block that declares only its own `no-restricted-imports` or
 `no-restricted-syntax` disables every other restriction for the files it
 matches. `createArchitectureConfig()` composes instead: each file gets one
-entry per rule that holds every restriction that applies to it, including in
+override per rule that holds every restriction that applies to it, including in
 `.tsx` views, and exemptions (wrapper files, the logger, the token module)
-remove only their own restriction. With `baseConfig`, the restrictions of the
-config spread before the architecture blocks are restated too.
-`architecture.test.ts` runs every violation in `.ts`, `.tsx`, `.js` and `.jsx`
-files, with and without `baseConfig`.
+remove only their own restriction. With `base` (the `createConfig` options of the
+base config), the restrictions of the base config are restated in the
+architecture overrides too.
+`architecture.test.js` compares the generated configs, for several `base`
+option sets, with the configs recorded from 5.x in `__expectations__/configs`.

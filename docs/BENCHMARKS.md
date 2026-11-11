@@ -32,7 +32,7 @@ Setup: macOS arm64, 12 CPUs, Bun 1.4.4-canary.1+963452075. Both tools lint the s
 
 ## Reproduce
 
-Check out `6d30493`, run `bun install`, then:
+The benchmark script and its `bench:bun` package script exist only at commit `6d30493`; `main` has no benchmark command. Check out `6d30493`, run `bun install`, then:
 
 ```bash
 bun run bench:bun -- --runs 10 --profile fast --profile testing --profile full
@@ -42,4 +42,4 @@ bun run bench:bun -- --runs 10 --profile fast --profile testing --profile full
 bun run bench:bun -- --runs 5 --scale 10 --profile fast --profile testing --profile full
 ```
 
-`--write` replaces this file with the report of one run.
+At that commit, `--write` replaces this file with the report of one run.

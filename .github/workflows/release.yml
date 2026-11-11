@@ -42,7 +42,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          version="$(node -p "require('./packages/eslint-config-expo-magic/package.json').version")"
+          version="$(bun -p "require('./packages/eslint-config-expo-magic/package.json').version")"
           tag="v${version}"
           latest_tag="$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq .tag_name 2>/dev/null || true)"
           published_version="$(npm view "eslint-config-expo-magic@${version}" version --json 2>/dev/null | tr -d '"' || true)"
@@ -66,20 +66,20 @@ jobs:
             publish_reason="npm already has eslint-config-expo-magic@${version}."
           fi
 
-          # Prerelease versions (6.0.0-next.0) are work in progress on main:
-          # never publish or tag them.
+          # A prerelease (6.0.0-next.1) goes to the npm dist-tag named by its
+          # identifier (next) and to a GitHub prerelease, never to latest.
+          dist_tag=latest
           case "${version}" in
             *-*)
-              should_create=false
-              create_reason="${version} is a prerelease version."
-              should_publish=false
-              publish_reason="${version} is a prerelease version."
+              dist_tag="${version#*-}"
+              dist_tag="${dist_tag%%.*}"
               ;;
           esac
 
           {
             echo "version=${version}"
             echo "tag=${tag}"
+            echo "dist_tag=${dist_tag}"
             echo "latest_tag=${latest_tag}"
             echo "should_create=${should_create}"
             echo "should_publish=${should_publish}"
@@ -108,7 +108,7 @@ jobs:
 
       - name: Publish npm package
         if: steps.release.outputs.should_publish == 'true'
-        run: bun scripts/publish-package.js --publish --ci-verified
+        run: bun scripts/publish-package.js --publish --ci-verified --tag "${{ steps.release.outputs.dist_tag }}"
 
       - name: Verify npm package
         if: steps.release.outputs.should_publish == 'true'
@@ -116,12 +116,13 @@ jobs:
           set -euo pipefail
 
           version="${{ steps.release.outputs.version }}"
+          dist_tag="${{ steps.release.outputs.dist_tag }}"
           for attempt in {1..40}; do
             published_version="$(npm view "eslint-config-expo-magic@${version}" version --json 2>/dev/null | tr -d '"' || true)"
-            latest_version="$(npm view eslint-config-expo-magic dist-tags.latest --json 2>/dev/null | tr -d '"' || true)"
+            tagged_version="$(npm view eslint-config-expo-magic "dist-tags.${dist_tag}" --json 2>/dev/null | tr -d '"' || true)"
 
-            if [ "${published_version}" = "${version}" ] && [ "${latest_version}" = "${version}" ]; then
-              echo "Verified eslint-config-expo-magic@${version} on npm."
+            if [ "${published_version}" = "${version}" ] && [ "${tagged_version}" = "${version}" ]; then
+              echo "Verified eslint-config-expo-magic@${version} on npm as ${dist_tag}."
               exit 0
             fi
 
@@ -129,7 +130,7 @@ jobs:
             sleep 15
           done
 
-          echo "npm registry did not expose eslint-config-expo-magic@${version} as latest." >&2
+          echo "npm registry did not expose eslint-config-expo-magic@${version} as ${dist_tag}." >&2
           exit 1
 
       - name: Create GitHub release
@@ -138,10 +139,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
           RELEASE_TARGET: ${{ github.event.workflow_run.head_sha || github.sha }}
+          DIST_TAG: ${{ steps.release.outputs.dist_tag }}
         run: |
           set -euo pipefail
+
+          release_kind=()
+          if [ "${DIST_TAG}" != latest ]; then
+            release_kind=(--prerelease --latest=false)
+          fi
 
           gh release create "${RELEASE_TAG}" \
             --target "${RELEASE_TARGET}" \
             --title "${RELEASE_TAG}" \
-            --notes-file "${{ runner.temp }}/release-notes.md"
+            --notes-file "${{ runner.temp }}/release-notes.md" \
+            "${release_kind[@]}"

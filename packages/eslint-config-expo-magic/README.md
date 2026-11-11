@@ -11,7 +11,7 @@ Lint and format configuration for Expo, React Native, and TypeScript projects, b
 
 On this repository's fixtures, `bun lint` is 12–37× faster than the 5.x ESLint setup with 3–8× less memory, and `bun fmt --check` is 13–46× faster than Prettier. See [docs/BENCHMARKS.md](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/blob/main/docs/BENCHMARKS.md).
 
-> **6.0 is in development on `main` and is not on npm yet.** It needs a stable Bun release with `bun lint`. The published version is 5.5.0 (ESLint and Prettier); see its [README](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/tree/v5.5.0#readme).
+> **6.0 is a prerelease on the npm `next` tag.** It needs Bun canary (`bun upgrade --canary`), because stable Bun ships `bun fmt` but not `bun lint` yet. The `latest` version is 5.5.0 (ESLint and Prettier); see its [README](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/tree/v5.5.0#readme).
 
 ## Contents
 
@@ -29,7 +29,7 @@ On this repository's fixtures, `bun lint` is 12–37× faster than the 5.x ESLin
 ## Install
 
 ```bash
-bun add --dev eslint-config-expo-magic
+bun add --dev eslint-config-expo-magic@next
 ```
 
 The project needs a Bun release with the built-in `bun lint` and `bun fmt` commands. It does not need ESLint, Prettier, TypeScript ESLint, or any ESLint plugin. Type-aware rules use Bun's built-in type checker, so the `typescript` package is optional.
@@ -71,7 +71,7 @@ Scripts:
 
 A `lint` or `fmt` script replaces the built-in command when you type `bun lint` or `bun fmt`. Keep them pointing at `bun lint` and `bun fmt`, not at `eslint` or `prettier`.
 
-The mobile-app profile covers semantic colors, native UI boundaries, feature architecture, storage boundaries, naming conventions, focused console allowances, Testing Library checks, `react-native/no-inline-styles`, and the component-structure rules outside tests (`no-inline-props`, `props-type-order`, `default-export-placement`, `require-children-usage`). The default preset also enables the strict TypeScript layer. Pass `createMobileAppConfig({ preset: 'fast' })` for the syntax-focused lane without type-aware rules.
+The mobile-app profile covers semantic colors, native UI boundaries, feature architecture, storage boundaries, naming conventions, focused console allowances, Testing Library checks, `react-native/no-inline-styles`, and the component-structure rules outside tests (`no-inline-props`, `props-type-order`, `default-export-placement`, `require-children-usage`). The default preset also enables the strict TypeScript layer. Pass `createMobileAppConfig({ preset: 'fast' })` for the syntax-focused lane without type-aware rules. Without the option, the preset comes from the `EXPO_MAGIC_PRESET` environment variable (`ESLINT_CONFIG_PRESET` still works).
 
 For libraries or incremental adoption, use the root export:
 
@@ -105,28 +105,28 @@ The default, typed, strict, agent, and mobile-app presets turn on type-aware rul
 
 `createConfig(options)` accepts the same options as 5.x:
 
-| Option               | Default                 | Purpose                                                  |
-| -------------------- | ----------------------- | -------------------------------------------------------- |
-| `preset`             | `'default'`             | Select `'base'`, `'default'`, or `'fast'` composition    |
-| `prettier`           | `false`                 | Report formatting differences with the `bun/format` rule |
-| `testing`            | `false`                 | Enable Jest and Testing Library rules                    |
-| `typeChecked`        | `false`                 | Add the type-checked TypeScript rules                    |
-| `strict`             | `false`                 | Add strict TypeScript rules and `no-console: error`      |
-| `importCycles`       | `true` for default only | Enable graph-wide `import/no-cycle` traversal            |
-| `tsconfigProjects`   | Project globs           | Set the TypeScript projects for import resolution        |
-| `extraIgnores`       | `[]`                    | Add ignore globs                                         |
-| `agent`              | `false`                 | Enable agent-safe defaults or provide agent options      |
-| `appGuardrails`      | `false`                 | Enable application guardrails                            |
-| `componentStructure` | `false`                 | Enforce component structure conventions                  |
-| `deprecatedApis`     | `false`                 | Restrict deprecated React and React Native APIs          |
-| `featureBoundaries`  | `false`                 | Enable feature and service boundary policies             |
-| `inlineStyles`       | `false`                 | Warn or error on inline styles in TSX                    |
-| `nativeUi`           | `false`                 | Restrict native primitive imports                        |
-| `reactCompiler`      | `false`                 | Promote React Compiler diagnostics to `error`            |
-| `reanimated`         | `false`                 | Enable Reanimated hardening                              |
-| `semanticColors`     | `false`                 | Enforce semantic color tokens                            |
-| `storybook`          | `false`                 | Apply Storybook file overrides                           |
-| `worklets`           | `false`                 | Enable Worklets scheduling hardening                     |
+| Option               | Default                 | Purpose                                                                                                                       |
+| -------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `preset`             | `'default'`             | Select `'base'`, `'default'`, or `'fast'` composition                                                                         |
+| `prettier`           | `false`                 | Report formatting differences with the `bun/format` rule                                                                      |
+| `testing`            | `false`                 | Enable Jest and Testing Library rules                                                                                         |
+| `typeChecked`        | `false`                 | Add the type-checked TypeScript rules                                                                                         |
+| `strict`             | `false`                 | Add strict TypeScript rules and `no-console: error`                                                                           |
+| `importCycles`       | `true` for default only | Enable graph-wide `import/no-cycle` traversal                                                                                 |
+| `tsconfigProjects`   | Project globs           | Set the TypeScript projects that the feature-boundary rules resolve imports with; other rules use the nearest `tsconfig.json` |
+| `extraIgnores`       | `[]`                    | Add ignore globs                                                                                                              |
+| `agent`              | `false`                 | Enable agent-safe defaults or provide agent options                                                                           |
+| `appGuardrails`      | `false`                 | Enable application guardrails                                                                                                 |
+| `componentStructure` | `false`                 | Enforce component structure conventions                                                                                       |
+| `deprecatedApis`     | `false`                 | Restrict deprecated React and React Native APIs                                                                               |
+| `featureBoundaries`  | `false`                 | Enable feature and service boundary policies                                                                                  |
+| `inlineStyles`       | `false`                 | Warn or error on inline styles in TSX                                                                                         |
+| `nativeUi`           | `false`                 | Restrict native primitive imports                                                                                             |
+| `reactCompiler`      | `false`                 | Promote React Compiler diagnostics to `error`                                                                                 |
+| `reanimated`         | `false`                 | Enable Reanimated hardening                                                                                                   |
+| `semanticColors`     | `false`                 | Enforce semantic color tokens                                                                                                 |
+| `storybook`          | `false`                 | Apply Storybook file overrides                                                                                                |
+| `worklets`           | `false`                 | Enable Worklets scheduling hardening                                                                                          |
 
 Options that accept `true` also accept the same focused options object as in 5.x. Agent mode supplies the default app, deprecated-API, Reanimated, and Worklets hardening, and turns on `reactCompiler` when the preset is type-aware. An explicit top-level option always wins over the agent value, for example `createConfig({ agent: true, reanimated: false })`.
 

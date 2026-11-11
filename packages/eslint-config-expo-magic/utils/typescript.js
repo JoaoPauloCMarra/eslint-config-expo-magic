@@ -53,6 +53,12 @@ const typeAwareRules = {
 	'@typescript-eslint/prefer-nullish-coalescing': 'off',
 	'@typescript-eslint/prefer-optional-chain': 'warn',
 	'@typescript-eslint/prefer-readonly': 'warn',
+	// A switch on a bare string needs a default too, so a status typed as
+	// `string` instead of a closed union cannot skip a state silently.
+	'@typescript-eslint/switch-exhaustiveness-check': [
+		'error',
+		{ requireDefaultForNonUnion: true },
+	],
 };
 
 function createTypeScriptConfig({

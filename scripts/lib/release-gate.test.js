@@ -19,7 +19,7 @@ function exercise({ fail = '' } = {}) {
 		for (const command of ['bun']) {
 			fs.writeFileSync(
 				path.join(dir, 'bin', command),
-				`#!/usr/bin/env node\nconst fs = require('node:fs'); const entry = ${JSON.stringify(command)} + ' ' + process.argv.slice(2).join(' '); fs.appendFileSync(process.env.GATE_TRACE, entry + '\\n'); if (entry.includes(process.env.GATE_FAIL || '\\0')) process.exit(17);\n`,
+				`#!${process.execPath}\nconst fs = require('node:fs'); const entry = ${JSON.stringify(command)} + ' ' + process.argv.slice(2).join(' '); fs.appendFileSync(process.env.GATE_TRACE, entry + '\\n'); if (entry.includes(process.env.GATE_FAIL || '\\0')) process.exit(17);\n`,
 				{ mode: 0o755 },
 			);
 		}

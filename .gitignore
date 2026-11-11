@@ -29,7 +29,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env.local
 
 # caches
-.eslintcache
 .cache
 *.tsbuildinfo
 
@@ -42,9 +41,5 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Project documentation
 AGENTS.md
 
-eslint-output.json
-
 # Repo-local test temp directories
-.tmp-eslint-config-expo-magic-*
-test-project/composition-fixture-*
 test-project/.bun-golden-*

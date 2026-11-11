@@ -4089,7 +4089,13 @@
 				"typescript/no-unnecessary-type-assertion": "error",
 				"typescript/prefer-nullish-coalescing": "off",
 				"typescript/prefer-optional-chain": "warn",
-				"typescript/prefer-readonly": "warn"
+				"typescript/prefer-readonly": "warn",
+				"typescript/switch-exhaustiveness-check": [
+					"error",
+					{
+						"requireDefaultForNonUnion": true
+					}
+				]
 			}
 		},
 		{

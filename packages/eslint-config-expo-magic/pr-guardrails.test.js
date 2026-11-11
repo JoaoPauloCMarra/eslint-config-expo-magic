@@ -104,8 +104,14 @@ describe('pr guardrails broad eslint disables', () => {
 		'+// eslint-disable-next-line no-console',
 		'+console.log(value); // eslint-disable-line no-console',
 		'+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- boundary type',
+		'+// oxlint-disable-next-line no-console',
+		'+console.log(value); // oxlint-disable-line typescript/no-explicit-any',
 	];
 	const broad = [
+		'+// oxlint-disable-next-line',
+		'+console.log(value); // oxlint-disable-line',
+		'+/* oxlint-disable */',
+		'+/* oxlint-disable no-console */',
 		'+// eslint-disable-next-line',
 		'+console.log(value); // eslint-disable-line',
 		'+// eslint-disable-line -- no rule named',

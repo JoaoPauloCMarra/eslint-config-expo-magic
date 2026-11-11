@@ -62,104 +62,40 @@ function collectRequiredFiles(packageJson) {
 	return [...requiredFiles].sort();
 }
 
-function isNpmAlwaysIncludedFile(targetPath) {
-	return /^(package\.json|readme(\.[^/]*)?|license(\.[^/]*)?)$/i.test(
-		targetPath,
+// The tarball file list from Bun is the only reliable reading of the package
+// `files` patterns, which use `**` and `!` negations.
+function packedFiles() {
+	const result = spawnSync('bun', ['pm', 'pack', '--dry-run'], {
+		cwd: PKG_DIR,
+		encoding: 'utf8',
+	});
+	if (result.status !== 0) {
+		process.stderr.write(result.stderr);
+		process.exit(result.status ?? 1);
+	}
+
+	return new Set(
+		result.stdout
+			.split('\n')
+			.flatMap((line) => line.match(/^packed \S+ (.+)$/)?.[1] ?? []),
 	);
-}
-
-function splitGlobEntry(entry) {
-	const wildcardIndex = entry.indexOf('*');
-	if (wildcardIndex === -1) {
-		return null;
-	}
-
-	const prefix = entry.slice(0, wildcardIndex);
-	const lastSlashIndex = prefix.lastIndexOf('/');
-	const dir = lastSlashIndex === -1 ? '.' : prefix.slice(0, lastSlashIndex);
-	const filePrefix =
-		lastSlashIndex === -1 ? prefix : prefix.slice(lastSlashIndex + 1);
-
-	return {
-		dir: path.join(PKG_DIR, dir),
-		prefix: filePrefix,
-		suffix: entry.slice(wildcardIndex + 1),
-	};
-}
-
-function packageFilesEntryExists(entry) {
-	const glob = splitGlobEntry(entry);
-	if (!glob) {
-		return fs.existsSync(path.join(PKG_DIR, entry));
-	}
-
-	if (!fs.existsSync(glob.dir)) {
-		return false;
-	}
-
-	return fs
-		.readdirSync(glob.dir)
-		.some((file) => file.startsWith(glob.prefix) && file.endsWith(glob.suffix));
-}
-
-function packageFilesEntryIncludesPath(entry, targetPath) {
-	if (entry === targetPath) {
-		return true;
-	}
-
-	if (!entry.includes('*')) {
-		return targetPath.startsWith(`${entry.replace(/\/$/, '')}/`);
-	}
-
-	const wildcardIndex = entry.indexOf('*');
-	const prefix = entry.slice(0, wildcardIndex);
-	const suffix = entry.slice(wildcardIndex + 1);
-	return targetPath.startsWith(prefix) && targetPath.endsWith(suffix);
 }
 
 function ensureRequiredFiles() {
 	const packageJson = JSON.parse(
 		fs.readFileSync(path.join(PKG_DIR, 'package.json'), 'utf8'),
 	);
-	const packageFiles = packageJson.files ?? [];
-	const requiredFiles = collectRequiredFiles(packageJson);
+	const packed = packedFiles();
 
 	let allPresent = true;
-	console.log('Checking package entrypoints:\n');
-	for (const file of requiredFiles) {
-		const filePath = path.join(PKG_DIR, file);
-		if (fs.existsSync(filePath)) {
+	console.log('Checking package entrypoints in the tarball:\n');
+	for (const file of collectRequiredFiles(packageJson)) {
+		if (packed.has(file)) {
 			console.log(`  OK  ${file}`);
 			continue;
 		}
 
-		console.log(`  MISSING  ${file}`);
-		allPresent = false;
-	}
-
-	console.log('\nChecking package file allowlist:\n');
-	for (const entry of packageFiles) {
-		if (packageFilesEntryExists(entry)) {
-			console.log(`  OK  ${entry}`);
-			continue;
-		}
-
-		console.log(`  MISSING  ${entry}`);
-		allPresent = false;
-	}
-
-	for (const file of requiredFiles) {
-		if (isNpmAlwaysIncludedFile(file)) {
-			continue;
-		}
-
-		if (
-			packageFiles.some((entry) => packageFilesEntryIncludesPath(entry, file))
-		) {
-			continue;
-		}
-
-		console.log(`  NOT LISTED  ${file}`);
+		console.log(`  NOT PACKED  ${file}`);
 		allPresent = false;
 	}
 
@@ -171,7 +107,7 @@ function ensureRequiredFiles() {
 
 function runReleaseCheck() {
 	console.log('\nRunning release checks...');
-	run('node', [path.join(ROOT_DIR, 'scripts', 'release-check.js')], {
+	run('bun', [path.join(ROOT_DIR, 'scripts', 'release-check.js')], {
 		cwd: ROOT_DIR,
 	});
 }

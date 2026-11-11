@@ -2,18 +2,24 @@
 
 All notable, consumer-facing changes to `eslint-config-expo-magic` are documented here. This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases prior to `2.7.0` are recorded in the [GitHub releases](https://github.com/JoaoPauloCMarra/eslint-config-expo-magic/releases).
 
-## 6.0.0-next.0
+## 6.0.0-next.1
 
-Unreleased. Published as 6.0.0 once a stable Bun release ships `bun lint`.
+Prerelease, published under the npm `next` tag. It needs Bun canary: stable Bun 1.4.4 ships `bun fmt` but not `bun lint`. 6.0.0 follows once a stable Bun release ships `bun lint`.
 
 ### Breaking Changes
 
 - The package targets Bun's built-in `bun lint` and `bun fmt` instead of ESLint and Prettier, and has no dependencies. Configs move from `eslint.config.js` to `oxlint.config.ts`; `createConfig` options and the rule set stay the same. See [docs/MIGRATING.md](docs/MIGRATING.md).
 - The `.mjs` entry points, the focused-layer subpaths (`agent-guardrails`, `native-ui`, `reanimated` and the rest; use the `createConfig` option of the same name), and the `eslint` and `prettier` bins are removed. `expo-magic-init-agent` is now `expo-magic-init`. `createArchitectureConfig` takes `base` instead of `baseConfig`.
 
+### Added
+
+- Type-aware presets set `@typescript-eslint/switch-exhaustiveness-check` to `error`: a `switch` on a union must handle every member, and a `switch` on a non-union value such as `string` needs a `default`.
+- `createMobileAppConfig` reads the preset from the `EXPO_MAGIC_PRESET` environment variable when the `preset` option is not set. `ESLINT_CONFIG_PRESET` still works.
+- The PR guardrails report a broad `oxlint-disable` comment the same way as a broad `eslint-disable` comment.
+
 ### Compatibility
 
-- Adds Expo SDK 58 and React 19.3 to the peer ranges. The fixture project uses Expo 58.0.21, React Native 0.88.1 and React 19.3.0.
+- Adds Expo SDK 58 and React 19.3 to the peer ranges. The fixture project uses Expo 58.0.24, React Native 0.88.1 and React 19.3.0.
 - React Native 0.88 types `onPress` handlers as returning `unknown`, so `@typescript-eslint/no-misused-promises` no longer reports an `async` function passed to `onPress`.
 
 ## 5.5.0

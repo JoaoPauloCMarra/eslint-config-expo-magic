@@ -97,7 +97,7 @@ const mobileAppScreenOrComponentPatterns = [
 ];
 
 const broadEslintDisablePattern =
-	/^\+.*eslint-disable(?!-(?:next-)?line[ \t]+(?!--)[\w@/-])/m;
+	/^\+.*(?:eslint|oxlint)-disable(?!-(?:next-)?line[ \t]+(?!--)[\w@/-])/m;
 
 const defaultRiskyPatterns = [
 	{ name: 'focused test', pattern: /^\+.*\b(describe|test|it)\.only\s*\(/m },
@@ -131,7 +131,7 @@ const agentRiskyPatterns = [
 	{
 		name: 'broad ignore',
 		pattern:
-			/^\+.*(eslint-disable(?!-(?:next-)?line[ \t]+(?!--)[\w@/-])|@ts-ignore|@ts-nocheck)/m,
+			/^\+.*((?:eslint|oxlint)-disable(?!-(?:next-)?line[ \t]+(?!--)[\w@/-])|@ts-ignore|@ts-nocheck)/m,
 	},
 ];
 

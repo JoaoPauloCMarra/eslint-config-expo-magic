@@ -1,16 +1,7 @@
 {
 	"name": "test-project",
-	"version": "1.0.0",
-	"author": "",
-	"description": "",
-	"keywords": [],
-	"license": "ISC",
-	"main": "index.js",
+	"private": true,
 	"type": "commonjs",
-	"scripts": {
-		"test": "jest",
-		"test:watch": "jest --watch"
-	},
 	"devDependencies": {
 		"@testing-library/jest-native": "^5.4.3",
 		"@testing-library/react-native": "^14.1.0",
@@ -18,11 +9,9 @@
 		"@types/jest": "^30.0.0",
 		"@types/react": "~19.3.0",
 		"babel-plugin-module-resolver": "^5.0.3",
-		"babel-plugin-react-compiler": "^1.0.0",
 		"eslint-config-expo-magic": "workspace:*",
-		"expo": "58.0.21",
-		"expo-status-bar": "58.0.4",
-		"jest-expo": "58.0.13",
+		"expo": "58.0.24",
+		"jest-expo": "58.0.14",
 		"react": "19.3.0",
 		"react-native": "0.88.1",
 		"react-test-renderer": "19.3.0"

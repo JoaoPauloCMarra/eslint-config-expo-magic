@@ -460,8 +460,13 @@ function createMobileAppConfig(options = {}) {
 		throw new TypeError('createMobileAppConfig options must be an object.');
 	}
 
+	// ESLINT_CONFIG_PRESET is the 5.x name; scripts written for 5.x still set it.
+	// An empty variable counts as unset.
 	const preset =
-		options.preset ?? process.env.ESLINT_CONFIG_PRESET ?? 'default';
+		options.preset ??
+		(process.env.EXPO_MAGIC_PRESET ||
+			process.env.ESLINT_CONFIG_PRESET ||
+			'default');
 	if (!['default', 'fast'].includes(preset)) {
 		throw new RangeError(
 			`Unknown createMobileAppConfig preset: ${String(preset)}. Use "default" or "fast".`,

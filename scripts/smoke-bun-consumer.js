@@ -93,23 +93,20 @@ function main() {
 			'src/unsafe.ts': 'export const value: any = 1;\nconsole.log(value);\n',
 			'src/disabled.ts':
 				'// eslint-disable-next-line @typescript-eslint/no-explicit-any\nexport const allowed: any = 1;\n',
+			'src/oxlint-disabled.ts':
+				'// oxlint-disable-next-line typescript/no-explicit-any\nexport const allowed: any = 1;\n',
 			'src/formatted.ts': 'export const formatted = { a: 1 };\n',
 			'src/handlers.ts': 'export const handlePress = () => undefined;\n',
 			'src/unformatted.ts': 'export const unformatted = {a:1}\n',
 		});
 
 		run(bun, ['install'], consumerDir);
-		const installed = fs.readdirSync(path.join(consumerDir, 'node_modules'));
+		const installed = run(bun, ['pm', 'ls', '--all'], consumerDir)
+			.stdout.split('\n')
+			.flatMap((line) => line.match(/── (@?[^@]+)@/)?.[1] ?? []);
 		check(
-			!installed.some((name) =>
-				[
-					'eslint',
-					'prettier',
-					'typescript-eslint',
-					'@typescript-eslint',
-				].includes(name),
-			),
-			'installing the package pulls in no ESLint, Prettier or TypeScript ESLint packages',
+			installed.join() === 'eslint-config-expo-magic',
+			`the package is the only package installed, with no ESLint, Prettier, oxlint or plugin package (found: ${installed.join(', ')})`,
 		);
 
 		run(
@@ -149,6 +146,10 @@ function main() {
 				rule.startsWith('src/disabled.ts typescript(no-explicit-any)'),
 			),
 			'an eslint-disable comment with the @typescript-eslint name still works',
+		);
+		check(
+			![...rules].some((rule) => rule.startsWith('src/oxlint-disabled.ts ')),
+			'an oxlint-disable comment works',
 		);
 		check(
 			rules.has('src/unformatted.ts bun(format)'),

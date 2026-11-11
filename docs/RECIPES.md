@@ -1,152 +1,151 @@
 # Override Recipes
 
-These are common override patterns for teams adopting `eslint-config-expo-magic`.
+These are common patterns for teams adopting `eslint-config-expo-magic`. Every config goes in `oxlint.config.ts`, which `bun lint` reads.
+
+Each factory returns one oxlint config object, not an array, so you cannot merge configs with a spread. Pass a `createConfig` option when one exists. Otherwise add a block to the returned object with `config.overrides.push({ files, rules })`. Later overrides win.
+
+An override replaces a rule's options. It does not merge them. A rule set to a bare severity, such as `'import/order': 'warn'`, runs with that rule's default options, not the ones the preset configured. The recipes below copy the preset's options where that matters.
+
+In an override, write a rule name the way the config object has it: `typescript/<rule>` and `import/<rule>`, not `@typescript-eslint/<rule>` and `import-x/<rule>`.
 
 ## Adopt the opinionated mobile-app profile
 
-```js
-module.exports = require('eslint-config-expo-magic/mobile-app');
+```ts
+export { default } from 'eslint-config-expo-magic/mobile-app';
 ```
 
 Use the factory only when the app needs extra project globs:
 
-```js
-const {
-	createMobileAppConfig,
-} = require('eslint-config-expo-magic/mobile-app');
+```ts
+import { createMobileAppConfig } from 'eslint-config-expo-magic/mobile-app';
 
-module.exports = createMobileAppConfig({
+export default createMobileAppConfig({
 	extraIgnores: ['generated/**'],
 });
 ```
 
 ## Allow `console` in app code but keep it strict in packages
 
-```js
-const config = require('eslint-config-expo-magic');
+```ts
+import { createConfig } from 'eslint-config-expo-magic';
 
-module.exports = [
-	...config,
-	{
-		files: ['app/**', 'src/**'],
-		rules: {
-			'no-console': 'off',
-		},
+const config = createConfig();
+
+config.overrides.push({
+	files: ['app/**', 'src/**'],
+	rules: {
+		'no-console': 'off',
 	},
-];
+});
+
+export default config;
 ```
 
 ## Enable formatting and testing integrations
 
-The root preset leaves formatting and testing rules off. Their dependencies ship with the package, so enable either integration directly:
+The root preset leaves formatting and testing rules off. Enable either integration directly:
 
-```js
-const { createConfig } = require('eslint-config-expo-magic');
+```ts
+import { createConfig } from 'eslint-config-expo-magic';
 
-module.exports = createConfig({
+export default createConfig({
 	prettier: true,
 	testing: true,
 });
 ```
 
-## Keep the default preset but disable one opinionated rule
+`prettier: true` reports formatting differences from `bun lint` with the `bun/format` rule. `bun fmt` reads the shared options from `.prettierrc.js`:
 
 ```js
-const config = require('eslint-config-expo-magic');
-
-module.exports = [
-	...config,
-	{
-		rules: {
-			'no-restricted-imports': 'off',
-		},
-	},
-];
+module.exports = require('eslint-config-expo-magic/prettier');
 ```
+
+Testing is off by default, so `createConfig()` needs no `testing: false`.
+
+## Keep the default preset but disable one opinionated rule
+
+```ts
+import { createConfig } from 'eslint-config-expo-magic';
+
+const config = createConfig();
+
+config.overrides.push({
+	files: ['**/*'],
+	rules: {
+		'no-restricted-imports': 'off',
+	},
+});
+
+export default config;
+```
+
+This turns off every import restriction the preset sets, including the `SafeAreaView` restriction. To keep the preset's restrictions and add to them, use the folder recipe below.
 
 ## Relax import ordering
 
-```js
-const config = require('eslint-config-expo-magic');
+Copy the preset's `import/order` options so the rule keeps its groups and only changes severity:
 
-module.exports = [
-	...config,
-	{
-		rules: {
-			'import-x/order': 'warn',
-		},
+```ts
+import { createConfig } from 'eslint-config-expo-magic';
+
+const config = createConfig();
+
+const order = config.overrides.findLast(
+	(override) => override.rules?.['import/order'] !== undefined,
+);
+const [, ...orderOptions] = order?.rules?.[
+	'import/order'
+] as readonly unknown[];
+
+config.overrides.push({
+	files: ['**/*'],
+	rules: {
+		'import/order': ['warn', ...orderOptions],
 	},
-];
+});
+
+export default config;
 ```
-
-## Keep testing disabled in a package
-
-```js
-const { createConfig } = require('eslint-config-expo-magic');
-
-module.exports = [
-	...createConfig({
-		testing: false,
-	}),
-];
-```
-
-## Custom monorepo `tsconfig` layout
-
-```js
-const { createConfig } = require('eslint-config-expo-magic');
-
-module.exports = [
-	...createConfig({
-		tsconfigProjects: [
-			'./tsconfig.json',
-			'./apps/*/tsconfig.json',
-			'./packages/*/tsconfig.eslint.json',
-		],
-	}),
-];
-```
-
-Paths are relative to the directory ESLint runs from. The import resolvers always use this list. Type-aware parsing keeps `projectService` unless `typeChecked: true` is also set; then the parser uses this list as `parserOptions.project`.
 
 ## Base preset first, then re-add only the rules you want
 
-```js
-const base = require('eslint-config-expo-magic/base');
+```ts
+import base from 'eslint-config-expo-magic/base';
 
-module.exports = [
-	...base,
-	{
-		rules: {
-			'no-console': 'warn',
-			'import-x/order': 'error',
-		},
+base.overrides.push({
+	files: ['**/*'],
+	rules: {
+		'no-console': 'warn',
+		eqeqeq: 'error',
 	},
-];
+});
+
+export default base;
 ```
 
 ## Web-only overrides in a mixed Expo project
 
-```js
-const config = require('eslint-config-expo-magic');
+```ts
+import { createConfig } from 'eslint-config-expo-magic';
 
-module.exports = [
-	...config,
-	{
-		files: ['**/*.web.ts', '**/*.web.tsx'],
-		rules: {
-			'react-native/no-raw-text': 'off',
-		},
+const config = createConfig({ inlineStyles: true });
+
+config.overrides.push({
+	files: ['**/*.web.ts', '**/*.web.tsx'],
+	rules: {
+		'react-native/no-inline-styles': 'off',
 	},
-];
+});
+
+export default config;
 ```
 
 ## Production Expo app hardening
 
-```js
-const { createConfig } = require('eslint-config-expo-magic');
+```ts
+import { createConfig } from 'eslint-config-expo-magic';
 
-module.exports = createConfig({
+export default createConfig({
 	extraIgnores: [
 		'.eas/**',
 		'.expo/**',
@@ -180,30 +179,30 @@ module.exports = createConfig({
 
 ## React Compiler hardening only
 
-```js
-const { createConfig } = require('eslint-config-expo-magic');
+```ts
+import { createConfig } from 'eslint-config-expo-magic';
 
-module.exports = createConfig({
+export default createConfig({
 	reactCompiler: true,
 });
 ```
 
 ## Reanimated and Worklets `scheduleOnRN`
 
-```js
-const { createConfig } = require('eslint-config-expo-magic');
+```ts
+import { createConfig } from 'eslint-config-expo-magic';
 
-module.exports = createConfig({
+export default createConfig({
 	worklets: true,
 });
 ```
 
 ## Native UI wrapper restrictions
 
-```js
-const { createConfig } = require('eslint-config-expo-magic');
+```ts
+import { createConfig } from 'eslint-config-expo-magic';
 
-module.exports = createConfig({
+export default createConfig({
 	nativeUi: {
 		additionalRestrictions: [
 			{
@@ -221,12 +220,54 @@ module.exports = createConfig({
 });
 ```
 
+## Restricted imports for one folder
+
+`createMobileAppRestrictedImportsConfig` is gone in 6.0, and the package exports no helper that keeps the base restrictions for you. An override's `no-restricted-imports` options replace the options set for the same files, so an override with only your new entry drops the `SafeAreaView` restriction in that folder.
+
+Read the preset's options from the config object and extend them:
+
+```ts
+import { createConfig } from 'eslint-config-expo-magic';
+
+const config = createConfig({ nativeUi: true });
+
+const restricted = config.overrides.findLast(
+	(override) =>
+		override.files.includes('**/*') &&
+		override.rules?.['no-restricted-imports'] !== undefined,
+);
+const [, current] = restricted?.rules?.['no-restricted-imports'] as readonly [
+	unknown,
+	{ paths: readonly unknown[] },
+];
+
+config.overrides.push({
+	files: ['features/**'],
+	rules: {
+		'no-restricted-imports': [
+			'error',
+			{
+				...current,
+				paths: [
+					...current.paths,
+					{ name: 'axios', message: 'Use the shared API client.' },
+				],
+			},
+		],
+	},
+});
+
+export default config;
+```
+
+The lookup takes the last override that applies to `**/*` and sets `no-restricted-imports`. The mobile-app profile also sets `no-restricted-imports` for its source folders and its wrapper files, so for that profile copy the options from the override whose `files` cover your folder.
+
 ## Feature folder dependency boundaries
 
-```js
-const { createConfig } = require('eslint-config-expo-magic');
+```ts
+import { createConfig } from 'eslint-config-expo-magic';
 
-module.exports = createConfig({
+export default createConfig({
 	featureBoundaries: {
 		additionalSharedComponentPatterns: [
 			'features/*/components/focus-selection-form.tsx',

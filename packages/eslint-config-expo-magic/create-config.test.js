@@ -1,4 +1,4 @@
-const { describe, expect, test } = require('bun:test');
+const { afterAll, beforeEach, describe, expect, test } = require('bun:test');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -40,6 +40,64 @@ describe('option validation matches the errors recorded from 5.x', () => {
 			});
 		});
 	}
+});
+
+describe('createMobileAppConfig reads the preset from the environment', () => {
+	const variables = ['EXPO_MAGIC_PRESET', 'ESLINT_CONFIG_PRESET'];
+	const saved = variables.map((name) => process.env[name]);
+	const { createMobileAppConfig } = expoMagic;
+
+	beforeEach(() => {
+		for (const name of variables) delete process.env[name];
+	});
+
+	afterAll(() => {
+		variables.forEach((name, index) => {
+			if (saved[index] === undefined) delete process.env[name];
+			else process.env[name] = saved[index];
+		});
+	});
+
+	test('the profiles differ, so the comparisons below mean something', () => {
+		expect(createMobileAppConfig({ preset: 'fast' })).not.toEqual(
+			createMobileAppConfig({ preset: 'default' }),
+		);
+	});
+
+	for (const name of variables) {
+		test(`${name} selects the preset`, () => {
+			process.env[name] = 'fast';
+			expect(createMobileAppConfig()).toEqual(
+				createMobileAppConfig({ preset: 'fast' }),
+			);
+		});
+	}
+
+	test('EXPO_MAGIC_PRESET wins over ESLINT_CONFIG_PRESET', () => {
+		process.env.EXPO_MAGIC_PRESET = 'default';
+		process.env.ESLINT_CONFIG_PRESET = 'fast';
+		expect(createMobileAppConfig()).toEqual(
+			createMobileAppConfig({ preset: 'default' }),
+		);
+	});
+
+	test('the preset option wins over the environment', () => {
+		const unset = createMobileAppConfig();
+		expect(unset).toEqual(createMobileAppConfig({ preset: 'default' }));
+		process.env.EXPO_MAGIC_PRESET = 'fast';
+		expect(createMobileAppConfig({ preset: 'default' })).toEqual(unset);
+	});
+
+	test('an empty variable counts as unset', () => {
+		const fast = createMobileAppConfig({ preset: 'fast' });
+		process.env.EXPO_MAGIC_PRESET = '';
+		process.env.ESLINT_CONFIG_PRESET = 'fast';
+		expect(createMobileAppConfig()).toEqual(fast);
+		process.env.ESLINT_CONFIG_PRESET = '';
+		expect(createMobileAppConfig()).toEqual(
+			createMobileAppConfig({ preset: 'default' }),
+		);
+	});
 });
 
 describe('the package has no npm runtime dependency', () => {
