@@ -102,7 +102,7 @@ Rules that no option covers go into `config.overrides`. A later entry that sets 
 
 ## Expo SDK lanes
 
-The package declares optional peers on `expo` `^54.0.33` through `^58` and `react` `^19.1` through `^19.3`. The fixture in `test-project/package.json` is the source for the tested versions: Expo 58.0.24, React Native 0.88.1, and React 19.3.0. Keep the SDK and React Native versions coupled to the Expo lane; do not advertise an independent React Native line until Expo publishes a matching stable lane.
+The package declares optional peers on `expo` `^54.0.33` through `^58` and `react` `^19.1` through `^19.3`. The fixture in `test-project/package.json` is the source for the tested versions: Expo 58.0.25, React Native 0.88.1, and React 19.3.0. Keep the SDK and React Native versions coupled to the Expo lane; do not advertise an independent React Native line until Expo publishes a matching stable lane.
 
 The repo keeps the fixture in the root Bun workspace. Use the root `bun.lock` rather than a nested fixture lockfile.
 

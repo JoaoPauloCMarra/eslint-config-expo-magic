@@ -1,7 +1,7 @@
 // The port rejects options and settings it does not implement. The original
 // plugin accepts them, so these checks have no recorded expectations.
 
-const { describe, expect, test } = require('bun:test');
+const { beforeAll, describe, expect, test } = require('bun:test');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -112,6 +112,12 @@ function attempt({ rule = 'dependencies', options, settings = {} }) {
 }
 
 describe('boundaries port rejects unsupported options and settings', () => {
+	// The first lookup can download a new canary, which takes longer than a
+	// test's timeout.
+	beforeAll(() => {
+		resolveBunBinary();
+	}, 600_000);
+
 	test('accepts the supported configuration', () => {
 		expect(attempt({ options: policy })).not.toThrow();
 	});
